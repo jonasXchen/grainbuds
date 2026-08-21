@@ -16,6 +16,8 @@ async function requireAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
+  const { data: isStaff } = await supabase.rpc("grainbuds_is_staff");
+  if (isStaff !== true) redirect("/admin");
   return supabase;
 }
 

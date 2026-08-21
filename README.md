@@ -26,6 +26,11 @@ order. The admin panel needs Supabase (next section).
 1. **Create a project** at [supabase.com](https://supabase.com) (free tier is fine).
 2. **Create the tables**: in the Supabase dashboard, open **SQL Editor → New query**,
    paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and click **Run**.
+
+   *Ran an older version before and getting "already exists" errors?* Run
+   [`supabase/reset.sql`](supabase/reset.sql) first — it drops all
+   `grainbuds_*` tables (and their data) so schema.sql installs cleanly.
+   It touches nothing outside this project's objects.
 3. **Load the real menu**: run [`supabase/seed.sql`](supabase/seed.sql) the same
    way — it contains the full Grainbuds menu (EN + DE, EUR prices, photos from
    the old site). Everything can be edited later in the admin panel, and
@@ -33,8 +38,20 @@ order. The admin panel needs Supabase (next section).
 
 4. **Create the owner's login**: dashboard → **Authentication → Users →
    Add user → Create new user**. Enter the owner's email and a password, and tick
-   **Auto confirm user**. (Anyone you add here can access the admin panel —
-   there is no self-signup.)
+   **Auto confirm user**. Then register that account as Grainbuds staff —
+   back in the SQL Editor, run (with the right email):
+
+   ```sql
+   insert into grainbuds_staff (user_id, email)
+   select id, email from auth.users where email = 'owner@grainbuds.cafe'
+   on conflict (user_id) do nothing;
+   ```
+
+   Both steps are required: a Supabase login alone is *not* enough — only
+   accounts in `grainbuds_staff` can manage the café. This keeps users of any
+   other app sharing the same Supabase project away from `grainbuds_*` tables.
+   To revoke access later, delete the row (`delete from grainbuds_staff where
+   email = '...'`).
 5. **Add the keys to the site**: copy `.env.example` to `.env.local` and fill in
    the two values from **Project Settings → API Keys**: the Project URL and the
    **publishable** key (`sb_publishable_...`). The **secret** key is not needed —
@@ -47,6 +64,11 @@ order. The admin panel needs Supabase (next section).
 ## For the owner — day-to-day use (no coding)
 
 - Go to **yoursite.com/admin** and sign in (also linked as "Staff login" in the site footer).
+- **Staff mode on the shop** — while logged in, browsing the normal shop page
+  shows your products with inline controls: an *Edit* button, a *Live/Hidden*
+  toggle, and a stock stepper directly on each card. Hidden products appear
+  with a "Hidden" overlay (customers never see them), and a floating
+  *Staff mode* pill links back to the admin panel.
 - **Products** — add, edit, hide, or delete anything on the menu:
   - Names and descriptions have an English and an optional German field — if
     the German one is empty, the English text is shown in both languages.

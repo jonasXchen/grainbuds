@@ -16,6 +16,11 @@ async function requireAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
+  // A session alone isn't enough — the account must be on the
+  // grainbuds_staff allowlist (RLS would block the writes anyway;
+  // this gives a clean redirect instead of silent failures).
+  const { data: isStaff } = await supabase.rpc("grainbuds_is_staff");
+  if (isStaff !== true) redirect("/admin");
   return supabase;
 }
 

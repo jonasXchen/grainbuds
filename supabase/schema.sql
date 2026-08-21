@@ -90,6 +90,41 @@ create table grainbuds_subscribers (
   created_at timestamptz not null default now()
 );
 
+-- ============ Staff allowlist ============
+-- Being a logged-in user of this Supabase project is NOT enough to manage
+-- Grainbuds — only accounts listed here count as staff. This keeps other
+-- apps' users in the same project away from grainbuds_* tables entirely.
+--
+-- There are deliberately NO write policies on this table: rows can only be
+-- added or removed in the SQL Editor (see README), never through the API.
+
+create table grainbuds_staff (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table grainbuds_staff enable row level security;
+
+-- Used by every staff policy below. SECURITY DEFINER so the check itself
+-- isn't blocked by RLS; returns false for anonymous and non-staff users.
+create or replace function public.grainbuds_is_staff()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from grainbuds_staff where user_id = auth.uid()
+  );
+$$;
+
+grant execute on function public.grainbuds_is_staff() to anon, authenticated;
+
+create policy "staff read staff list" on grainbuds_staff
+  for select to authenticated using (public.grainbuds_is_staff());
+
 -- ============ Row Level Security ============
 
 alter table grainbuds_categories enable row level security;
@@ -106,11 +141,11 @@ create policy "public read active grainbuds_products" on grainbuds_products
 
 -- Signed-in staff manage the catalog.
 create policy "staff read all grainbuds_products" on grainbuds_products
-  for select to authenticated using (true);
+  for select to authenticated using (public.grainbuds_is_staff());
 create policy "staff write grainbuds_products" on grainbuds_products
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.grainbuds_is_staff()) with check (public.grainbuds_is_staff());
 create policy "staff write grainbuds_categories" on grainbuds_categories
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.grainbuds_is_staff()) with check (public.grainbuds_is_staff());
 
 -- Customers (anonymous) can place grainbuds_orders but never list or read them back
 -- directly — the confirmation page uses grainbuds_order_confirmation() below,
@@ -122,21 +157,21 @@ create policy "public create order items" on grainbuds_order_items
 
 -- Staff manage grainbuds_orders.
 create policy "staff read grainbuds_orders" on grainbuds_orders
-  for select to authenticated using (true);
+  for select to authenticated using (public.grainbuds_is_staff());
 create policy "staff update grainbuds_orders" on grainbuds_orders
-  for update to authenticated using (true) with check (true);
+  for update to authenticated using (public.grainbuds_is_staff()) with check (public.grainbuds_is_staff());
 create policy "staff delete grainbuds_orders" on grainbuds_orders
-  for delete to authenticated using (true);
+  for delete to authenticated using (public.grainbuds_is_staff());
 create policy "staff read order items" on grainbuds_order_items
-  for select to authenticated using (true);
+  for select to authenticated using (public.grainbuds_is_staff());
 
 -- Customers may join the mailing list; only staff can read or manage it.
 create policy "public join grainbuds_subscribers" on grainbuds_subscribers
   for insert with check (true);
 create policy "staff read grainbuds_subscribers" on grainbuds_subscribers
-  for select to authenticated using (true);
+  for select to authenticated using (public.grainbuds_is_staff());
 create policy "staff delete grainbuds_subscribers" on grainbuds_subscribers
-  for delete to authenticated using (true);
+  for delete to authenticated using (public.grainbuds_is_staff());
 
 -- ============ Inventory guard ============
 -- Decrements stock when an order item is placed. Runs with owner
@@ -188,7 +223,7 @@ as $$
     'status', o.status,
     'total_cents', o.total_cents,
     'created_at', o.created_at,
-    'grainbuds_order_items', coalesce((
+    'order_items', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', i.id,
         'product_name', i.product_name,
@@ -212,8 +247,8 @@ on conflict (id) do nothing;
 create policy "public read product images" on storage.objects
   for select using (bucket_id = 'grainbuds-product-images');
 create policy "staff upload product images" on storage.objects
-  for insert to authenticated with check (bucket_id = 'grainbuds-product-images');
+  for insert to authenticated with check (bucket_id = 'grainbuds-product-images' and public.grainbuds_is_staff());
 create policy "staff update product images" on storage.objects
-  for update to authenticated using (bucket_id = 'grainbuds-product-images');
+  for update to authenticated using (bucket_id = 'grainbuds-product-images' and public.grainbuds_is_staff());
 create policy "staff delete product images" on storage.objects
-  for delete to authenticated using (bucket_id = 'grainbuds-product-images');
+  for delete to authenticated using (bucket_id = 'grainbuds-product-images' and public.grainbuds_is_staff());

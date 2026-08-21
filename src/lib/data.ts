@@ -22,6 +22,9 @@ export async function getCategories(): Promise<Category[]> {
 export async function getProducts(opts?: {
   featuredOnly?: boolean;
   categorySlug?: string;
+  /** Staff view: also return hidden products (RLS only allows this for
+   *  authenticated sessions — anonymous requests still get active only). */
+  includeInactive?: boolean;
 }): Promise<Product[]> {
   if (!hasSupabaseEnv()) {
     let items = seedProducts.filter((product) => product.is_active);
@@ -37,8 +40,8 @@ export async function getProducts(opts?: {
   let query = supabase
     .from("grainbuds_products")
     .select("*, category:grainbuds_categories(*)")
-    .eq("is_active", true)
     .order("sort_order");
+  if (!opts?.includeInactive) query = query.eq("is_active", true);
   if (opts?.featuredOnly) query = query.eq("is_featured", true);
   const { data, error } = await query;
   if (error || !data) return [];

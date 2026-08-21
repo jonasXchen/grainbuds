@@ -10,8 +10,10 @@ import {
   localizedName,
 } from "@/lib/types";
 import { useLocale, useT } from "@/lib/i18n/context";
+import { useAdminMode } from "@/lib/admin-mode-context";
 import ProductImage from "./ProductImage";
 import AddToCartButton from "./AddToCartButton";
+import AdminCardControls from "./AdminCardControls";
 
 export default function ProductCard({
   product,
@@ -22,6 +24,7 @@ export default function ProductCard({
 }) {
   const locale = useLocale();
   const t = useT();
+  const adminMode = useAdminMode();
 
   return (
     <motion.article
@@ -41,6 +44,13 @@ export default function ProductCard({
         className="relative block aspect-[4/3] overflow-hidden rounded-2xl"
       >
         <ProductImage product={product} className="h-full w-full" />
+        {adminMode && !product.is_active && (
+          <span className="absolute inset-0 flex items-center justify-center bg-cream/60 backdrop-blur-[2px]">
+            <span className="rounded-full bg-ink px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-cream">
+              Hidden
+            </span>
+          </span>
+        )}
         {isSoldOut(product) && (
           <span className="absolute right-3 top-3 rounded-full bg-ink/85 px-3 py-1 text-[11px] font-medium uppercase tracking-widest text-cream backdrop-blur">
             {t.shop.soldOut}
@@ -72,6 +82,7 @@ export default function ProductCard({
           </span>
           <AddToCartButton product={product} size="sm" />
         </div>
+        {adminMode && <AdminCardControls product={product} />}
       </div>
     </motion.article>
   );
