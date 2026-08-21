@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-
-const headline = ["Slow", "down.", "Sip", "green."];
+import { useT } from "@/lib/i18n/context";
 
 export default function Hero() {
+  const t = useT();
+  const headline = t.hero.headline;
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -38,7 +39,7 @@ export default function Hero() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="text-xs font-semibold uppercase tracking-[0.3em] text-matcha-deep"
           >
-            Matcha · Grain bowls · Quiet corners
+            {t.hero.eyebrow}
           </motion.p>
 
           <h1 className="mt-5 font-display text-6xl leading-[0.95] tracking-tight text-ink sm:text-7xl lg:text-8xl">
@@ -66,9 +67,7 @@ export default function Hero() {
             transition={{ duration: 0.7, delay: 0.9 }}
             className="mt-6 max-w-md text-base leading-relaxed text-ink/60 sm:text-lg"
           >
-            Grainbuds is a small Asian café built around one idea: good things
-            take time to steep. Stone-ground matcha, warm grain bowls, and
-            pastry from the morning oven.
+            {t.hero.sub}
           </motion.p>
 
           <motion.div
@@ -81,7 +80,7 @@ export default function Hero() {
               href="/shop"
               className="group rounded-full bg-ink px-8 py-4 text-sm font-medium text-cream transition-all duration-300 hover:bg-matcha-deep hover:shadow-[0_16px_40px_-16px_rgba(109,127,46,0.7)]"
             >
-              Order for pickup
+              {t.hero.cta}
               <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
                 →
               </span>
@@ -90,7 +89,7 @@ export default function Hero() {
               href="/#story"
               className="link-underline text-sm font-medium text-ink/70"
             >
-              Our story
+              {t.hero.ourStory}
             </Link>
           </motion.div>
         </div>
@@ -112,9 +111,7 @@ export default function Hero() {
                 />
               </defs>
               <text className="fill-ink/50 text-[10.5px] uppercase tracking-[0.32em]">
-                <textPath href="#circlePath">
-                  grainbuds café · whisked daily ·
-                </textPath>
+                <textPath href="#circlePath">{t.hero.seal}</textPath>
               </text>
             </svg>
           </div>
@@ -171,7 +168,9 @@ export default function Hero() {
           transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
           className="flex flex-col items-center gap-2 text-ink/40"
         >
-          <span className="text-[11px] uppercase tracking-[0.25em]">Scroll</span>
+          <span className="text-[11px] uppercase tracking-[0.25em]">
+            {t.hero.scroll}
+          </span>
           <svg viewBox="0 0 16 24" className="h-6 w-4" fill="none">
             <rect x="1.5" y="1.5" width="13" height="21" rx="6.5" stroke="currentColor" strokeWidth="1.5" />
             <circle cx="8" cy="8" r="2" fill="currentColor" />

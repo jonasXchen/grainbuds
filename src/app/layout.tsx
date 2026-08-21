@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s — Grainbuds",
   },
   description:
-    "A calm corner for matcha, grain bowls, and slow mornings. Order online for pickup at Grainbuds Asian Café.",
+    "A calm corner in Erlangen for matcha, boba, and sushi. Order online for pickup at Grainbuds Asian Café, Universitätsstraße 7.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

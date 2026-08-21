@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
-import { formatPrice } from "@/lib/types";
+import { formatPrice, localizedName } from "@/lib/types";
+import { useLocale, useT } from "@/lib/i18n/context";
 import ProductImage from "./ProductImage";
 
 export default function CartDrawer() {
   const { lines, isOpen, closeCart, setQuantity, removeItem, totalCents } =
     useCart();
+  const locale = useLocale();
+  const t = useT();
 
   return (
     <AnimatePresence>
@@ -31,15 +34,15 @@ export default function CartDrawer() {
             transition={{ type: "spring", stiffness: 300, damping: 32 }}
             className="fixed right-0 top-0 z-50 flex h-dvh w-full max-w-md flex-col bg-cream shadow-2xl"
             role="dialog"
-            aria-label="Shopping cart"
+            aria-label={t.cart.title}
           >
             <div className="flex items-center justify-between border-b border-ink/10 px-6 py-5">
-              <h2 className="font-display text-2xl text-ink">Your order</h2>
+              <h2 className="font-display text-2xl text-ink">{t.cart.title}</h2>
               <button
                 type="button"
                 onClick={closeCart}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink transition-colors hover:bg-ink hover:text-cream"
-                aria-label="Close cart"
+                aria-label={t.cart.close}
               >
                 <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
                   <path
@@ -65,18 +68,14 @@ export default function CartDrawer() {
                     />
                   </svg>
                 </span>
-                <p className="font-display text-xl text-ink">
-                  Your cart is empty
-                </p>
-                <p className="text-sm text-ink/60">
-                  A quiet moment is waiting — add something warm.
-                </p>
+                <p className="font-display text-xl text-ink">{t.cart.empty}</p>
+                <p className="text-sm text-ink/60">{t.cart.emptySub}</p>
                 <Link
                   href="/shop"
                   onClick={closeCart}
                   className="mt-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
                 >
-                  Browse the menu
+                  {t.cart.browse}
                 </Link>
               </div>
             ) : (
@@ -102,13 +101,13 @@ export default function CartDrawer() {
                         <div className="flex flex-1 flex-col">
                           <div className="flex items-start justify-between gap-2">
                             <p className="font-display text-base leading-snug text-ink">
-                              {line.product.name}
+                              {localizedName(line.product, locale)}
                             </p>
                             <button
                               type="button"
                               onClick={() => removeItem(line.product.id)}
                               className="text-ink/40 transition-colors hover:text-ink"
-                              aria-label={`Remove ${line.product.name}`}
+                              aria-label={`${t.cart.remove}: ${localizedName(line.product, locale)}`}
                             >
                               <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
                                 <path
@@ -128,7 +127,7 @@ export default function CartDrawer() {
                                   setQuantity(line.product.id, line.quantity - 1)
                                 }
                                 className="flex h-7 w-7 items-center justify-center text-ink/60 hover:text-ink"
-                                aria-label="Decrease quantity"
+                                aria-label={t.product.decrease}
                               >
                                 −
                               </button>
@@ -141,14 +140,15 @@ export default function CartDrawer() {
                                   setQuantity(line.product.id, line.quantity + 1)
                                 }
                                 className="flex h-7 w-7 items-center justify-center text-ink/60 hover:text-ink"
-                                aria-label="Increase quantity"
+                                aria-label={t.product.increase}
                               >
                                 +
                               </button>
                             </div>
                             <span className="text-sm font-medium text-ink">
                               {formatPrice(
-                                line.product.price_cents * line.quantity
+                                line.product.price_cents * line.quantity,
+                                locale
                               )}
                             </span>
                           </div>
@@ -160,20 +160,20 @@ export default function CartDrawer() {
 
                 <div className="border-t border-ink/10 px-6 py-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-ink/60">Subtotal</span>
+                    <span className="text-sm text-ink/60">
+                      {t.cart.subtotal}
+                    </span>
                     <span className="font-display text-xl text-ink">
-                      {formatPrice(totalCents)}
+                      {formatPrice(totalCents, locale)}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-ink/50">
-                    Pay in store when you pick up.
-                  </p>
+                  <p className="mt-1 text-xs text-ink/50">{t.cart.payNote}</p>
                   <Link
                     href="/checkout"
                     onClick={closeCart}
                     className="mt-4 block w-full rounded-full bg-ink py-3.5 text-center text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
                   >
-                    Continue to pickup details
+                    {t.cart.continue}
                   </Link>
                 </div>
               </>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
+import { getT } from "@/lib/i18n/server";
 import { formatPrice, type Order } from "@/lib/types";
 import Reveal from "@/components/site/Reveal";
 
@@ -20,7 +21,7 @@ export default async function OrderConfirmationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const order = await getOrder(id);
+  const [order, { locale, t }] = await Promise.all([getOrder(id), getT()]);
   const isDemo = id === "demo";
 
   return (
@@ -41,23 +42,21 @@ export default async function OrderConfirmationPage({
         </Reveal>
         <Reveal delay={0.1}>
           <h1 className="mt-7 font-display text-4xl leading-tight text-ink sm:text-5xl">
-            Order received.
+            {t.order.titleA}
             <br />
-            <span className="text-matcha-deep">The whisk is moving.</span>
+            <span className="text-matcha-deep">{t.order.titleB}</span>
           </h1>
         </Reveal>
         <Reveal delay={0.2}>
           <p className="mt-5 text-ink/60">
-            {isDemo
-              ? "This is a demo order — connect Supabase to start saving real orders."
-              : "We'll have everything ready for your pickup. Pay at the counter — see you soon."}
+            {isDemo ? t.order.subDemo : t.order.sub}
           </p>
         </Reveal>
 
         {order && (
           <Reveal delay={0.3} className="mt-8 rounded-3xl bg-cream-light p-7 text-left">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sand-deep">
-              Order for {order.customer_name}
+              {t.order.orderFor} {order.customer_name}
             </p>
             <ul className="mt-4 space-y-2.5">
               {order.order_items?.map((item) => (
@@ -66,20 +65,20 @@ export default async function OrderConfirmationPage({
                     {item.quantity} × {item.product_name}
                   </span>
                   <span className="text-ink/60">
-                    {formatPrice(item.unit_price_cents * item.quantity)}
+                    {formatPrice(item.unit_price_cents * item.quantity, locale)}
                   </span>
                 </li>
               ))}
             </ul>
             <div className="mt-5 flex justify-between border-t border-ink/10 pt-4">
-              <span className="text-sm text-ink/60">Total at pickup</span>
+              <span className="text-sm text-ink/60">{t.order.total}</span>
               <span className="font-display text-xl text-ink">
-                {formatPrice(order.total_cents)}
+                {formatPrice(order.total_cents, locale)}
               </span>
             </div>
             {order.pickup_time && (
               <p className="mt-4 text-sm text-ink/55">
-                Pickup: {order.pickup_time}
+                {t.order.pickup}: {order.pickup_time}
               </p>
             )}
           </Reveal>
@@ -90,7 +89,7 @@ export default async function OrderConfirmationPage({
             href="/"
             className="rounded-full bg-ink px-8 py-4 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
           >
-            Back to the café
+            {t.order.back}
           </Link>
         </Reveal>
       </div>

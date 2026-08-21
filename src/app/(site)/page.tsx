@@ -1,48 +1,25 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { getProducts } from "@/lib/data";
+import { getT } from "@/lib/i18n/server";
+import { cafeInfo, galleryImages } from "@/lib/cafe-info";
 import Hero from "@/components/site/Hero";
 import Marquee from "@/components/site/Marquee";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
-import SectionHeading from "@/components/site/SectionHeading";
 import ProductCard from "@/components/site/ProductCard";
 
-export const revalidate = 60;
-
-const ritualSteps = [
-  {
-    number: "01",
-    title: "Sift",
-    text: "Every bowl starts with ceremonial matcha sifted fresh — no clumps, no shortcuts.",
-  },
-  {
-    number: "02",
-    title: "Whisk",
-    text: "Eighty quick strokes with a bamboo chasen until the surface turns to soft green foam.",
-  },
-  {
-    number: "03",
-    title: "Settle",
-    text: "Then the best part: you, a warm cup, and nowhere you need to be for a while.",
-  },
-];
-
 export default async function HomePage() {
-  const featured = await getProducts({ featuredOnly: true });
+  const [featured, { t }] = await Promise.all([
+    getProducts({ featuredOnly: true }),
+    getT(),
+  ]);
 
   return (
     <>
       <Hero />
 
-      <Marquee
-        items={[
-          "Ceremonial matcha",
-          "Baked every morning",
-          "Grain bowls",
-          "Order ahead, skip the line",
-          "Slow mornings welcome",
-        ]}
-      />
+      <Marquee items={[...t.marquee]} />
 
       {/* Story */}
       <section id="story" className="relative overflow-hidden px-5 py-28 sm:px-8">
@@ -57,27 +34,22 @@ export default async function HomePage() {
           <div>
             <Reveal>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
-                Our story
+                {t.story.eyebrow}
               </p>
               <h2 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">
-                Small café,
+                {t.story.titleA}
                 <br />
-                <span className="text-matcha-deep">patient rituals.</span>
+                <span className="text-matcha-deep">{t.story.titleB}</span>
               </h2>
             </Reveal>
             <Reveal delay={0.15}>
               <p className="mt-6 text-base leading-relaxed text-ink/65">
-                Grainbuds began as a tiny counter with one kettle and a
-                conviction: that a café can be the quietest room in your day.
-                We whisk single-origin matcha from Uji, press onigiri by hand,
-                and bake in small batches that sell out by afternoon — on
-                purpose.
+                {t.story.p1}
               </p>
             </Reveal>
             <Reveal delay={0.3}>
               <p className="mt-4 text-base leading-relaxed text-ink/65">
-                No rush, no laptops-only rows of tables, no burnt espresso
-                smell. Just grain, green tea, and time moving a little slower.
+                {t.story.p2}
               </p>
             </Reveal>
             <Reveal delay={0.45}>
@@ -85,7 +57,7 @@ export default async function HomePage() {
                 href="/shop"
                 className="link-underline mt-8 inline-block text-sm font-medium text-ink"
               >
-                See what&apos;s on today →
+                {t.story.link}
               </Link>
             </Reveal>
           </div>
@@ -93,11 +65,12 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 gap-4">
             <Parallax speed={0.25}>
               <Reveal className="aspect-[3/4] overflow-hidden rounded-3xl bg-matcha/25">
-                <div className="flex h-full items-end p-6">
-                  <p className="font-display text-2xl leading-snug text-matcha-deep">
-                    “The whisk is the metronome of the morning.”
-                  </p>
-                </div>
+                <img
+                  src={galleryImages[0]}
+                  alt="Inside the Grainbuds café"
+                  className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                />
               </Reveal>
             </Parallax>
             <Parallax speed={-0.25} className="mt-10">
@@ -113,8 +86,7 @@ export default async function HomePage() {
                     <path d="M24 40 V12" stroke="currentColor" strokeWidth="2" opacity="0.6" />
                   </svg>
                   <p className="text-sm leading-relaxed text-ink/70">
-                    Named for the little grains and buds that make everything
-                    on our menu — rice, tea leaves, sesame, barley.
+                    {t.story.nameNote}
                   </p>
                 </div>
               </Reveal>
@@ -126,20 +98,23 @@ export default async function HomePage() {
       {/* Ritual steps */}
       <section className="bg-ink px-5 py-28 text-cream sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <SectionHeading
-            eyebrow="The ritual"
-            title="Three steps to a better morning"
-            align="left"
-          />
+          <Reveal className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha">
+              {t.ritual.eyebrow}
+            </p>
+            <h2 className="mt-3 font-display text-4xl leading-tight sm:text-5xl">
+              {t.ritual.title}
+            </h2>
+          </Reveal>
           <div className="mt-14 grid gap-8 md:grid-cols-3">
-            {ritualSteps.map((step, i) => (
+            {t.ritual.steps.map((step, i) => (
               <Reveal
-                key={step.number}
+                key={step.title}
                 delay={i * 0.15}
                 className="group rounded-3xl border border-cream/10 p-8 transition-colors duration-500 hover:border-matcha/60 hover:bg-cream/5"
               >
                 <span className="font-display text-5xl text-matcha/70 transition-colors duration-500 group-hover:text-matcha">
-                  {step.number}
+                  0{i + 1}
                 </span>
                 <h3 className="mt-5 font-display text-2xl">{step.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-cream/60">
@@ -154,11 +129,17 @@ export default async function HomePage() {
       {/* Featured products */}
       <section className="px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <SectionHeading
-            eyebrow="From the bar"
-            title="House favorites"
-            description="The drinks and bites our regulars ask for by name. Order ahead and they'll be waiting, still warm."
-          />
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
+              {t.featured.eyebrow}
+            </p>
+            <h2 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">
+              {t.featured.title}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-ink/60">
+              {t.featured.desc}
+            </p>
+          </Reveal>
           <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featured.slice(0, 6).map((product, i) => (
               <ProductCard key={product.id} product={product} index={i} />
@@ -169,12 +150,44 @@ export default async function HomePage() {
               href="/shop"
               className="group inline-flex items-center gap-2 rounded-full border border-ink/20 px-8 py-4 text-sm font-medium text-ink transition-all duration-300 hover:border-ink hover:bg-ink hover:text-cream"
             >
-              Browse the full menu
+              {t.featured.browseAll}
               <span className="transition-transform duration-300 group-hover:translate-x-1">
                 →
               </span>
             </Link>
           </Reveal>
+        </div>
+      </section>
+
+      {/* Gallery */}
+      <section className="overflow-hidden px-5 pb-28 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <Reveal>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
+              {t.gallery.eyebrow}
+            </p>
+            <h2 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">
+              {t.gallery.title}
+            </h2>
+          </Reveal>
+          <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {galleryImages.slice(1, 7).map((image, i) => (
+              <Reveal
+                key={image}
+                delay={(i % 4) * 0.1}
+                className={`overflow-hidden rounded-3xl ${
+                  i % 3 === 0 ? "row-span-2" : ""
+                }`}
+              >
+                <img
+                  src={image}
+                  alt="Grainbuds café impressions"
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-105"
+                />
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -191,50 +204,70 @@ export default async function HomePage() {
           <Reveal>
             <div className="rounded-3xl bg-ink p-10 text-cream shadow-[0_30px_60px_-30px_rgba(18,26,37,0.5)]">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sand">
-                Hours
+                {t.visit.hoursTitle}
               </p>
               <ul className="mt-6 space-y-4">
-                {[
-                  ["Monday – Friday", "8:00 – 17:00"],
-                  ["Saturday", "9:00 – 18:00"],
-                  ["Sunday", "9:00 – 16:00"],
-                ].map(([day, hours]) => (
-                  <li
-                    key={day}
-                    className="flex items-baseline justify-between gap-4 border-b border-cream/10 pb-4"
-                  >
-                    <span className="text-sm text-cream/70">{day}</span>
-                    <span className="font-display text-lg">{hours}</span>
-                  </li>
-                ))}
+                <li className="flex items-baseline justify-between gap-4 border-b border-cream/10 pb-4">
+                  <span className="text-sm text-cream/70">{t.visit.monSat}</span>
+                  <span className="font-display text-lg">10:30 – 19:00</span>
+                </li>
+                <li className="flex items-baseline justify-between gap-4 border-b border-cream/10 pb-4">
+                  <span className="text-sm text-cream/70">{t.visit.sunday}</span>
+                  <span className="font-display text-lg">{t.visit.closed}</span>
+                </li>
               </ul>
-              <p className="mt-6 text-sm leading-relaxed text-cream/50">
-                Pastries are baked once, in the morning. When today&apos;s tray
-                is gone, it&apos;s gone — order ahead if you have your heart
-                set.
+              <address className="mt-6 space-y-1 text-sm not-italic leading-relaxed text-cream/70">
+                <p>{cafeInfo.address.street}</p>
+                <p>
+                  {cafeInfo.address.zip} {cafeInfo.address.city}
+                </p>
+                <p>
+                  <a
+                    href={cafeInfo.phoneHref}
+                    className="transition-colors hover:text-matcha"
+                  >
+                    {cafeInfo.phone}
+                  </a>
+                </p>
+              </address>
+              <p className="mt-5 text-sm leading-relaxed text-cream/50">
+                {t.visit.note}
               </p>
             </div>
           </Reveal>
 
           <div>
-            <SectionHeading
-              eyebrow="Visit"
-              title="Come sit for a while"
-              align="left"
-              description="Find us at the corner where the neighborhood slows down. Order at the counter, or ahead of time — either way, your cup is whisked to order."
-            />
+            <Reveal className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
+                {t.visit.eyebrow}
+              </p>
+              <h2 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">
+                {t.visit.title}
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-ink/60">
+                {t.visit.desc}
+              </p>
+            </Reveal>
             <Reveal delay={0.2} className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/shop"
                 className="rounded-full bg-matcha-deep px-8 py-4 text-sm font-medium text-cream transition-colors duration-300 hover:bg-ink"
               >
-                Order ahead
+                {t.visit.orderAhead}
               </Link>
               <a
-                href="mailto:hello@grainbuds.cafe"
+                href={cafeInfo.mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="rounded-full border border-ink/20 px-8 py-4 text-sm font-medium text-ink transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-cream"
               >
-                Say hello
+                {t.visit.directions} ↗
+              </a>
+              <a
+                href={cafeInfo.phoneHref}
+                className="rounded-full border border-ink/20 px-8 py-4 text-sm font-medium text-ink transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-cream"
+              >
+                {t.visit.callUs}
               </a>
             </Reveal>
           </div>

@@ -6,6 +6,7 @@
 create table if not exists categories (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  name_de text not null default '',
   slug text not null unique,
   sort_order int not null default 0,
   created_at timestamptz not null default now()
@@ -15,8 +16,10 @@ create table if not exists products (
   id uuid primary key default gen_random_uuid(),
   category_id uuid references categories(id) on delete set null,
   name text not null,
+  name_de text not null default '',
   slug text not null unique,
   description text not null default '',
+  description_de text not null default '',
   price_cents int not null check (price_cents >= 0),
   image_url text,
   is_active boolean not null default true,

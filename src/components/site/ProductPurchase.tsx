@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import type { Product } from "@/lib/types";
+import { useT } from "@/lib/i18n/context";
 import AddToCartButton from "./AddToCartButton";
 
 export default function ProductPurchase({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
+  const t = useT();
 
   return (
     <div className="flex flex-wrap items-center gap-4">
@@ -14,7 +16,7 @@ export default function ProductPurchase({ product }: { product: Product }) {
           type="button"
           onClick={() => setQuantity((q) => Math.max(1, q - 1))}
           className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
-          aria-label="Decrease quantity"
+          aria-label={t.product.decrease}
         >
           −
         </button>
@@ -23,7 +25,7 @@ export default function ProductPurchase({ product }: { product: Product }) {
           type="button"
           onClick={() => setQuantity((q) => Math.min(20, q + 1))}
           className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
-          aria-label="Increase quantity"
+          aria-label={t.product.increase}
         >
           +
         </button>

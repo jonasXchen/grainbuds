@@ -5,12 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
-
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/shop", label: "Shop" },
-  { href: "/#visit", label: "Visit" },
-];
+import { useT } from "@/lib/i18n/context";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 function subscribeToScroll(callback: () => void) {
   window.addEventListener("scroll", callback, { passive: true });
@@ -26,6 +22,13 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { totalItems, openCart } = useCart();
   const pathname = usePathname();
+  const t = useT();
+
+  const navLinks = [
+    { href: "/", label: t.nav.home },
+    { href: "/shop", label: t.nav.shop },
+    { href: "/#visit", label: t.nav.visit },
+  ];
 
   // Close the mobile menu when navigating to a new page.
   const [lastPathname, setLastPathname] = useState(pathname);
@@ -78,11 +81,12 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           <button
             type="button"
             onClick={openCart}
             className="relative flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-cream-light text-ink transition-colors duration-300 hover:border-matcha hover:bg-matcha/15"
-            aria-label={`Open cart, ${totalItems} items`}
+            aria-label={`${t.nav.openCart} (${totalItems})`}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
               <path
@@ -116,16 +120,16 @@ export default function Header() {
 
           <Link
             href="/shop"
-            className="hidden rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition-colors duration-300 hover:bg-matcha-deep md:block"
+            className="hidden rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition-colors duration-300 hover:bg-matcha-deep lg:block"
           >
-            Order pickup
+            {t.nav.orderPickup}
           </Link>
 
           <button
             type="button"
             className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-cream-light md:hidden"
             onClick={() => setMenuOpen((open) => !open)}
-            aria-label="Toggle menu"
+            aria-label={t.nav.openMenu}
           >
             <motion.span
               animate={menuOpen ? { rotate: 45, y: 3.5 } : { rotate: 0, y: 0 }}
@@ -164,7 +168,7 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)}
                 className="mt-2 rounded-full bg-ink px-5 py-3 text-center text-sm font-medium text-cream"
               >
-                Order pickup
+                {t.nav.orderPickup}
               </Link>
             </div>
           </motion.nav>

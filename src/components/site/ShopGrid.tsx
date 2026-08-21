@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Category, Product } from "@/lib/types";
+import { localizedName } from "@/lib/types";
+import { useLocale, useT } from "@/lib/i18n/context";
 import ProductCard from "./ProductCard";
 
 export default function ShopGrid({
@@ -13,6 +15,8 @@ export default function ShopGrid({
   categories: Category[];
 }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const locale = useLocale();
+  const t = useT();
 
   const usedCategories = useMemo(
     () =>
@@ -33,7 +37,10 @@ export default function ShopGrid({
   return (
     <div>
       <div className="flex flex-wrap justify-center gap-2.5">
-        {[{ id: null as string | null, name: "Everything" }, ...usedCategories].map(
+        {[
+          { id: null as string | null, name: t.shop.everything },
+          ...usedCategories,
+        ].map(
           (category) => {
             const isActive = activeCategory === category.id;
             return (
@@ -54,7 +61,9 @@ export default function ShopGrid({
                     transition={{ type: "spring", stiffness: 380, damping: 32 }}
                   />
                 )}
-                <span className="relative">{category.name}</span>
+                <span className="relative">
+                  {localizedName(category, locale)}
+                </span>
               </button>
             );
           }
@@ -79,9 +88,7 @@ export default function ShopGrid({
       </motion.div>
 
       {visible.length === 0 && (
-        <p className="mt-16 text-center text-ink/50">
-          Nothing here yet — check back soon.
-        </p>
+        <p className="mt-16 text-center text-ink/50">{t.shop.empty}</p>
       )}
     </div>
   );

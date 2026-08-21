@@ -29,36 +29,72 @@ export default function ProductForm({
     <form action={formAction} className="max-w-2xl space-y-6">
       {product && <input type="hidden" name="id" value={product.id} />}
 
-      <div>
-        <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">
-          Product name *
-        </label>
-        <input
-          id="name"
-          name="name"
-          required
-          maxLength={120}
-          defaultValue={product?.name}
-          className={inputClass}
-          placeholder="Ceremonial Matcha Latte"
-        />
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">
+            Product name (English) *
+          </label>
+          <input
+            id="name"
+            name="name"
+            required
+            maxLength={120}
+            defaultValue={product?.name}
+            className={inputClass}
+            placeholder="Pistachio Matcha"
+          />
+        </div>
+        <div>
+          <label htmlFor="name_de" className="mb-2 block text-sm font-medium text-ink">
+            Name (German)
+          </label>
+          <input
+            id="name_de"
+            name="name_de"
+            maxLength={120}
+            defaultValue={product?.name_de ?? ""}
+            className={inputClass}
+            placeholder="Pistazien-Matcha"
+          />
+          <p className="mt-1.5 text-xs text-ink/45">
+            Leave empty to reuse the English name.
+          </p>
+        </div>
       </div>
 
       <div>
         <label htmlFor="description" className="mb-2 block text-sm font-medium text-ink">
-          Description
+          Description (English)
         </label>
         <textarea
           id="description"
           name="description"
-          rows={4}
+          rows={3}
           maxLength={1000}
           defaultValue={product?.description}
           className={`${inputClass} resize-none`}
-          placeholder="What is it, what does it taste like, what makes it special…"
+          placeholder="Matcha, pistachio cream, milk"
         />
         <p className="mt-1.5 text-xs text-ink/45">
           Shown on the shop page and the product page.
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="description_de" className="mb-2 block text-sm font-medium text-ink">
+          Description (German)
+        </label>
+        <textarea
+          id="description_de"
+          name="description_de"
+          rows={3}
+          maxLength={1000}
+          defaultValue={product?.description_de ?? ""}
+          className={`${inputClass} resize-none`}
+          placeholder="Matcha, Pistaziencreme, Milch"
+        />
+        <p className="mt-1.5 text-xs text-ink/45">
+          Leave empty to reuse the English description.
         </p>
       </div>
 

@@ -1,6 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "@/lib/i18n/context";
+import { cafeInfo } from "@/lib/cafe-info";
 
 export default function Footer() {
+  const t = useT();
+
   return (
     <footer className="bg-ink text-cream">
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
@@ -20,49 +26,76 @@ export default function Footer() {
               <span className="font-display text-xl">grainbuds</span>
             </div>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream/60">
-              A calm corner for matcha, grain bowls, and slow mornings.
-              Everything whisked, pressed, and baked with care.
+              {t.footer.tagline}
             </p>
           </div>
 
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.25em] text-sand">
-              Visit us
+              {t.footer.visitUs}
             </h3>
             <address className="mt-4 space-y-1 text-sm not-italic leading-relaxed text-cream/70">
-              <p>Grainbuds Asian Café</p>
-              <p>Open daily · 8:00 – 17:00</p>
-              <p className="pt-2">hello@grainbuds.cafe</p>
+              <p>{cafeInfo.name}</p>
+              <p>{cafeInfo.address.street}</p>
+              <p>
+                {cafeInfo.address.zip} {cafeInfo.address.city}
+              </p>
+              <p className="pt-2">
+                <a
+                  href={cafeInfo.phoneHref}
+                  className="transition-colors hover:text-matcha"
+                >
+                  {cafeInfo.phone}
+                </a>
+              </p>
+              <p>
+                <a
+                  href={cafeInfo.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-matcha"
+                >
+                  {t.visit.directions} ↗
+                </a>
+              </p>
+              <p className="pt-2 text-cream/50">
+                {t.visit.monSat}: 10:30 – 19:00
+              </p>
+              <p className="text-cream/50">
+                {t.visit.sunday}: {t.visit.closed}
+              </p>
             </address>
           </div>
 
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.25em] text-sand">
-              Explore
+              {t.footer.explore}
             </h3>
             <nav className="mt-4 flex flex-col gap-2 text-sm text-cream/70">
               <Link href="/shop" className="w-fit transition-colors hover:text-matcha">
-                Shop &amp; menu
+                {t.footer.shopMenu}
               </Link>
               <Link href="/#story" className="w-fit transition-colors hover:text-matcha">
-                Our story
+                {t.footer.ourStory}
               </Link>
               <Link href="/#visit" className="w-fit transition-colors hover:text-matcha">
-                Hours &amp; location
+                {t.footer.hoursLocation}
               </Link>
               <Link
                 href="/admin"
                 className="w-fit text-cream/40 transition-colors hover:text-matcha"
               >
-                Staff login
+                {t.footer.staffLogin}
               </Link>
             </nav>
           </div>
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-3 border-t border-cream/10 pt-6 text-xs text-cream/40 sm:flex-row">
-          <p>© {new Date().getFullYear()} Grainbuds Asian Café</p>
-          <p>Whisked with patience.</p>
+          <p>
+            © {new Date().getFullYear()} {cafeInfo.name}
+          </p>
+          <p>{t.footer.whisked}</p>
         </div>
       </div>
     </footer>

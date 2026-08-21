@@ -1,6 +1,9 @@
+export type Locale = "en" | "de";
+
 export type Category = {
   id: string;
   name: string;
+  name_de?: string;
   slug: string;
   sort_order: number;
 };
@@ -9,8 +12,10 @@ export type Product = {
   id: string;
   category_id: string | null;
   name: string;
+  name_de?: string;
   slug: string;
   description: string;
+  description_de?: string;
   price_cents: number;
   image_url: string | null;
   is_active: boolean;
@@ -55,9 +60,26 @@ export type CartLine = {
   quantity: number;
 };
 
-export function formatPrice(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", {
+export function formatPrice(cents: number, locale: Locale = "en"): string {
+  return (cents / 100).toLocaleString(locale === "de" ? "de-DE" : "en-IE", {
     style: "currency",
-    currency: "USD",
+    currency: "EUR",
   });
+}
+
+/** Product/category text in the requested language, falling back to English. */
+export function localizedName(
+  item: { name: string; name_de?: string | null },
+  locale: Locale
+): string {
+  return locale === "de" && item.name_de ? item.name_de : item.name;
+}
+
+export function localizedDescription(
+  product: { description: string; description_de?: string | null },
+  locale: Locale
+): string {
+  return locale === "de" && product.description_de
+    ? product.description_de
+    : product.description;
 }

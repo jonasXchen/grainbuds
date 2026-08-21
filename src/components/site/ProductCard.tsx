@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Product } from "@/lib/types";
-import { formatPrice } from "@/lib/types";
+import {
+  formatPrice,
+  localizedDescription,
+  localizedName,
+} from "@/lib/types";
+import { useLocale, useT } from "@/lib/i18n/context";
 import ProductImage from "./ProductImage";
 import AddToCartButton from "./AddToCartButton";
 
@@ -14,6 +19,9 @@ export default function ProductCard({
   product: Product;
   index?: number;
 }) {
+  const locale = useLocale();
+  const t = useT();
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 28 }}
@@ -34,27 +42,27 @@ export default function ProductCard({
         <ProductImage product={product} className="h-full w-full" />
         {product.is_featured && (
           <span className="absolute left-3 top-3 rounded-full bg-cream/90 px-3 py-1 text-[11px] font-medium uppercase tracking-widest text-matcha-deep backdrop-blur">
-            Favorite
+            {t.featured.favorite}
           </span>
         )}
       </Link>
       <div className="flex flex-1 flex-col px-2 pb-2 pt-4">
         {product.category && (
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sand-deep">
-            {product.category.name}
+            {localizedName(product.category, locale)}
           </p>
         )}
         <Link href={`/shop/${product.slug}`} className="mt-1">
           <h3 className="font-display text-xl text-ink transition-colors duration-300 group-hover:text-matcha-deep">
-            {product.name}
+            {localizedName(product, locale)}
           </h3>
         </Link>
         <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-ink/60">
-          {product.description}
+          {localizedDescription(product, locale)}
         </p>
         <div className="mt-4 flex items-center justify-between gap-3">
           <span className="font-display text-lg text-ink">
-            {formatPrice(product.price_cents)}
+            {formatPrice(product.price_cents, locale)}
           </span>
           <AddToCartButton product={product} size="sm" />
         </div>

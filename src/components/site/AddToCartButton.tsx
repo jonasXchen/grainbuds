@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
+import { useT } from "@/lib/i18n/context";
 import type { Product } from "@/lib/types";
 
 export default function AddToCartButton({
@@ -18,6 +19,7 @@ export default function AddToCartButton({
 }) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
+  const t = useT();
 
   const sizes = {
     sm: "px-4 py-2 text-xs",
@@ -55,7 +57,7 @@ export default function AddToCartButton({
                 strokeLinejoin="round"
               />
             </svg>
-            Added
+            {t.shop.added}
           </motion.span>
         ) : (
           <motion.span
@@ -65,7 +67,7 @@ export default function AddToCartButton({
             exit={{ y: -14, opacity: 0 }}
             transition={{ duration: 0.25 }}
           >
-            Add to order
+            {t.shop.addToOrder}
           </motion.span>
         )}
       </AnimatePresence>

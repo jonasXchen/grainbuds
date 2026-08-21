@@ -50,7 +50,9 @@ export async function saveProduct(
 
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
+  const nameDe = String(formData.get("name_de") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
+  const descriptionDe = String(formData.get("description_de") ?? "").trim();
   const priceRaw = String(formData.get("price") ?? "").replace(/[^0-9.]/g, "");
   const categoryId = String(formData.get("category_id") ?? "") || null;
   const isActive = formData.get("is_active") === "on";
@@ -77,7 +79,9 @@ export async function saveProduct(
 
   const row: Record<string, unknown> = {
     name: name.slice(0, 120),
+    name_de: nameDe.slice(0, 120),
     description: description.slice(0, 1000),
+    description_de: descriptionDe.slice(0, 1000),
     price_cents: Math.round(price * 100),
     category_id: categoryId,
     is_active: isActive,
@@ -132,9 +136,11 @@ export async function addCategory(
 ): Promise<ActionState> {
   const supabase = await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
+  const nameDe = String(formData.get("name_de") ?? "").trim();
   if (!name) return { error: "Please enter a category name." };
   const { error } = await supabase.from("categories").insert({
     name: name.slice(0, 80),
+    name_de: nameDe.slice(0, 80),
     slug: slugify(name) || `category-${crypto.randomUUID().slice(0, 6)}`,
     sort_order: 99,
   });

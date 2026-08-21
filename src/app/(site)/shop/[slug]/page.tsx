@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getProducts } from "@/lib/data";
-import { formatPrice } from "@/lib/types";
+import { getT } from "@/lib/i18n/server";
+import {
+  formatPrice,
+  localizedDescription,
+  localizedName,
+} from "@/lib/types";
 import ProductImage from "@/components/site/ProductImage";
 import ProductPurchase from "@/components/site/ProductPurchase";
 import ProductCard from "@/components/site/ProductCard";
 import Reveal from "@/components/site/Reveal";
-
-export const revalidate = 60;
 
 export default async function ProductPage({
   params,
@@ -15,7 +18,10 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, { locale, t }] = await Promise.all([
+    getProductBySlug(slug),
+    getT(),
+  ]);
   if (!product) notFound();
 
   const related = (
@@ -23,6 +29,8 @@ export default async function ProductPage({
   )
     .filter((item) => item.id !== product.id)
     .slice(0, 3);
+
+  const description = localizedDescription(product, locale);
 
   return (
     <div className="px-5 pb-28 pt-32 sm:px-8">
@@ -35,7 +43,7 @@ export default async function ProductPage({
             <span className="transition-transform duration-300 group-hover:-translate-x-1">
               ←
             </span>
-            Back to shop
+            {t.product.back}
           </Link>
         </Reveal>
 
@@ -50,21 +58,23 @@ export default async function ProductPage({
             <Reveal delay={0.1}>
               {product.category && (
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
-                  {product.category.name}
+                  {localizedName(product.category, locale)}
                 </p>
               )}
               <h1 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">
-                {product.name}
+                {localizedName(product, locale)}
               </h1>
               <p className="mt-4 font-display text-2xl text-sand-deep">
-                {formatPrice(product.price_cents)}
+                {formatPrice(product.price_cents, locale)}
               </p>
             </Reveal>
-            <Reveal delay={0.2}>
-              <p className="mt-6 max-w-lg text-base leading-relaxed text-ink/65">
-                {product.description}
-              </p>
-            </Reveal>
+            {description && (
+              <Reveal delay={0.2}>
+                <p className="mt-6 max-w-lg text-base leading-relaxed text-ink/65">
+                  {description}
+                </p>
+              </Reveal>
+            )}
             <Reveal delay={0.3} className="mt-8">
               <ProductPurchase product={product} />
             </Reveal>
@@ -72,11 +82,11 @@ export default async function ProductPage({
               <div className="mt-10 space-y-3 border-t border-ink/10 pt-6 text-sm text-ink/55">
                 <p className="flex items-center gap-3">
                   <span className="h-1.5 w-1.5 rounded-full bg-matcha" />
-                  Made to order — nothing sits under a heat lamp.
+                  {t.product.madeToOrder}
                 </p>
                 <p className="flex items-center gap-3">
                   <span className="h-1.5 w-1.5 rounded-full bg-matcha" />
-                  Pay in store when you pick up. No card needed online.
+                  {t.product.payInStore}
                 </p>
               </div>
             </Reveal>
@@ -87,7 +97,7 @@ export default async function ProductPage({
           <div className="mt-24">
             <Reveal>
               <h2 className="font-display text-3xl text-ink">
-                You might also like
+                {t.product.alsoLike}
               </h2>
             </Reveal>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

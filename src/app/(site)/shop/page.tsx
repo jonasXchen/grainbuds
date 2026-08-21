@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
 import { getCategories, getProducts } from "@/lib/data";
+import { getT } from "@/lib/i18n/server";
 import ShopGrid from "@/components/site/ShopGrid";
 import Reveal from "@/components/site/Reveal";
 
 export const metadata: Metadata = {
   title: "Shop & Menu",
   description:
-    "Order matcha, grain bowls, pastries, and brew-at-home kits for pickup at Grainbuds.",
+    "Order matcha, boba, sushi, and smoothies for pickup at Grainbuds in Erlangen.",
 };
 
-export const revalidate = 60;
-
 export default async function ShopPage() {
-  const [products, categories] = await Promise.all([
+  const [products, categories, { t }] = await Promise.all([
     getProducts(),
     getCategories(),
+    getT(),
   ]);
 
   return (
@@ -22,16 +22,15 @@ export default async function ShopPage() {
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
-            Shop &amp; menu
+            {t.shop.eyebrow}
           </p>
           <h1 className="mt-3 font-display text-5xl leading-tight text-ink sm:text-6xl">
-            Order ahead,
+            {t.shop.titleA}
             <br />
-            arrive to a warm cup
+            {t.shop.titleB}
           </h1>
           <p className="mt-5 text-base leading-relaxed text-ink/60">
-            Everything below is made in-house. Place your order online and pay
-            at the counter when you pick up.
+            {t.shop.sub}
           </p>
         </Reveal>
 

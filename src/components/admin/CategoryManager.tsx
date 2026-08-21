@@ -54,13 +54,19 @@ export default function CategoryManager({
         ))}
       </ul>
 
-      <form action={formAction} className="mt-4 flex gap-2">
+      <form action={formAction} className="mt-4 flex flex-wrap gap-2">
         <input
           name="name"
           required
           maxLength={80}
-          placeholder="New category name"
-          className="flex-1 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20"
+          placeholder="New category (English)"
+          className="min-w-40 flex-1 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20"
+        />
+        <input
+          name="name_de"
+          maxLength={80}
+          placeholder="German name (optional)"
+          className="min-w-40 flex-1 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20"
         />
         <button
           type="submit"

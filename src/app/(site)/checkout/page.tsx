@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
-import { formatPrice } from "@/lib/types";
+import { formatPrice, localizedName } from "@/lib/types";
+import { useLocale, useT } from "@/lib/i18n/context";
 import { createOrder } from "@/lib/actions/orders";
 import ProductImage from "@/components/site/ProductImage";
 
@@ -17,6 +18,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const locale = useLocale();
+  const t = useT();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,16 +54,15 @@ export default function CheckoutPage() {
   if (lines.length === 0) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-5 px-5 text-center">
-        <h1 className="font-display text-4xl text-ink">Your cart is empty</h1>
-        <p className="max-w-sm text-ink/60">
-          Add a few things from the menu first — then come back here to set up
-          pickup.
-        </p>
+        <h1 className="font-display text-4xl text-ink">
+          {t.checkout.emptyTitle}
+        </h1>
+        <p className="max-w-sm text-ink/60">{t.checkout.emptySub}</p>
         <Link
           href="/shop"
           className="rounded-full bg-ink px-8 py-4 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
         >
-          Browse the menu
+          {t.checkout.browse}
         </Link>
       </div>
     );
@@ -75,15 +77,12 @@ export default function CheckoutPage() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
-            Checkout
+            {t.checkout.eyebrow}
           </p>
           <h1 className="mt-3 font-display text-5xl text-ink">
-            Pickup details
+            {t.checkout.title}
           </h1>
-          <p className="mt-4 max-w-xl text-ink/60">
-            Tell us who to look for and when you&apos;re coming by. You&apos;ll
-            pay at the counter — cash or card.
-          </p>
+          <p className="mt-4 max-w-xl text-ink/60">{t.checkout.sub}</p>
         </motion.div>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
@@ -97,13 +96,13 @@ export default function CheckoutPage() {
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">
-                  Your name *
+                  {t.checkout.name}
                 </label>
-                <input id="name" name="name" required maxLength={120} className={inputClass} placeholder="Mei Lin" />
+                <input id="name" name="name" required maxLength={120} className={inputClass} placeholder={t.checkout.namePlaceholder} />
               </div>
               <div>
                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-ink">
-                  Email *
+                  {t.checkout.email}
                 </label>
                 <input id="email" name="email" type="email" required maxLength={200} className={inputClass} placeholder="you@example.com" />
               </div>
@@ -111,20 +110,22 @@ export default function CheckoutPage() {
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label htmlFor="phone" className="mb-2 block text-sm font-medium text-ink">
-                  Phone <span className="text-ink/40">(optional)</span>
+                  {t.checkout.phone}{" "}
+                  <span className="text-ink/40">{t.checkout.optional}</span>
                 </label>
-                <input id="phone" name="phone" type="tel" maxLength={40} className={inputClass} placeholder="(555) 123-4567" />
+                <input id="phone" name="phone" type="tel" maxLength={40} className={inputClass} placeholder="0151 23456789" />
               </div>
               <div>
                 <label htmlFor="pickup_time" className="mb-2 block text-sm font-medium text-ink">
-                  Pickup time
+                  {t.checkout.pickupTime}
                 </label>
-                <input id="pickup_time" name="pickup_time" maxLength={80} className={inputClass} placeholder="Today, around 3pm" />
+                <input id="pickup_time" name="pickup_time" maxLength={80} className={inputClass} placeholder={t.checkout.pickupPlaceholder} />
               </div>
             </div>
             <div>
               <label htmlFor="notes" className="mb-2 block text-sm font-medium text-ink">
-                Notes for the kitchen <span className="text-ink/40">(optional)</span>
+                {t.checkout.notes}{" "}
+                <span className="text-ink/40">{t.checkout.optional}</span>
               </label>
               <textarea
                 id="notes"
@@ -132,7 +133,7 @@ export default function CheckoutPage() {
                 rows={3}
                 maxLength={500}
                 className={`${inputClass} resize-none`}
-                placeholder="Oat milk, less sweet, allergies…"
+                placeholder={t.checkout.notesPlaceholder}
               />
             </div>
 
@@ -152,7 +153,9 @@ export default function CheckoutPage() {
               whileTap={{ scale: 0.97 }}
               className="w-full rounded-full bg-ink py-4 text-sm font-medium text-cream transition-colors duration-300 hover:bg-matcha-deep disabled:opacity-60"
             >
-              {isPending ? "Placing your order…" : `Place order · ${formatPrice(totalCents)}`}
+              {isPending
+                ? t.checkout.placing
+                : `${t.checkout.placeOrder} · ${formatPrice(totalCents, locale)}`}
             </motion.button>
           </motion.form>
 
@@ -162,7 +165,9 @@ export default function CheckoutPage() {
             transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="h-fit rounded-3xl bg-cream-light p-7"
           >
-            <h2 className="font-display text-xl text-ink">Order summary</h2>
+            <h2 className="font-display text-xl text-ink">
+              {t.checkout.summary}
+            </h2>
             <ul className="mt-5 space-y-4">
               {lines.map((line) => (
                 <li key={line.product.id} className="flex items-center gap-4">
@@ -171,20 +176,23 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-ink">
-                      {line.product.name}
+                      {localizedName(line.product, locale)}
                     </p>
                     <p className="text-xs text-ink/50">× {line.quantity}</p>
                   </div>
                   <span className="text-sm text-ink/70">
-                    {formatPrice(line.product.price_cents * line.quantity)}
+                    {formatPrice(
+                      line.product.price_cents * line.quantity,
+                      locale
+                    )}
                   </span>
                 </li>
               ))}
             </ul>
             <div className="mt-6 flex items-center justify-between border-t border-ink/10 pt-5">
-              <span className="text-sm text-ink/60">Total at pickup</span>
+              <span className="text-sm text-ink/60">{t.checkout.total}</span>
               <span className="font-display text-2xl text-ink">
-                {formatPrice(totalCents)}
+                {formatPrice(totalCents, locale)}
               </span>
             </div>
           </motion.aside>

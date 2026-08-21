@@ -1,7 +1,12 @@
 # Grainbuds — Matcha & Asian Café
 
-A calm, animated website for Grainbuds with an online shop, pickup ordering, and
-an admin panel where the owner manages products without touching code.
+A calm, animated website for Grainbuds (Universitätsstraße 7, Erlangen) with an
+online shop, pickup ordering, and an admin panel where the owner manages
+products without touching code. Fully bilingual — English and German, with a
+language toggle in the header. Prices are in EUR.
+
+The menu, photos, address, opening hours, and contact details come from the
+previous website (grainbudsasiancafe.com).
 
 **Stack:** Next.js (App Router) · Supabase (database, auth, image storage) · Tailwind CSS v4 · Framer Motion · Lenis smooth scrolling
 
@@ -21,8 +26,14 @@ order. The admin panel needs Supabase (next section).
 1. **Create a project** at [supabase.com](https://supabase.com) (free tier is fine).
 2. **Create the tables**: in the Supabase dashboard, open **SQL Editor → New query**,
    paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and click **Run**.
-3. **Optional — load the sample menu**: run [`supabase/seed.sql`](supabase/seed.sql)
-   the same way. Everything it adds can be edited or deleted in the admin panel.
+3. **Load the real menu**: run [`supabase/seed.sql`](supabase/seed.sql) the same
+   way — it contains the full Grainbuds menu (EN + DE, EUR prices, photos from
+   the old site). Everything can be edited later in the admin panel, and
+   re-running it refreshes names/prices without duplicating.
+
+   *Already ran an older schema before the bilingual update?* Run
+   [`supabase/migrate-001-bilingual.sql`](supabase/migrate-001-bilingual.sql)
+   first — it adds the German columns and removes the old fictional sample menu.
 4. **Create the owner's login**: dashboard → **Authentication → Users →
    Add user → Create new user**. Enter the owner's email and a password, and tick
    **Auto confirm user**. (Anyone you add here can access the admin panel —
@@ -40,6 +51,8 @@ order. The admin panel needs Supabase (next section).
 
 - Go to **yoursite.com/admin** and sign in (also linked as "Staff login" in the site footer).
 - **Products** — add, edit, hide, or delete anything on the menu:
+  - Names and descriptions have an English and an optional German field — if
+    the German one is empty, the English text is shown in both languages.
   - *Show in shop* hides an item without deleting it (e.g. sold out today).
   - *House favorite* features it on the home page.
   - Upload a photo, or leave it empty for an automatic on-brand illustration.
@@ -75,6 +88,13 @@ supabase/
 
 - **Payments** happen in store at pickup — no card processing online. Stripe can
   be added later at the checkout step if wanted.
+- **Languages**: the EN/DE toggle stores a cookie; UI text lives in
+  `src/lib/i18n/dictionaries.ts`, product/category translations in the database.
+- **Drink options** (milk alternatives, boba toppings) are handled via the
+  free-text note at checkout for now; proper variants can be added later.
+- **Dish photos** currently point at the old website's image host
+  (DigitalOcean Spaces). If that site is ever shut down, re-upload the photos
+  through the admin panel — uploads go to your own Supabase storage.
 - **Security**: the database uses Row Level Security. Visitors can only read
   live products and create orders; every write to products/categories and all
   order management requires a signed-in staff user. Order confirmation links use
