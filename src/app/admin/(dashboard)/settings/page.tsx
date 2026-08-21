@@ -1,4 +1,6 @@
 import NotificationSettingsForm from "@/components/admin/NotificationSettingsForm";
+import InstagramGallerySettingsForm from "@/components/admin/InstagramGallerySettingsForm";
+import { parseInstagramGallerySettings } from "@/lib/instagram-gallery";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -7,12 +9,18 @@ export default async function AdminSettingsPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("grainbuds_settings")
-    .select("value")
-    .eq("key", "order_notification_emails")
-    .maybeSingle();
-  const emails = Array.isArray(data?.value)
-    ? data.value.filter((value): value is string => typeof value === "string")
+    .select("key, value")
+    .in("key", ["order_notification_emails", "instagram_gallery"]);
+  const emailValue = data?.find(
+    (setting) => setting.key === "order_notification_emails"
+  )?.value;
+  const instagramValue = data?.find(
+    (setting) => setting.key === "instagram_gallery"
+  )?.value;
+  const emails = Array.isArray(emailValue)
+    ? emailValue.filter((value): value is string => typeof value === "string")
     : [];
+  const instagramSettings = parseInstagramGallerySettings(instagramValue);
 
   const emailConfigured = Boolean(process.env.RESEND_API_KEY);
   const secureSettingsConfigured = Boolean(process.env.SUPABASE_SECRET_KEY);
@@ -64,6 +72,19 @@ export default async function AdminSettingsPage() {
             )}
           </div>
         )}
+      </section>
+
+      <section className="mt-8 rounded-3xl bg-cream-light p-6 sm:p-8">
+        <div>
+          <h2 className="font-display text-2xl text-ink">Instagram gallery</h2>
+          <p className="mt-1 text-sm leading-relaxed text-ink/55">
+            Choose the Instagram profile and photos shown in the homepage café
+            gallery. This uses plain image links and does not load Instagram
+            tracking scripts.
+          </p>
+        </div>
+
+        <InstagramGallerySettingsForm initialSettings={instagramSettings} />
       </section>
     </div>
   );

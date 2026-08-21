@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { getProducts } from "@/lib/data";
 import { getT } from "@/lib/i18n/server";
+import { getInstagramGallerySettings } from "@/lib/instagram-gallery";
 import { cafeInfo, galleryImages } from "@/lib/cafe-info";
 import Hero from "@/components/site/Hero";
 import Marquee from "@/components/site/Marquee";
@@ -10,10 +11,14 @@ import Parallax from "@/components/site/Parallax";
 import ProductCard from "@/components/site/ProductCard";
 
 export default async function HomePage() {
-  const [featured, { t }] = await Promise.all([
+  const [featured, { t }, instagram] = await Promise.all([
     getProducts({ featuredOnly: true }),
     getT(),
+    getInstagramGallerySettings(),
   ]);
+  const gallery = instagram.images.length
+    ? instagram.images.slice(0, 6)
+    : galleryImages.slice(1, 7).map((imageUrl) => ({ imageUrl, postUrl: null }));
 
   return (
     <>
@@ -66,23 +71,53 @@ export default async function HomePage() {
             </h2>
           </Reveal>
           <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {galleryImages.slice(1, 7).map((image, i) => (
+            {gallery.map((image, i) => (
               <Reveal
-                key={image}
+                key={`${image.imageUrl}-${i}`}
                 delay={(i % 4) * 0.1}
                 className={`overflow-hidden rounded-3xl ${
                   i % 3 === 0 ? "row-span-2" : ""
                 }`}
               >
-                <img
-                  src={image}
-                  alt="Grainbuds café impressions"
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-105"
-                />
+                <a
+                  href={image.postUrl ?? instagram.profileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`${t.gallery.follow} @${instagram.handle}`}
+                  className="block h-full"
+                >
+                  <img
+                    src={image.imageUrl}
+                    alt={`Grainbuds — Instagram @${instagram.handle}`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-105"
+                  />
+                </a>
               </Reveal>
             ))}
           </div>
+          <Reveal className="mt-8 flex justify-center">
+            <a
+              href={instagram.profileUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex items-center gap-2 rounded-full border border-ink/15 px-6 py-3 text-sm font-medium text-ink/70 transition-all hover:border-matcha-deep hover:bg-matcha/10 hover:text-matcha-deep"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none" />
+              </svg>
+              <span>{t.gallery.follow} @{instagram.handle} ↗</span>
+            </a>
+          </Reveal>
         </div>
       </section>
 

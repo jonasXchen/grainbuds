@@ -35,6 +35,7 @@ export const dictionaries = {
     gallery: {
       eyebrow: "Inside Grainbuds",
       title: "A look around the café",
+      follow: "Follow on Instagram",
     },
     visit: {
       eyebrow: "Visit",
@@ -188,6 +189,7 @@ export const dictionaries = {
     gallery: {
       eyebrow: "Im Grainbuds",
       title: "Ein Blick ins Café",
+      follow: "Auf Instagram folgen",
     },
     visit: {
       eyebrow: "Besuch",

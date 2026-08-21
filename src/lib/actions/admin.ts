@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { sendOrderNotification } from "@/lib/order-notifications";
+import {
+  normalizeInstagramHandle,
+  parseInstagramGallerySettings,
+} from "@/lib/instagram-gallery";
 import type { Order, OrderStatus } from "@/lib/types";
 
 export type ActionState = { error: string } | null;
@@ -340,5 +344,66 @@ export async function saveOrderNotificationEmails(
     message: `Saved ${emails.length} notification recipient${
       emails.length === 1 ? "" : "s"
     }.`,
+  };
+}
+
+export async function saveInstagramGallerySettings(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const supabase = await requireAdmin();
+  const handleInput = String(formData.get("handle") ?? "");
+  const handle = normalizeInstagramHandle(handleInput);
+  if (!handle) {
+    return { ok: false, error: "Enter a valid Instagram handle or profile URL." };
+  }
+
+  const lines = String(formData.get("images") ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const uploadedUrls = formData
+    .getAll("uploaded_urls")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  if (lines.length + uploadedUrls.length > 8) {
+    return { ok: false, error: "Add no more than eight gallery images." };
+  }
+
+  const rawImages = lines.map((line) => {
+    const [imageUrl = "", postUrl = ""] = line.split("|", 2).map((part) => part.trim());
+    return { imageUrl, postUrl: postUrl || null };
+  }).concat(uploadedUrls.map((imageUrl) => ({ imageUrl, postUrl: null })));
+  const parsed = parseInstagramGallerySettings({ handle, images: rawImages });
+  if (parsed.images.length !== rawImages.length) {
+    return {
+      ok: false,
+      error: "Every gallery entry must contain a valid HTTPS image URL and optional HTTPS post URL.",
+    };
+  }
+
+  const { error } = await supabase.from("grainbuds_settings").upsert(
+    {
+      key: "instagram_gallery",
+      value: { handle: parsed.handle, images: parsed.images },
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" }
+  );
+  if (error) {
+    console.error("Could not save Instagram gallery settings", {
+      code: error.code,
+      message: error.message,
+    });
+    return { ok: false, error: "Could not save the Instagram gallery." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/settings");
+  return {
+    ok: true,
+    message: parsed.images.length
+      ? `Saved @${parsed.handle} with ${parsed.images.length} gallery image${parsed.images.length === 1 ? "" : "s"}.`
+      : `Saved @${parsed.handle}. The existing café photos remain visible.`,
   };
 }

@@ -188,6 +188,21 @@ create policy "staff read grainbuds_settings" on grainbuds_settings
 create policy "staff write grainbuds_settings" on grainbuds_settings
   for all to authenticated using (public.grainbuds_is_staff()) with check (public.grainbuds_is_staff());
 
+-- Public homepage access to the single safe Instagram gallery setting without
+-- exposing email recipients or future private settings.
+create or replace function public.grainbuds_get_instagram_gallery()
+returns jsonb
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select value from public.grainbuds_settings where key = 'instagram_gallery' limit 1;
+$$;
+
+revoke all on function public.grainbuds_get_instagram_gallery() from public;
+grant execute on function public.grainbuds_get_instagram_gallery() to anon, authenticated;
+
 -- ============ Inventory guard ============
 -- Decrements stock when an order item is placed. Runs with owner
 -- privileges so anonymous checkouts can decrement stock, and refuses

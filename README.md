@@ -95,9 +95,9 @@ order. The admin panel needs Supabase (next section).
   email people who didn't opt in). Write a subject and message and send a
   product-launch update to the whole list, or use *Copy all emails* to BCC
   them from your own mail program.
-- **Settings** — maintain the staff email addresses that receive new-order and
-  customer-edit notifications. Customers receive email when an order is created
-  and if it is cancelled.
+- **Settings** — maintain staff order-notification emails and the Instagram
+  profile/gallery shown on the homepage. Customers receive email when an order
+  is created and if it is cancelled.
 
 Changes go live on the website within about a minute.
 
@@ -113,9 +113,12 @@ the custom domain, and customer order emails always use `grainbuds.de` links.
 
 For an existing Grainbuds database, run
 [`supabase/migrations/20260821_order_edits_and_notifications.sql`](supabase/migrations/20260821_order_edits_and_notifications.sql)
-and then
+followed by
 [`supabase/migrations/20260821_queue_estimates.sql`](supabase/migrations/20260821_queue_estimates.sql)
-once each in Supabase SQL Editor. Both preserve existing products and orders.
+and
+[`supabase/migrations/20260821_instagram_gallery.sql`](supabase/migrations/20260821_instagram_gallery.sql)
+once each in Supabase SQL Editor. All migrations preserve existing products and
+orders.
 
 ## Project layout
 
