@@ -16,11 +16,11 @@ const instrumentSans = Instrument_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://grainbuds.de"),
   title: {
-    default: "Grainbuds — Matcha & Asian Café",
+    default: "Grainbuds",
     template: "%s — Grainbuds",
   },
   description:
-    "A calm corner in Erlangen for matcha, boba, and sushi. Order online for pickup at Grainbuds Asian Café, Universitätsstraße 7.",
+    "A calm corner in Erlangen for matcha, boba, and sushi. Order online for pickup at Grainbuds, Universitätsstraße 7.",
   alternates: {
     canonical: "/",
   },

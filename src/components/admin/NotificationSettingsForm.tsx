@@ -23,8 +23,8 @@ export default function NotificationSettingsForm({
           Order notification recipients
         </label>
         <p className="mt-1 text-sm leading-relaxed text-ink/55">
-          Enter one address per line. Every recipient gets new-order, customer
-          edit, payment, and status notifications.
+          Enter one address per line. Every recipient gets notifications for
+          new orders and customer edits.
         </p>
         <textarea
           id="emails"

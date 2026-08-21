@@ -31,8 +31,82 @@ export type EditOrderState =
   | { ok: false; error: string }
   | null;
 
+export type QueueEstimate = {
+  position: number;
+  waitingMinutes: number;
+  currentDrinkCount: number;
+  queuedDrinkCount: number;
+};
+
+const DRINK_CATEGORY_SLUGS = new Set([
+  "specialty-matcha",
+  "matcha-refresher",
+  "hojicha",
+  "smoothies",
+  "fruit-tea",
+  "fruit-cloud",
+  "tapioca-boba",
+]);
+
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function getCheckoutEstimate(
+  lines: CheckoutLine[]
+): Promise<QueueEstimate | null> {
+  if (!lines.length || lines.length > 50) return null;
+
+  const products = await Promise.all(
+    lines.map((line) => getProductBySlug(line.slug))
+  );
+  const currentDrinkCount = products.reduce((total, product, index) => {
+    if (!product?.category || !DRINK_CATEGORY_SLUGS.has(product.category.slug)) {
+      return total;
+    }
+    const quantity = Math.max(
+      1,
+      Math.min(20, Math.floor(lines[index].quantity || 1))
+    );
+    return total + quantity;
+  }, 0);
+
+  if (!hasSupabaseEnv()) {
+    return {
+      position: 1,
+      waitingMinutes: Math.ceil((currentDrinkCount * 30) / 60),
+      currentDrinkCount,
+      queuedDrinkCount: 0,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("grainbuds_queue_snapshot");
+  if (error || !data || typeof data !== "object") {
+    if (error) {
+      console.error("Could not calculate checkout queue", {
+        code: error.code,
+        message: error.message,
+      });
+    }
+    return null;
+  }
+
+  const snapshot = data as {
+    active_orders?: number | string;
+    queued_drinks?: number | string;
+  };
+  const activeOrders = Math.max(0, Number(snapshot.active_orders) || 0);
+  const queuedDrinkCount = Math.max(0, Number(snapshot.queued_drinks) || 0);
+
+  return {
+    position: activeOrders + 1,
+    waitingMinutes: Math.ceil(
+      ((queuedDrinkCount + currentDrinkCount) * 30) / 60
+    ),
+    currentDrinkCount,
+    queuedDrinkCount,
+  };
+}
 
 export async function createOrder(
   input: CheckoutInput

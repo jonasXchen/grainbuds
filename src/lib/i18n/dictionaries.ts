@@ -15,7 +15,6 @@ export const dictionaries = {
       headline: ["Slow", "down.", "Sip", "green."],
       sub: "Grainbuds is a small Asian café in Erlangen built around one idea: good things take time to steep. Freshly whisked matcha, hand-rolled sushi, and drinks made with care.",
       cta: "Order for pickup",
-      ourStory: "Our story",
       scroll: "Scroll",
       seal: "grainbuds · whisked daily · ",
     },
@@ -26,35 +25,6 @@ export const dictionaries = {
       "Order ahead, skip the line",
       "Slow mornings welcome",
     ],
-    story: {
-      eyebrow: "Our story",
-      titleA: "Your little retreat",
-      titleB: "to unwind.",
-      p1: "Welcome to Grainbuds — a small refuge from the day. Fragrant drinks and freshly prepared treats keep you company while the cozy atmosphere melts the day's tiredness away.",
-      p2: "Pick whichever seat feels right — for a quiet moment alone or a long talk with friends. We prepare every drink and every dish with care, so you can enjoy a simple but beautiful moment here.",
-      link: "See what's on today →",
-      quote: "“The whisk is the metronome of the day.”",
-      nameNote:
-        "Named for the little grains and buds behind everything on our menu — rice, tea leaves, sesame, tapioca pearls.",
-    },
-    ritual: {
-      eyebrow: "The ritual",
-      title: "Three steps to a better break",
-      steps: [
-        {
-          title: "Sift",
-          text: "Every bowl starts with fine matcha sifted fresh — no clumps, no shortcuts.",
-        },
-        {
-          title: "Whisk",
-          text: "Quick strokes with a bamboo chasen until the surface turns to soft green foam.",
-        },
-        {
-          title: "Settle",
-          text: "Then the best part: you, a warm cup, and nowhere you need to be for a while.",
-        },
-      ],
-    },
     featured: {
       eyebrow: "From the bar",
       title: "House favorites",
@@ -85,9 +55,10 @@ export const dictionaries = {
       visitUs: "Visit us",
       explore: "Explore",
       shopMenu: "Shop & menu",
-      ourStory: "Our story",
       hoursLocation: "Hours & location",
       staffLogin: "Staff login",
+      privacy: "Privacy policy",
+      cookieSettings: "Cookie settings",
       whisked: "Whisked with patience.",
     },
     shop: {
@@ -138,6 +109,14 @@ export const dictionaries = {
         "Email me about new drinks and product launches. You can unsubscribe anytime.",
       placing: "Placing your order…",
       placeOrder: "Place order",
+      queueTitle: "Live pickup queue",
+      queuePosition: "Your queue number",
+      estimatedWait: "Estimated drink wait",
+      calculatingQueue: "Calculating the current queue…",
+      minute: "minute",
+      minutes: "minutes",
+      queueNote:
+        "Calculated at 30 seconds per drink, including drinks already queued. Food preparation and busy periods may change the actual wait.",
       summary: "Order summary",
       total: "Total at pickup",
       emptyTitle: "Your cart is empty",
@@ -189,7 +168,6 @@ export const dictionaries = {
       headline: ["Kurz", "innehalten.", "Grün", "genießen."],
       sub: "Grainbuds ist ein kleines asiatisches Café in Erlangen mit einer einfachen Idee: Gute Dinge brauchen Zeit zum Ziehen. Frisch aufgeschlagener Matcha, handgerolltes Sushi und Getränke mit Sorgfalt.",
       cta: "Zum Abholen bestellen",
-      ourStory: "Unsere Geschichte",
       scroll: "Scrollen",
       seal: "grainbuds · täglich frisch · ",
     },
@@ -200,35 +178,6 @@ export const dictionaries = {
       "Vorbestellen und Wartezeit sparen",
       "Langsame Vormittage willkommen",
     ],
-    story: {
-      eyebrow: "Unsere Geschichte",
-      titleA: "Ihr kleiner Rückzugsort",
-      titleB: "zum Entspannen.",
-      p1: "Willkommen im Grainbuds – Ihr kleiner Rückzugsort zum Entspannen. Duftende Getränke und frisch zubereitete Leckereien begleiten Sie, während die behagliche Atmosphäre die Müdigkeit des Tages vertreibt.",
-      p2: "Wählen Sie einfach den Platz, der Ihnen gefällt – für eine stille Auszeit allein oder ein Gespräch mit Freunden. Mit viel Sorgfalt bereiten wir jedes Getränk und jedes Gericht zu, damit Sie hier einen schlichten, aber wunderschönen Moment genießen können.",
-      link: "Was es heute gibt →",
-      quote: "„Der Besen ist das Metronom des Tages.“",
-      nameNote:
-        "Benannt nach den kleinen Körnern und Knospen hinter allem auf unserer Karte – Reis, Teeblätter, Sesam, Tapiokaperlen.",
-    },
-    ritual: {
-      eyebrow: "Das Ritual",
-      title: "Drei Schritte zu einer besseren Pause",
-      steps: [
-        {
-          title: "Sieben",
-          text: "Jede Schale beginnt mit frisch gesiebtem Matcha – keine Klümpchen, keine Abkürzungen.",
-        },
-        {
-          title: "Aufschlagen",
-          text: "Schnelle Schläge mit dem Bambusbesen, bis die Oberfläche zu feinem grünem Schaum wird.",
-        },
-        {
-          title: "Ankommen",
-          text: "Und dann das Beste: Sie, eine warme Tasse und eine Weile nirgendwo sein müssen.",
-        },
-      ],
-    },
     featured: {
       eyebrow: "Von der Bar",
       title: "Unsere Favoriten",
@@ -259,9 +208,10 @@ export const dictionaries = {
       visitUs: "Besuchen Sie uns",
       explore: "Entdecken",
       shopMenu: "Shop & Karte",
-      ourStory: "Unsere Geschichte",
       hoursLocation: "Öffnungszeiten & Anfahrt",
       staffLogin: "Mitarbeiter-Login",
+      privacy: "Datenschutz",
+      cookieSettings: "Cookie-Einstellungen",
       whisked: "Mit Geduld aufgeschlagen.",
     },
     shop: {
@@ -313,6 +263,14 @@ export const dictionaries = {
         "Informieren Sie mich per E-Mail über neue Getränke und Produkte. Jederzeit abbestellbar.",
       placing: "Bestellung wird aufgegeben…",
       placeOrder: "Bestellung aufgeben",
+      queueTitle: "Aktuelle Abholwarteschlange",
+      queuePosition: "Ihre Wartenummer",
+      estimatedWait: "Geschätzte Wartezeit für Getränke",
+      calculatingQueue: "Aktuelle Warteschlange wird berechnet…",
+      minute: "Minute",
+      minutes: "Minuten",
+      queueNote:
+        "Berechnet mit 30 Sekunden pro Getränk, einschließlich bereits wartender Getränke. Speisenzubereitung und Stoßzeiten können die tatsächliche Wartezeit verändern.",
       summary: "Bestellübersicht",
       total: "Gesamt bei Abholung",
       emptyTitle: "Ihr Warenkorb ist leer",

@@ -8,6 +8,7 @@ import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/site/CartDrawer";
 import StaffBar from "@/components/site/StaffBar";
+import CookieNotice from "@/components/site/CookieNotice";
 
 export default async function SiteLayout({
   children,
@@ -31,6 +32,7 @@ export default async function SiteLayout({
           <CartDrawer />
         </CartProvider>
         {isStaff && <StaffBar customerView={!adminMode} />}
+        <CookieNotice />
       </AdminModeProvider>
     </LocaleProvider>
   );

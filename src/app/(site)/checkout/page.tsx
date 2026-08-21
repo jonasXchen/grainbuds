@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice, localizedName } from "@/lib/types";
 import { useLocale, useT } from "@/lib/i18n/context";
-import { createOrder } from "@/lib/actions/orders";
+import {
+  createOrder,
+  getCheckoutEstimate,
+  type QueueEstimate,
+} from "@/lib/actions/orders";
 import ProductImage from "@/components/site/ProductImage";
 
 const inputClass =
@@ -17,9 +21,29 @@ export default function CheckoutPage() {
   const { lines, totalCents, clearCart } = useCart();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [queueEstimate, setQueueEstimate] = useState<QueueEstimate | null>(null);
   const [isPending, startTransition] = useTransition();
   const locale = useLocale();
   const t = useT();
+
+  useEffect(() => {
+    let active = true;
+    const checkoutLines = lines.map((line) => ({
+      productId: line.product.id,
+      slug: line.product.slug,
+      quantity: line.quantity,
+    }));
+    getCheckoutEstimate(checkoutLines)
+      .then((estimate) => {
+        if (active) setQueueEstimate(estimate);
+      })
+      .catch(() => {
+        if (active) setQueueEstimate(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [lines]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,6 +108,39 @@ export default function CheckoutPage() {
             {t.checkout.title}
           </h1>
           <p className="mt-4 max-w-xl text-ink/60">{t.checkout.sub}</p>
+          <div className="mt-7 max-w-xl rounded-3xl border border-matcha/35 bg-matcha/10 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-matcha-deep">
+              {t.checkout.queueTitle}
+            </p>
+            {queueEstimate ? (
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-ink/50">{t.checkout.queuePosition}</p>
+                  <p className="mt-1 font-display text-3xl text-ink">
+                    #{queueEstimate.position}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-ink/50">{t.checkout.estimatedWait}</p>
+                  <p className="mt-1 font-display text-3xl text-ink">
+                    ~{queueEstimate.waitingMinutes}{" "}
+                    <span className="font-sans text-sm">
+                      {queueEstimate.waitingMinutes === 1
+                        ? t.checkout.minute
+                        : t.checkout.minutes}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-ink/55">
+                {t.checkout.calculatingQueue}
+              </p>
+            )}
+            <p className="mt-3 text-xs leading-relaxed text-ink/45">
+              {t.checkout.queueNote}
+            </p>
+          </div>
         </motion.div>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.2fr_1fr]">

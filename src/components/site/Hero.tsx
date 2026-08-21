@@ -86,12 +86,6 @@ export default function Hero() {
                 →
               </span>
             </Link>
-            <Link
-              href="/#story"
-              className="link-underline text-sm font-medium text-ink/70"
-            >
-              {t.hero.ourStory}
-            </Link>
           </motion.div>
         </div>
 

@@ -29,7 +29,8 @@ export default async function AdminSettingsPage() {
           <div>
             <h2 className="font-display text-2xl text-ink">Order emails</h2>
             <p className="mt-1 text-sm text-ink/55">
-              Customers always receive updates at the address on their order.
+              Customers receive confirmation and cancellation emails at the
+              address on their order.
             </p>
           </div>
           <span

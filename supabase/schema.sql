@@ -256,6 +256,44 @@ $$;
 
 grant execute on function public.grainbuds_order_confirmation(uuid) to anon, authenticated;
 
+-- Public queue totals reveal no customer or order details. Checkout uses the
+-- snapshot to estimate a position and drink preparation time (30s per drink).
+create or replace function public.grainbuds_queue_snapshot()
+returns jsonb
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select jsonb_build_object(
+    'active_orders', (
+      select count(*)
+      from grainbuds_orders o
+      where o.status in ('new', 'in_progress')
+    ),
+    'queued_drinks', (
+      select coalesce(sum(i.quantity), 0)
+      from grainbuds_order_items i
+      join grainbuds_orders o on o.id = i.order_id
+      join grainbuds_products p on p.id = i.product_id
+      join grainbuds_categories c on c.id = p.category_id
+      where o.status in ('new', 'in_progress')
+        and c.slug in (
+          'specialty-matcha',
+          'matcha-refresher',
+          'hojicha',
+          'smoothies',
+          'fruit-tea',
+          'fruit-cloud',
+          'tapioca-boba'
+        )
+    )
+  );
+$$;
+
+revoke all on function public.grainbuds_queue_snapshot() from public;
+grant execute on function public.grainbuds_queue_snapshot() to anon, authenticated;
+
 -- The order URL contains an unguessable UUID and acts as the customer's edit
 -- capability. Customers can update pickup/contact details while work has not
 -- progressed beyond "in progress". Product lines and totals remain immutable.

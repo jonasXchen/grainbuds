@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useT } from "@/lib/i18n/context";
 import { cafeInfo } from "@/lib/cafe-info";
+import { OPEN_COOKIE_SETTINGS_EVENT } from "./CookieNotice";
 
 export default function Footer() {
   const t = useT();
@@ -70,9 +71,6 @@ export default function Footer() {
               <Link href="/shop" className="w-fit transition-colors hover:text-matcha">
                 {t.footer.shopMenu}
               </Link>
-              <Link href="/#story" className="w-fit transition-colors hover:text-matcha">
-                {t.footer.ourStory}
-              </Link>
               <Link href="/#visit" className="w-fit transition-colors hover:text-matcha">
                 {t.footer.hoursLocation}
               </Link>
@@ -82,6 +80,21 @@ export default function Footer() {
               >
                 {t.footer.staffLogin}
               </Link>
+              <Link
+                href="/privacy"
+                className="w-fit text-cream/40 transition-colors hover:text-matcha"
+              >
+                {t.footer.privacy}
+              </Link>
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(new Event(OPEN_COOKIE_SETTINGS_EVENT))
+                }
+                className="w-fit text-left text-cream/40 transition-colors hover:text-matcha"
+              >
+                {t.footer.cookieSettings}
+              </button>
             </nav>
           </div>
         </div>

@@ -251,11 +251,6 @@ export async function updateOrderPayment(formData: FormData) {
     .eq("id", id);
   if (error) return;
 
-  await sendOrderNotification("payment_updated", {
-    ...(existing as Order),
-    payment_status: status as Order["payment_status"],
-    payment_method: nextPaymentMethod as Order["payment_method"],
-  });
   revalidatePath("/admin/orders");
   revalidatePath(`/order/${id}`);
 }
@@ -285,11 +280,13 @@ export async function updateOrderStatus(formData: FormData) {
       .eq("id", id);
     if (error) return;
 
-    await sendOrderNotification(
-      "status_updated",
-      { ...(existing as Order), status },
-      { previousStatus: existing.status as OrderStatus }
-    );
+    if (status === "new" || status === "cancelled") {
+      await sendOrderNotification(
+        "status_updated",
+        { ...(existing as Order), status },
+        { previousStatus: existing.status as OrderStatus }
+      );
+    }
     revalidatePath("/admin/orders");
     revalidatePath(`/order/${id}`);
   }

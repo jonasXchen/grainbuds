@@ -23,6 +23,7 @@ drop table if exists grainbuds_staff cascade;
 -- Functions
 drop function if exists public.grainbuds_handle_order_item_stock() cascade;
 drop function if exists public.grainbuds_order_confirmation(uuid);
+drop function if exists public.grainbuds_queue_snapshot();
 drop function if exists public.grainbuds_update_order_details(uuid, text, text, text, text, text);
 drop function if exists public.grainbuds_is_staff() cascade;
 

@@ -1,4 +1,4 @@
-# Grainbuds — Matcha & Asian Café
+# Grainbuds
 
 A calm, animated website for Grainbuds (Universitätsstraße 7, Erlangen) with an
 online shop, pickup ordering, and an admin panel where the owner manages
@@ -95,9 +95,9 @@ order. The admin panel needs Supabase (next section).
   email people who didn't opt in). Write a subject and message and send a
   product-launch update to the whole list, or use *Copy all emails* to BCC
   them from your own mail program.
-- **Settings** — maintain the staff email addresses that receive new-order,
-  customer-edit, payment, and status notifications. Customers receive the same
-  transactional updates at the email address on their order.
+- **Settings** — maintain the staff email addresses that receive new-order and
+  customer-edit notifications. Customers receive email when an order is created
+  and if it is cancelled.
 
 Changes go live on the website within about a minute.
 
@@ -113,7 +113,9 @@ the custom domain, and customer order emails always use `grainbuds.de` links.
 
 For an existing Grainbuds database, run
 [`supabase/migrations/20260821_order_edits_and_notifications.sql`](supabase/migrations/20260821_order_edits_and_notifications.sql)
-once in Supabase SQL Editor. It preserves existing products and orders.
+and then
+[`supabase/migrations/20260821_queue_estimates.sql`](supabase/migrations/20260821_queue_estimates.sql)
+once each in Supabase SQL Editor. Both preserve existing products and orders.
 
 ## Project layout
 
@@ -136,6 +138,12 @@ supabase/
   be added later at the checkout step if wanted.
 - **Languages**: the EN/DE toggle stores a cookie; UI text lives in
   `src/lib/i18n/dictionaries.ts`, product/category translations in the database.
+- **Privacy and browser storage**: the public site uses only necessary storage
+  for consent acknowledgement, language, cart, and staff sessions; there are no
+  analytics or advertising trackers. The bilingual `/privacy` page documents
+  the current data flows. Before production use, confirm the controller's exact
+  legal name/contact details and obtain professional review; this repository is
+  not a substitute for legal advice or a complete German imprint.
 - **Drink options** (milk alternatives, boba toppings) are handled via the
   free-text note at checkout for now; proper variants can be added later.
 - **Dish photos** currently point at the old website's image host

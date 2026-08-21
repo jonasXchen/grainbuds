@@ -1,11 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { cafeInfo } from "@/lib/cafe-info";
 import type { Order, OrderItem, OrderStatus } from "@/lib/types";
 
 export type OrderNotificationEvent =
   | "created"
   | "customer_updated"
-  | "status_updated"
-  | "payment_updated";
+  | "status_updated";
 
 type NotificationOrder = Pick<
   Order,
@@ -137,12 +137,6 @@ function subjects(
           context.previousStatus ? statusLabels[context.previousStatus] : "Unknown"
         } to ${statusLabels[order.status]}.`,
       };
-    case "payment_updated":
-      return {
-        customer: `Payment update for Grainbuds order ${shortId}`,
-        admin: `Payment updated for order ${shortId}`,
-        intro: "The payment information was updated.",
-      };
   }
 }
 
@@ -162,7 +156,18 @@ export async function sendOrderNotification(
     return;
   }
 
-  const adminRecipients = await getAdminRecipients();
+  const sendToCustomer =
+    event === "created" ||
+    (event === "status_updated" &&
+      (order.status === "new" || order.status === "cancelled"));
+  const sendToStaff =
+    event === "created" ||
+    event === "customer_updated" ||
+    (event === "status_updated" && order.status === "new");
+
+  if (!sendToCustomer && !sendToStaff) return;
+
+  const adminRecipients = sendToStaff ? await getAdminRecipients() : [];
   const from =
     process.env.ORDER_FROM_EMAIL ||
     process.env.MARKETING_FROM_EMAIL ||
@@ -177,23 +182,25 @@ export async function sendOrderNotification(
     to: string[];
     subject: string;
     text: string;
-  }> = [
-    {
+  }> = [];
+
+  if (sendToCustomer) {
+    messages.push({
       from,
       to: [order.customer_email],
       subject: copy.customer,
-      text: `${copy.intro}\n\n${details}\n\nView or edit your order: ${viewUrl}\n\nGrainbuds · Universitätsstraße 7, 91054 Erlangen`,
-    },
-  ];
+      text: `${copy.intro}\n\n${details}\n\nView or edit your order: ${viewUrl}\nDirections to Grainbuds: ${cafeInfo.mapsUrl}\n\nGrainbuds · Universitätsstraße 7, 91054 Erlangen`,
+    });
+  }
 
-  if (adminRecipients.length) {
+  if (sendToStaff && adminRecipients.length) {
     messages.push({
       from,
       to: adminRecipients,
       subject: copy.admin,
-      text: `${copy.intro}\n\n${details}\n\nOpen the order: ${viewUrl}`,
+      text: `${copy.intro}\n\n${details}\n\nOpen the order: ${viewUrl}\nDirections to Grainbuds: ${cafeInfo.mapsUrl}`,
     });
-  } else {
+  } else if (sendToStaff) {
     console.warn("Admin order email skipped: no notification recipients configured.");
   }
 
