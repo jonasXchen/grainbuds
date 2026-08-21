@@ -65,3 +65,24 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .maybeSingle();
   return data ?? null;
 }
+
+export async function getPopularProductNames(
+  limit = 8
+): Promise<Array<Pick<Product, "name" | "name_de">>> {
+  const safeLimit = Math.max(1, Math.min(20, Math.floor(limit)));
+
+  if (!hasSupabaseEnv()) {
+    return seedProducts
+      .filter((product) => product.is_active)
+      .slice(0, safeLimit)
+      .map(({ name, name_de }) => ({ name, name_de }));
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("grainbuds_popular_product_names", {
+    p_limit: safeLimit,
+  });
+
+  if (error || !data) return [];
+  return data as Array<Pick<Product, "name" | "name_de">>;
+}

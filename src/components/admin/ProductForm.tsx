@@ -13,9 +13,11 @@ const inputClass =
 export default function ProductForm({
   product,
   categories,
+  returnTo,
 }: {
   product?: Product;
   categories: Category[];
+  returnTo?: string;
 }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
     saveProduct,
@@ -29,6 +31,7 @@ export default function ProductForm({
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
       {product && <input type="hidden" name="id" value={product.id} />}
+      {returnTo && <input type="hidden" name="return_to" value={returnTo} />}
 
       <div>
         <div className="flex justify-start">

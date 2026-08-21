@@ -17,13 +17,6 @@ export const dictionaries = {
       scroll: "Scroll",
       seal: "grainbuds · whisked daily · ",
     },
-    marquee: [
-      "Specialty matcha",
-      "Fresh sushi daily",
-      "Tapioca boba",
-      "Order ahead, skip the line",
-      "Slow mornings welcome",
-    ],
     featured: {
       eyebrow: "From the bar",
       title: "House favorites",
@@ -165,13 +158,6 @@ export const dictionaries = {
       scroll: "Scrollen",
       seal: "grainbuds · täglich frisch · ",
     },
-    marquee: [
-      "Specialty Matcha",
-      "Täglich frisches Sushi",
-      "Tapioka Boba",
-      "Vorbestellen und Wartezeit sparen",
-      "Langsame Vormittage willkommen",
-    ],
     featured: {
       eyebrow: "Von der Bar",
       title: "Unsere Favoriten",

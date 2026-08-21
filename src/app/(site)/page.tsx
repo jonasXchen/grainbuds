@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { getProducts } from "@/lib/data";
+import { getPopularProductNames, getProducts } from "@/lib/data";
+import { localizedName } from "@/lib/types";
 import { getT } from "@/lib/i18n/server";
 import { getInstagramGallerySettings } from "@/lib/instagram-gallery";
 import { cafeInfo, galleryImages } from "@/lib/cafe-info";
@@ -11,11 +12,16 @@ import Parallax from "@/components/site/Parallax";
 import ProductCard from "@/components/site/ProductCard";
 
 export default async function HomePage() {
-  const [featured, { t }, instagram] = await Promise.all([
+  const [featured, popularProducts, { locale, t }, instagram] = await Promise.all([
     getProducts({ featuredOnly: true }),
+    getPopularProductNames(),
     getT(),
     getInstagramGallerySettings(),
   ]);
+  const marqueeProducts = popularProducts.length ? popularProducts : featured;
+  const marqueeItems = marqueeProducts.map((product) =>
+    localizedName(product, locale)
+  );
   const gallery = instagram.images.length
     ? instagram.images.slice(0, 6)
     : galleryImages.slice(1, 7).map((imageUrl) => ({ imageUrl, postUrl: null }));
@@ -24,7 +30,7 @@ export default async function HomePage() {
     <>
       <Hero />
 
-      <Marquee items={[...t.marquee]} />
+      {marqueeItems.length > 0 && <Marquee items={marqueeItems} />}
 
       {/* Featured products */}
       <section className="px-5 py-28 sm:px-8">

@@ -28,6 +28,7 @@ export default function ProductCard({
 
   return (
     <motion.article
+      id={`product-${product.id}`}
       initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -37,7 +38,7 @@ export default function ProductCard({
         ease: [0.22, 1, 0.36, 1],
       }}
       whileHover={{ y: -6 }}
-      className="group flex flex-col rounded-3xl bg-cream-light p-3 shadow-[0_1px_0_rgba(18,26,37,0.06)] transition-shadow duration-500 hover:shadow-[0_20px_50px_-24px_rgba(18,26,37,0.35)]"
+      className="group scroll-mt-28 flex flex-col rounded-3xl bg-cream-light p-3 shadow-[0_1px_0_rgba(18,26,37,0.06)] transition-shadow duration-500 hover:shadow-[0_20px_50px_-24px_rgba(18,26,37,0.35)]"
     >
       <Link
         href={`/shop/${product.slug}`}

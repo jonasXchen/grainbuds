@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { adjustStock, toggleProductActive } from "@/lib/actions/admin";
 import type { Product } from "@/lib/types";
@@ -8,6 +9,8 @@ import type { Product } from "@/lib/types";
 /** Compact staff controls shown on product cards while in admin mode. */
 export default function AdminCardControls({ product }: { product: Product }) {
   const [isPending, startTransition] = useTransition();
+  const pathname = usePathname();
+  const returnTo = `${pathname}#product-${product.id}`;
 
   function run(action: () => Promise<void>) {
     startTransition(action);
@@ -20,7 +23,7 @@ export default function AdminCardControls({ product }: { product: Product }) {
       }`}
     >
       <Link
-        href={`/admin/products/${product.id}`}
+        href={`/admin/products/${product.id}?returnTo=${encodeURIComponent(returnTo)}`}
         className="rounded-full bg-cream/15 px-3.5 py-1.5 text-xs font-medium transition-colors hover:bg-matcha hover:text-ink"
       >
         ✎ Edit

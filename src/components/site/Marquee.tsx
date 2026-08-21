@@ -1,5 +1,8 @@
 export default function Marquee({ items }: { items: string[] }) {
-  const row = [...items, ...items];
+  if (items.length === 0) return null;
+
+  const repetitions = Math.max(2, Math.ceil(10 / items.length));
+  const row = Array.from({ length: repetitions }, () => items).flat();
   return (
     <div className="overflow-hidden border-y border-ink/10 bg-matcha py-4">
       <div className="animate-marquee flex w-max items-center gap-8 whitespace-nowrap">

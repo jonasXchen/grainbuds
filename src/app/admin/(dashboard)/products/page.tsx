@@ -58,14 +58,15 @@ export default async function AdminProductsPage() {
           {products.map((product) => (
             <li
               key={product.id}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 transition-colors hover:bg-matcha/8"
+              id={`product-${product.id}`}
+              className="scroll-mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 transition-colors hover:bg-matcha/8"
             >
               <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl">
                 <ProductImage product={product} className="h-full w-full" />
               </div>
               <div className="min-w-32 flex-1">
                 <Link
-                  href={`/admin/products/${product.id}`}
+                  href={`/admin/products/${product.id}?returnTo=${encodeURIComponent(`/admin/products#product-${product.id}`)}`}
                   className="block truncate text-sm font-medium text-ink hover:text-matcha-deep"
                 >
                   {product.name}
@@ -77,7 +78,7 @@ export default async function AdminProductsPage() {
                 </p>
               </div>
               <Link
-                href={`/admin/products/${product.id}`}
+                href={`/admin/products/${product.id}?returnTo=${encodeURIComponent(`/admin/products#product-${product.id}`)}`}
                 className="hidden rounded-full border border-ink/15 px-4 py-1.5 text-xs font-medium text-ink/70 transition-colors hover:border-ink hover:text-ink sm:block"
               >
                 Edit

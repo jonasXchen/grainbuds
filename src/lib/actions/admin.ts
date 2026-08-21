@@ -8,6 +8,7 @@ import {
   normalizeInstagramHandle,
   parseInstagramGallerySettings,
 } from "@/lib/instagram-gallery";
+import { safeReturnPath } from "@/lib/return-path";
 import type { Order, OrderStatus } from "@/lib/types";
 
 export type ActionState =
@@ -82,6 +83,7 @@ export async function saveProduct(
   const supabase = await requireAdmin();
 
   const id = String(formData.get("id") ?? "");
+  const returnTo = safeReturnPath(formData.get("return_to"));
   const nameInput = String(formData.get("name") ?? "").trim();
   const nameDe = String(formData.get("name_de") ?? "").trim();
   const name = nameInput || nameDe;
@@ -152,7 +154,7 @@ export async function saveProduct(
   }
 
   revalidatePath("/", "layout");
-  redirect("/admin/products");
+  redirect(returnTo);
 }
 
 export async function deleteProduct(formData: FormData) {
