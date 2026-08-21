@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+:root {
+  --sand: #c7a880;
+  --matcha: #9db34b;
+  --ink: #121a25;
+  --cream: #eae3da;
+  --cream-light: #f4f0ea;
+  --matcha-deep: #6d7f2e;
+  --sand-deep: #a9885d;
+}
+
+@theme inline {
+  --color-sand: var(--sand);
+  --color-sand-deep: var(--sand-deep);
+  --color-matcha: var(--matcha);
+  --color-matcha-deep: var(--matcha-deep);
+  --color-ink: var(--ink);
+  --color-cream: var(--cream);
+  --color-cream-light: var(--cream-light);
+  --font-sans: var(--font-body), system-ui, sans-serif;
+  --font-display: var(--font-display), Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--matcha);
+  color: var(--cream);
+}
+
+/* Custom scrollbar — subtle, on-brand */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sand);
+  border-radius: 8px;
+  border: 2px solid var(--cream);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sand-deep);
+}
+
+/* Underline link animation */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 1.5px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-underline:hover::after,
+.link-underline.active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Slow float for decorative blobs */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-18px) rotate(3deg);
+  }
+}
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+@keyframes float-slower {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(14px) rotate(-4deg);
+  }
+}
+.animate-float-slower {
+  animation: float-slower 9s ease-in-out infinite;
+}
+
+/* Gentle spin for the hero seal */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 24s linear infinite;
+}
+
+/* Steam wisps rising from cups */
+@keyframes steam {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scaleX(1);
+  }
+  30% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) scaleX(1.6);
+  }
+}
+.animate-steam {
+  animation: steam 3.2s ease-out infinite;
+}
+.animate-steam-delay {
+  animation: steam 3.2s ease-out 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-float-slow,
+  .animate-float-slower,
+  .animate-spin-slow,
+  .animate-steam,
+  .animate-steam-delay {
+    animation: none;
+  }
+}
