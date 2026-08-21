@@ -10,7 +10,10 @@ import {
 } from "@/lib/instagram-gallery";
 import type { Order, OrderStatus } from "@/lib/types";
 
-export type ActionState = { error: string } | null;
+export type ActionState =
+  | { error: string; message?: never }
+  | { message: string; error?: never }
+  | null;
 export type SettingsActionState =
   | { ok: true; message: string }
   | { ok: false; error: string }
@@ -79,10 +82,12 @@ export async function saveProduct(
   const supabase = await requireAdmin();
 
   const id = String(formData.get("id") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
+  const nameInput = String(formData.get("name") ?? "").trim();
   const nameDe = String(formData.get("name_de") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
+  const name = nameInput || nameDe;
+  const descriptionInput = String(formData.get("description") ?? "").trim();
   const descriptionDe = String(formData.get("description_de") ?? "").trim();
+  const description = descriptionInput || descriptionDe;
   const priceRaw = String(formData.get("price") ?? "")
     .replace(",", ".")
     .replace(/[^0-9.]/g, "");
@@ -195,19 +200,78 @@ export async function addCategory(
   formData: FormData
 ): Promise<ActionState> {
   const supabase = await requireAdmin();
-  const name = String(formData.get("name") ?? "").trim();
+  const nameInput = String(formData.get("name") ?? "").trim();
   const nameDe = String(formData.get("name_de") ?? "").trim();
+  const name = nameInput || nameDe;
   if (!name) return { error: "Please enter a category name." };
+  const { data: lastCategory } = await supabase
+    .from("grainbuds_categories")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   const { error } = await supabase.from("grainbuds_categories").insert({
     name: name.slice(0, 80),
     name_de: nameDe.slice(0, 80),
     slug: slugify(name) || `category-${crypto.randomUUID().slice(0, 6)}`,
-    sort_order: 99,
+    sort_order: (lastCategory?.sort_order ?? -1) + 1,
   });
   if (error) return { error: "Could not add the category (name may already exist)." };
   revalidatePath("/", "layout");
   revalidatePath("/admin/products");
-  return null;
+  return { message: `Added “${name.slice(0, 80)}”.` };
+}
+
+export async function updateCategory(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const nameInput = String(formData.get("name") ?? "").trim();
+  const nameDe = String(formData.get("name_de") ?? "").trim();
+  const name = nameInput || nameDe;
+  if (!id || !name) return { error: "Please enter a category name." };
+
+  const { error } = await supabase
+    .from("grainbuds_categories")
+    .update({ name: name.slice(0, 80), name_de: nameDe.slice(0, 80) })
+    .eq("id", id);
+  if (error) return { error: "Could not update the category." };
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/products");
+  return { message: "Category names saved." };
+}
+
+export async function reorderCategories(categoryIds: string[]) {
+  const supabase = await requireAdmin();
+  const uniqueIds = [...new Set(categoryIds)];
+  if (!uniqueIds.length || uniqueIds.length > 100) return;
+
+  const { data: categories, error } = await supabase
+    .from("grainbuds_categories")
+    .select("id")
+    .order("sort_order")
+    .order("created_at");
+  if (error || !categories) return;
+  if (
+    categories.length !== uniqueIds.length ||
+    categories.some((category) => !uniqueIds.includes(category.id))
+  ) return;
+
+  const results = await Promise.all(
+    uniqueIds.map((id, sortOrder) =>
+      supabase
+        .from("grainbuds_categories")
+        .update({ sort_order: sortOrder })
+        .eq("id", id)
+    )
+  );
+  if (results.some((result) => result.error)) return;
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/products");
 }
 
 export async function deleteCategory(formData: FormData) {

@@ -24,78 +24,94 @@ export default function ProductForm({
   const [preview, setPreview] = useState<string | null>(
     product?.image_url ?? null
   );
+  const [editingLanguage, setEditingLanguage] = useState<"de" | "en">("de");
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
       {product && <input type="hidden" name="id" value={product.id} />}
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div>
-          <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">
-            Product name (English) *
-          </label>
-          <input
-            id="name"
-            name="name"
-            required
-            maxLength={120}
-            defaultValue={product?.name}
-            className={inputClass}
-            placeholder="Pistachio Matcha"
-          />
-        </div>
-        <div>
-          <label htmlFor="name_de" className="mb-2 block text-sm font-medium text-ink">
-            Name (German)
-          </label>
-          <input
-            id="name_de"
-            name="name_de"
-            maxLength={120}
-            defaultValue={product?.name_de ?? ""}
-            className={inputClass}
-            placeholder="Pistazien-Matcha"
-          />
-          <p className="mt-1.5 text-xs text-ink/45">
-            Leave empty to reuse the English name.
-          </p>
-        </div>
-      </div>
-
       <div>
-        <label htmlFor="description" className="mb-2 block text-sm font-medium text-ink">
-          Description (English)
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          rows={3}
-          maxLength={1000}
-          defaultValue={product?.description}
-          className={`${inputClass} resize-none`}
-          placeholder="Matcha, pistachio cream, milk"
-        />
-        <p className="mt-1.5 text-xs text-ink/45">
-          Shown on the shop page and the product page.
-        </p>
-      </div>
+        <div className="flex justify-start">
+          <div className="flex rounded-full bg-cream-light p-1" aria-label="Product text language">
+            {(["de", "en"] as const).map((language) => (
+              <button
+                key={language}
+                type="button"
+                onClick={() => setEditingLanguage(language)}
+                aria-pressed={editingLanguage === language}
+                className={`rounded-full px-4 py-2 text-xs font-medium transition-colors ${
+                  editingLanguage === language
+                    ? "bg-ink text-cream"
+                    : "text-ink/50 hover:text-ink"
+                }`}
+              >
+                {language === "de" ? "Deutsch" : "English"}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <div>
-        <label htmlFor="description_de" className="mb-2 block text-sm font-medium text-ink">
-          Description (German)
-        </label>
-        <textarea
-          id="description_de"
-          name="description_de"
-          rows={3}
-          maxLength={1000}
-          defaultValue={product?.description_de ?? ""}
-          className={`${inputClass} resize-none`}
-          placeholder="Matcha, Pistaziencreme, Milch"
-        />
-        <p className="mt-1.5 text-xs text-ink/45">
-          Leave empty to reuse the English description.
-        </p>
+        <div className={`mt-5 space-y-5 ${editingLanguage === "de" ? "" : "hidden"}`}>
+          <div>
+            <label htmlFor="name_de" className="mb-2 block text-sm font-medium text-ink">
+              Produktname *
+            </label>
+            <input
+              id="name_de"
+              name="name_de"
+              required={editingLanguage === "de"}
+              maxLength={120}
+              defaultValue={product?.name_de || product?.name || ""}
+              className={inputClass}
+              placeholder="Pistazien-Matcha"
+            />
+          </div>
+          <div>
+            <label htmlFor="description_de" className="mb-2 block text-sm font-medium text-ink">
+              Beschreibung
+            </label>
+            <textarea
+              id="description_de"
+              name="description_de"
+              rows={3}
+              maxLength={1000}
+              defaultValue={product?.description_de || product?.description || ""}
+              className={`${inputClass} resize-none`}
+              placeholder="Matcha, Pistaziencreme, Milch"
+            />
+          </div>
+        </div>
+
+        <div className={`mt-5 space-y-5 ${editingLanguage === "en" ? "" : "hidden"}`}>
+          <div>
+            <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">
+              Product name *
+            </label>
+            <input
+              id="name"
+              name="name"
+              required={editingLanguage === "en"}
+              maxLength={120}
+              defaultValue={product?.name ?? ""}
+              className={inputClass}
+              placeholder="Pistachio Matcha"
+            />
+          </div>
+          <div>
+            <label htmlFor="description" className="mb-2 block text-sm font-medium text-ink">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={3}
+              maxLength={1000}
+              defaultValue={product?.description ?? ""}
+              className={`${inputClass} resize-none`}
+              placeholder="Matcha, pistachio cream, milk"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -133,9 +149,17 @@ export default function ProductForm({
           </p>
         </div>
         <div>
-          <label htmlFor="category_id" className="mb-2 block text-sm font-medium text-ink">
-            Category
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label htmlFor="category_id" className="block text-sm font-medium text-ink">
+              Category
+            </label>
+            <a
+              href="#categories"
+              className="text-xs font-medium text-matcha-deep transition-colors hover:text-ink"
+            >
+              Manage categories ↓
+            </a>
+          </div>
           <select
             id="category_id"
             name="category_id"
@@ -145,7 +169,7 @@ export default function ProductForm({
             <option value="">— No category —</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name}
+                {category.name_de || category.name}
               </option>
             ))}
           </select>

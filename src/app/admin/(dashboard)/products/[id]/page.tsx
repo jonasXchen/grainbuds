@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProductForm from "@/components/admin/ProductForm";
+import CategoryManager from "@/components/admin/CategoryManager";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,9 @@ export default async function EditProductPage({
       </h1>
       <div className="mt-8">
         <ProductForm product={product} categories={categories ?? []} />
+      </div>
+      <div id="categories" className="mt-16 max-w-2xl scroll-mt-8 sm:mt-20">
+        <CategoryManager categories={categories ?? []} />
       </div>
     </div>
   );

@@ -26,7 +26,6 @@ export default function Header() {
   const t = useT();
 
   const navLinks = [
-    { href: "/", label: t.nav.home },
     { href: "/shop", label: t.nav.shop },
     { href: "/#visit", label: t.nav.visit },
   ];

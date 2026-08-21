@@ -29,12 +29,20 @@ export default async function AdminProductsPage() {
             Everything shown in the online shop. Changes go live right away.
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
-        >
-          + Add a product
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="#categories"
+            className="rounded-full border border-ink/15 px-5 py-3 text-sm font-medium text-ink/70 transition-colors hover:border-ink hover:text-ink"
+          >
+            Manage categories
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
+          >
+            + Add a product
+          </Link>
+        </div>
       </div>
 
       {products.length === 0 ? (
@@ -80,7 +88,7 @@ export default async function AdminProductsPage() {
         </ul>
       )}
 
-      <div className="mt-10">
+      <div id="categories" className="mt-16 scroll-mt-8 sm:mt-20">
         <CategoryManager categories={categories} />
       </div>
     </div>

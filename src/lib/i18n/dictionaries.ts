@@ -3,7 +3,6 @@ import type { Locale } from "@/lib/types";
 export const dictionaries = {
   en: {
     nav: {
-      home: "Home",
       shop: "Shop",
       visit: "Visit",
       orderPickup: "Order pickup",
@@ -152,7 +151,6 @@ export const dictionaries = {
   },
   de: {
     nav: {
-      home: "Start",
       shop: "Shop",
       visit: "Besuch",
       orderPickup: "Zum Abholen bestellen",

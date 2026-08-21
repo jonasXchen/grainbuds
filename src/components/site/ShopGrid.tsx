@@ -36,38 +36,50 @@ export default function ShopGrid({
 
   return (
     <div>
-      <div className="flex flex-wrap justify-center gap-2.5">
-        {[
-          { id: null as string | null, name: t.shop.everything },
-          ...usedCategories,
-        ].map(
-          (category) => {
-            const isActive = activeCategory === category.id;
-            return (
-              <button
-                key={category.id ?? "all"}
-                type="button"
-                onClick={() => setActiveCategory(category.id)}
-                className={`relative rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-300 ${
-                  isActive
-                    ? "text-cream"
-                    : "text-ink/60 hover:bg-ink/5 hover:text-ink"
-                }`}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="category-pill"
-                    className="absolute inset-0 rounded-full bg-ink"
-                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                  />
-                )}
-                <span className="relative">
-                  {localizedName(category, locale)}
-                </span>
-              </button>
-            );
-          }
-        )}
+      <div className="sticky top-[76px] z-30 -mx-5 border-y border-ink/5 bg-cream/90 py-3 backdrop-blur-md sm:top-[86px] sm:mx-0 sm:rounded-2xl sm:border">
+        <div className="overflow-x-auto overscroll-x-contain px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:px-4">
+          <div className="flex w-max snap-x snap-proximity gap-2.5 sm:w-auto sm:flex-wrap sm:justify-center">
+            {[
+              { id: null as string | null, name: t.shop.everything },
+              ...usedCategories,
+            ].map(
+              (category) => {
+                const isActive = activeCategory === category.id;
+                return (
+                  <button
+                    key={category.id ?? "all"}
+                    type="button"
+                    onClick={(event) => {
+                      setActiveCategory(category.id);
+                      event.currentTarget.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                        inline: "center",
+                      });
+                    }}
+                    aria-pressed={isActive}
+                    className={`relative shrink-0 snap-start whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-300 ${
+                      isActive
+                        ? "text-cream"
+                        : "text-ink/60 hover:bg-ink/5 hover:text-ink"
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="category-pill"
+                        className="absolute inset-0 rounded-full bg-ink"
+                        transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      />
+                    )}
+                    <span className="relative">
+                      {localizedName(category, locale)}
+                    </span>
+                  </button>
+                );
+              }
+            )}
+          </div>
+        </div>
       </div>
 
       <motion.div layout className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
