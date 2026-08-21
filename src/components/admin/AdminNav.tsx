@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logout } from "@/lib/actions/auth";
@@ -91,18 +92,14 @@ export default function AdminNav({
   return (
     <aside className="flex w-full shrink-0 flex-col gap-2 border-b border-cream/10 bg-ink px-4 py-3 text-cream md:sticky md:top-0 md:h-dvh md:w-60 md:gap-0 md:border-b-0 md:border-r md:px-4 md:py-6">
       <div className="flex items-center justify-between md:block">
-        <Link href="/" className="flex items-center gap-2.5 px-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-matcha text-ink">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none">
-              <path
-                d="M12 20 C5 17, 5.5 8.5, 12 4 C18.5 8.5, 19 17, 12 20 z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <span className="font-display text-lg">grainbuds</span>
+        <Link href="/" className="block px-2" aria-label="Grainbuds home">
+          <Image
+            src="/brand/grainbuds-logo.png"
+            alt="Grainbuds Café"
+            width={1248}
+            height={410}
+            className="h-auto w-32 brightness-0 invert"
+          />
         </Link>
 
         {/* Mobile-only sign out, so the link row below stays uncluttered */}
