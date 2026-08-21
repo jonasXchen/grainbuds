@@ -54,8 +54,8 @@ export default function CheckoutPage() {
       const result = await createOrder({
         customerName: String(form.get("name") ?? ""),
         customerEmail: String(form.get("email") ?? ""),
-        customerPhone: String(form.get("phone") ?? ""),
-        pickupTime: String(form.get("pickup_time") ?? ""),
+        customerPhone: "",
+        pickupTime: "",
         notes: String(form.get("notes") ?? ""),
         marketingOptIn: form.get("marketing_opt_in") === "on",
         lines: lines.map((line) => ({
@@ -108,21 +108,29 @@ export default function CheckoutPage() {
             {t.checkout.title}
           </h1>
           <p className="mt-4 max-w-xl text-ink/60">{t.checkout.sub}</p>
-          <div className="mt-7 max-w-xl rounded-3xl border border-matcha/35 bg-matcha/10 p-5">
+        </motion.div>
+
+        <div className="mt-10 grid items-start gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)] lg:gap-10">
+          <motion.section
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-3xl border border-matcha/35 bg-matcha/10 p-5 sm:p-6 lg:col-start-1 lg:row-start-1"
+          >
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-matcha-deep">
               {t.checkout.queueTitle}
             </p>
             {queueEstimate ? (
-              <div className="mt-3 grid grid-cols-2 gap-4">
-                <div>
+              <div className="mt-4 grid grid-cols-2 divide-x divide-ink/10">
+                <div className="min-w-0 pr-4">
                   <p className="text-xs text-ink/50">{t.checkout.queuePosition}</p>
                   <p className="mt-1 font-display text-3xl text-ink">
                     #{queueEstimate.position}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0 pl-4">
                   <p className="text-xs text-ink/50">{t.checkout.estimatedWait}</p>
-                  <p className="mt-1 font-display text-3xl text-ink">
+                  <p className="mt-1 whitespace-nowrap font-display text-3xl text-ink">
                     ~{queueEstimate.waitingMinutes}{" "}
                     <span className="font-sans text-sm">
                       {queueEstimate.waitingMinutes === 1
@@ -137,19 +145,14 @@ export default function CheckoutPage() {
                 {t.checkout.calculatingQueue}
               </p>
             )}
-            <p className="mt-3 text-xs leading-relaxed text-ink/45">
-              {t.checkout.queueNote}
-            </p>
-          </div>
-        </motion.div>
+          </motion.section>
 
-        <div className="mt-12 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
           <motion.form
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
             onSubmit={handleSubmit}
-            className="space-y-5"
+            className="space-y-5 lg:col-start-1 lg:row-start-2"
           >
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
@@ -163,21 +166,6 @@ export default function CheckoutPage() {
                   {t.checkout.email}
                 </label>
                 <input id="email" name="email" type="email" required maxLength={200} className={inputClass} placeholder="you@example.com" />
-              </div>
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label htmlFor="phone" className="mb-2 block text-sm font-medium text-ink">
-                  {t.checkout.phone}{" "}
-                  <span className="text-ink/40">{t.checkout.optional}</span>
-                </label>
-                <input id="phone" name="phone" type="tel" maxLength={40} className={inputClass} placeholder="0151 23456789" />
-              </div>
-              <div>
-                <label htmlFor="pickup_time" className="mb-2 block text-sm font-medium text-ink">
-                  {t.checkout.pickupTime}
-                </label>
-                <input id="pickup_time" name="pickup_time" maxLength={80} className={inputClass} placeholder={t.checkout.pickupPlaceholder} />
               </div>
             </div>
             <div>
@@ -230,7 +218,7 @@ export default function CheckoutPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="h-fit rounded-3xl bg-cream-light p-7"
+            className="h-fit rounded-3xl bg-cream-light p-6 sm:p-7 lg:col-start-2 lg:row-span-2 lg:row-start-1"
           >
             <h2 className="font-display text-xl text-ink">
               {t.checkout.summary}
