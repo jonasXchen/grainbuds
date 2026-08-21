@@ -31,9 +31,6 @@ order. The admin panel needs Supabase (next section).
    the old site). Everything can be edited later in the admin panel, and
    re-running it refreshes names/prices without duplicating.
 
-   *Already ran an older schema before the bilingual update?* Run
-   [`supabase/migrate-001-bilingual.sql`](supabase/migrate-001-bilingual.sql)
-   first — it adds the German columns and removes the old fictional sample menu.
 4. **Create the owner's login**: dashboard → **Authentication → Users →
    Add user → Create new user**. Enter the owner's email and a password, and tick
    **Auto confirm user**. (Anyone you add here can access the admin panel —
@@ -59,7 +56,19 @@ order. The admin panel needs Supabase (next section).
   - Manage categories at the bottom of the Products page.
 - **Orders** — new online orders appear here, newest first. Move them through
   *New → In progress → Ready for pickup → Completed* as you work. Customers pay
-  in store at pickup.
+  in store at pickup — record it on the order (*Paid · cash* / *Paid · card*),
+  which stamps the payment time so you have a full payment history.
+- **Inventory** — give a product a stock number and it counts down with every
+  order; at 0 the shop shows "Sold out" automatically. Adjust stock with the
+  +/− stepper right in the product list. Leave stock empty for made-to-order
+  items that never run out.
+- **Analytics** — orders, revenue, and average order value for the last 30
+  days, revenue per day, your most-ordered products, and revenue by category.
+- **Customers** — everyone who ordered, plus the mailing list. Customers join
+  the list by ticking the opt-in box at checkout (required under GDPR — never
+  email people who didn't opt in). Write a subject and message and send a
+  product-launch update to the whole list, or use *Copy all emails* to BCC
+  them from your own mail program.
 
 Changes go live on the website within about a minute.
 
@@ -97,6 +106,15 @@ supabase/
   through the admin panel — uploads go to your own Supabase storage.
 - **Security**: the database uses Row Level Security. Visitors can only read
   live products and create orders; every write to products/categories and all
-  order management requires a signed-in staff user. Order confirmation links use
-  unguessable IDs.
+  order management requires a signed-in staff user. Orders can never be listed
+  with the public key — the confirmation page uses a lookup function that
+  requires the exact unguessable order ID and returns no contact details.
+  Stock is decremented by a database trigger, so it can't be bypassed or
+  oversold by racing checkouts.
+- **Secret keys**: the Supabase *secret* key is never used — don't put it in
+  any env file of this project. The only server-side secret is the optional
+  `RESEND_API_KEY` for email campaigns (see `.env.example`).
+- **Email sending** uses [Resend](https://resend.com) (free tier: 3,000
+  emails/month). Without a key configured, the Customers page still works —
+  use *Copy all emails* and BCC from your own mail program.
 - **Brand palette**: sand `#C7A880`, matcha `#9DB34B`, ink `#121A25`, cream `#EAE3DA`.

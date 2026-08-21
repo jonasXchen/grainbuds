@@ -21,9 +21,15 @@ export type Product = {
   is_active: boolean;
   is_featured: boolean;
   sort_order: number;
+  /** null/undefined = not tracked (always available); 0 = sold out. */
+  stock?: number | null;
   created_at?: string;
   category?: Category | null;
 };
+
+export function isSoldOut(product: Product): boolean {
+  return product.stock != null && product.stock <= 0;
+}
 
 export type OrderStatus =
   | "new"
@@ -51,8 +57,20 @@ export type Order = {
   notes: string | null;
   status: OrderStatus;
   total_cents: number;
+  payment_status?: "unpaid" | "paid" | "refunded";
+  payment_method?: "cash" | "card" | null;
+  paid_at?: string | null;
+  marketing_opt_in?: boolean;
   created_at: string;
   order_items?: OrderItem[];
+};
+
+export type Subscriber = {
+  id: string;
+  email: string;
+  name: string | null;
+  source: string;
+  created_at: string;
 };
 
 export type CartLine = {

@@ -116,6 +116,23 @@ export default function ProductForm({
           />
         </div>
         <div>
+          <label htmlFor="stock" className="mb-2 block text-sm font-medium text-ink">
+            Stock
+          </label>
+          <input
+            id="stock"
+            name="stock"
+            inputMode="numeric"
+            defaultValue={product?.stock ?? ""}
+            className={inputClass}
+            placeholder="Leave empty = always available"
+          />
+          <p className="mt-1.5 text-xs text-ink/45">
+            Counts down automatically with each order; at 0 the item shows as
+            sold out. Leave empty for made-to-order items.
+          </p>
+        </div>
+        <div>
           <label htmlFor="category_id" className="mb-2 block text-sm font-medium text-ink">
             Category
           </label>

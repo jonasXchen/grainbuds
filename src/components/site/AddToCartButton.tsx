@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { useT } from "@/lib/i18n/context";
-import type { Product } from "@/lib/types";
+import { isSoldOut, type Product } from "@/lib/types";
 
 export default function AddToCartButton({
   product,
@@ -20,12 +20,23 @@ export default function AddToCartButton({
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const t = useT();
+  const soldOut = isSoldOut(product);
 
   const sizes = {
     sm: "px-4 py-2 text-xs",
     md: "px-6 py-3 text-sm",
     lg: "px-8 py-4 text-base",
   } as const;
+
+  if (soldOut) {
+    return (
+      <span
+        className={`inline-flex items-center justify-center rounded-full bg-ink/8 font-medium tracking-wide text-ink/45 ${sizes[size]} ${className}`}
+      >
+        {t.shop.soldOut}
+      </span>
+    );
+  }
 
   return (
     <motion.button

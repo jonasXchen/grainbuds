@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import type { Product } from "@/lib/types";
 import {
   formatPrice,
+  isSoldOut,
   localizedDescription,
   localizedName,
 } from "@/lib/types";
@@ -40,6 +41,11 @@ export default function ProductCard({
         className="relative block aspect-[4/3] overflow-hidden rounded-2xl"
       >
         <ProductImage product={product} className="h-full w-full" />
+        {isSoldOut(product) && (
+          <span className="absolute right-3 top-3 rounded-full bg-ink/85 px-3 py-1 text-[11px] font-medium uppercase tracking-widest text-cream backdrop-blur">
+            {t.shop.soldOut}
+          </span>
+        )}
         {product.is_featured && (
           <span className="absolute left-3 top-3 rounded-full bg-cream/90 px-3 py-1 text-[11px] font-medium uppercase tracking-widest text-matcha-deep backdrop-blur">
             {t.featured.favorite}

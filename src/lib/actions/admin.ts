@@ -35,10 +35,10 @@ async function uploadImage(
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `products/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
-    .from("product-images")
+    .from("grainbuds-product-images")
     .upload(path, file, { contentType: file.type, upsert: false });
   if (error) return null;
-  const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+  const { data } = supabase.storage.from("grainbuds-product-images").getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -53,7 +53,10 @@ export async function saveProduct(
   const nameDe = String(formData.get("name_de") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const descriptionDe = String(formData.get("description_de") ?? "").trim();
-  const priceRaw = String(formData.get("price") ?? "").replace(/[^0-9.]/g, "");
+  const priceRaw = String(formData.get("price") ?? "")
+    .replace(",", ".")
+    .replace(/[^0-9.]/g, "");
+  const stockRaw = String(formData.get("stock") ?? "").trim();
   const categoryId = String(formData.get("category_id") ?? "") || null;
   const isActive = formData.get("is_active") === "on";
   const isFeatured = formData.get("is_featured") === "on";
@@ -64,6 +67,13 @@ export async function saveProduct(
   const price = Number.parseFloat(priceRaw);
   if (!Number.isFinite(price) || price < 0) {
     return { error: "Please enter a valid price, e.g. 6.50." };
+  }
+  let stock: number | null = null;
+  if (stockRaw !== "") {
+    stock = Number.parseInt(stockRaw, 10);
+    if (!Number.isFinite(stock) || stock < 0) {
+      return { error: "Stock must be a whole number (or empty for unlimited)." };
+    }
   }
 
   let imageUrl: string | null | undefined = undefined;
@@ -86,22 +96,23 @@ export async function saveProduct(
     category_id: categoryId,
     is_active: isActive,
     is_featured: isFeatured,
+    stock,
   };
   if (imageUrl !== undefined) row.image_url = imageUrl;
 
   if (id) {
-    const { error } = await supabase.from("products").update(row).eq("id", id);
+    const { error } = await supabase.from("grainbuds_products").update(row).eq("id", id);
     if (error) return { error: "Could not save the product." };
   } else {
     // Make the slug unique if a product with the same name already exists.
     const base = slugify(name) || "product";
     const { data: clash } = await supabase
-      .from("products")
+      .from("grainbuds_products")
       .select("id")
       .eq("slug", base)
       .maybeSingle();
     row.slug = clash ? `${base}-${crypto.randomUUID().slice(0, 6)}` : base;
-    const { error } = await supabase.from("products").insert(row);
+    const { error } = await supabase.from("grainbuds_products").insert(row);
     if (error) return { error: "Could not create the product." };
   }
 
@@ -113,7 +124,7 @@ export async function deleteProduct(formData: FormData) {
   const supabase = await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (id) {
-    await supabase.from("products").delete().eq("id", id);
+    await supabase.from("grainbuds_products").delete().eq("id", id);
     revalidatePath("/", "layout");
   }
   redirect("/admin/products");
@@ -124,10 +135,29 @@ export async function toggleProductActive(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const next = formData.get("next") === "true";
   if (id) {
-    await supabase.from("products").update({ is_active: next }).eq("id", id);
+    await supabase.from("grainbuds_products").update({ is_active: next }).eq("id", id);
     revalidatePath("/", "layout");
     revalidatePath("/admin/products");
   }
+}
+
+export async function adjustStock(formData: FormData) {
+  const supabase = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const delta = Number.parseInt(String(formData.get("delta") ?? "0"), 10);
+  if (!id || !Number.isFinite(delta) || delta === 0) return;
+  const { data: product } = await supabase
+    .from("grainbuds_products")
+    .select("stock")
+    .eq("id", id)
+    .maybeSingle();
+  if (!product || product.stock == null) return;
+  await supabase
+    .from("grainbuds_products")
+    .update({ stock: Math.max(0, product.stock + delta) })
+    .eq("id", id);
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/products");
 }
 
 export async function addCategory(
@@ -138,7 +168,7 @@ export async function addCategory(
   const name = String(formData.get("name") ?? "").trim();
   const nameDe = String(formData.get("name_de") ?? "").trim();
   if (!name) return { error: "Please enter a category name." };
-  const { error } = await supabase.from("categories").insert({
+  const { error } = await supabase.from("grainbuds_categories").insert({
     name: name.slice(0, 80),
     name_de: nameDe.slice(0, 80),
     slug: slugify(name) || `category-${crypto.randomUUID().slice(0, 6)}`,
@@ -154,10 +184,30 @@ export async function deleteCategory(formData: FormData) {
   const supabase = await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (id) {
-    await supabase.from("categories").delete().eq("id", id);
+    await supabase.from("grainbuds_categories").delete().eq("id", id);
     revalidatePath("/", "layout");
     revalidatePath("/admin/products");
   }
+}
+
+export async function updateOrderPayment(formData: FormData) {
+  const supabase = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const value = String(formData.get("payment") ?? "");
+  // Encoded as "status:method", e.g. "paid:cash", "unpaid:", "refunded:".
+  const [status, method] = value.split(":");
+  if (!id) return;
+  if (!["unpaid", "paid", "refunded"].includes(status)) return;
+  if (method && !["cash", "card"].includes(method)) return;
+  await supabase
+    .from("grainbuds_orders")
+    .update({
+      payment_status: status,
+      payment_method: method || null,
+      paid_at: status === "paid" ? new Date().toISOString() : null,
+    })
+    .eq("id", id);
+  revalidatePath("/admin/orders");
 }
 
 export async function updateOrderStatus(formData: FormData) {
@@ -172,7 +222,7 @@ export async function updateOrderStatus(formData: FormData) {
     "cancelled",
   ];
   if (id && allowed.includes(status)) {
-    await supabase.from("orders").update({ status }).eq("id", id);
+    await supabase.from("grainbuds_orders").update({ status }).eq("id", id);
     revalidatePath("/admin/orders");
   }
 }

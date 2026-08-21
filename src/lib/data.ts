@@ -12,7 +12,7 @@ export async function getCategories(): Promise<Category[]> {
   if (!hasSupabaseEnv()) return seedCategories;
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("categories")
+    .from("grainbuds_categories")
     .select("*")
     .order("sort_order");
   if (error || !data) return seedCategories;
@@ -35,8 +35,8 @@ export async function getProducts(opts?: {
 
   const supabase = await createClient();
   let query = supabase
-    .from("products")
-    .select("*, category:categories(*)")
+    .from("grainbuds_products")
+    .select("*, category:grainbuds_categories(*)")
     .eq("is_active", true)
     .order("sort_order");
   if (opts?.featuredOnly) query = query.eq("is_featured", true);
@@ -55,8 +55,8 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
   const supabase = await createClient();
   const { data } = await supabase
-    .from("products")
-    .select("*, category:categories(*)")
+    .from("grainbuds_products")
+    .select("*, category:grainbuds_categories(*)")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();

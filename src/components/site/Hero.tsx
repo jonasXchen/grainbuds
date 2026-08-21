@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useT } from "@/lib/i18n/context";
+import { heroImage } from "@/lib/cafe-info";
 
 export default function Hero() {
   const t = useT();
@@ -42,7 +43,7 @@ export default function Hero() {
             {t.hero.eyebrow}
           </motion.p>
 
-          <h1 className="mt-5 font-display text-6xl leading-[0.95] tracking-tight text-ink sm:text-7xl lg:text-8xl">
+          <h1 className="mt-5 font-display text-5xl leading-[0.95] tracking-tight text-ink sm:text-6xl lg:text-7xl xl:text-8xl">
             {headline.map((word, i) => (
               <span key={i} className="inline-block overflow-hidden pb-2 pr-4">
                 <motion.span
@@ -102,7 +103,7 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="relative mx-auto hidden w-full max-w-sm lg:block"
         >
-          <div className="animate-spin-slow absolute -right-6 -top-6 h-28 w-28" aria-hidden>
+          <div className="animate-spin-slow absolute -left-8 top-6 z-10 h-28 w-28 rounded-full bg-cream/80 backdrop-blur-sm" aria-hidden>
             <svg viewBox="0 0 100 100" className="h-full w-full">
               <defs>
                 <path
@@ -116,42 +117,12 @@ export default function Hero() {
             </svg>
           </div>
 
-          <svg viewBox="0 0 300 300" className="w-full drop-shadow-xl">
-            {/* steam */}
-            <g strokeLinecap="round" fill="none" stroke="#a9885d" strokeWidth="4" opacity="0.6">
-              <path className="animate-steam" d="M130 92 q6 -12 0 -24 q-5 -10 2 -20" />
-              <path className="animate-steam-delay" d="M165 88 q7 -12 0 -22 q-6 -10 2 -20" />
-            </g>
-            {/* bowl */}
-            <ellipse cx="150" cy="132" rx="88" ry="20" fill="#6d7f2e" />
-            <path
-              d="M62 132 a88 20 0 0 0 176 0 c0 58 -34 96 -88 96 s-88 -38 -88 -96 z"
-              fill="#eae3da"
-              stroke="#121a25"
-              strokeWidth="3"
-            />
-            <ellipse cx="150" cy="132" rx="74" ry="15" fill="#9db34b" />
-            <path
-              d="M96 130 q26 12 54 6 q28 -6 50 2"
-              fill="none"
-              stroke="#6d7f2e"
-              strokeWidth="3"
-              opacity="0.7"
-            />
-            {/* saucer */}
-            <ellipse cx="150" cy="238" rx="64" ry="10" fill="#c7a880" opacity="0.7" />
-            {/* whisk resting */}
-            <g transform="rotate(24 236 150)">
-              <rect x="230" y="90" width="10" height="52" rx="5" fill="#c7a880" stroke="#121a25" strokeWidth="2.5" />
-              <path
-                d="M226 140 q-8 26 4 40 M231 141 q-3 27 4 40 M239 141 q3 27 -2 40 M244 140 q9 26 -2 40"
-                fill="none"
-                stroke="#a9885d"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </g>
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={heroImage}
+            alt="Matcha at Grainbuds"
+            className="aspect-[4/5] w-full rounded-b-[2.5rem] rounded-t-[999px] border border-ink/10 object-cover shadow-[0_50px_100px_-40px_rgba(18,26,37,0.5)]"
+          />
         </motion.div>
       </motion.div>
 

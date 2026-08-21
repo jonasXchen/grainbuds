@@ -18,6 +18,9 @@ export const cafeInfo = {
   ],
 } as const;
 
+export const heroImage =
+  "https://ams3.digitaloceanspaces.com/tmi-images/grainbuds__asian_cafe_143/hero_img/jCDjeZa3rGhwwwPyQ.png";
+
 const galleryBase =
   "https://ams3.digitaloceanspaces.com/tmi-images/grainbuds__asian_cafe_143/gallery/";
 

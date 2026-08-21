@@ -4,15 +4,18 @@ import { getT } from "@/lib/i18n/server";
 import { formatPrice, type Order } from "@/lib/types";
 import Reveal from "@/components/site/Reveal";
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function getOrder(id: string): Promise<Order | null> {
-  if (id === "demo" || !hasSupabaseEnv()) return null;
+  if (!UUID_PATTERN.test(id) || !hasSupabaseEnv()) return null;
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("orders")
-    .select("*, order_items(*)")
-    .eq("id", id)
-    .maybeSingle();
-  return data ?? null;
+  // Security-definer lookup: needs the exact order id and returns only the
+  // fields shown here — orders can't be listed with the public key.
+  const { data } = await supabase.rpc("grainbuds_order_confirmation", {
+    order_id: id,
+  });
+  return (data as Order | null) ?? null;
 }
 
 export default async function OrderConfirmationPage({

@@ -11,10 +11,10 @@ export default async function AdminProductsPage() {
   const supabase = await createClient();
   const [productsRes, categoriesRes] = await Promise.all([
     supabase
-      .from("products")
-      .select("*, category:categories(*)")
+      .from("grainbuds_products")
+      .select("*, category:grainbuds_categories(*)")
       .order("sort_order"),
-    supabase.from("categories").select("*").order("sort_order"),
+    supabase.from("grainbuds_categories").select("*").order("sort_order"),
   ]);
 
   const products: Product[] = productsRes.data ?? [];

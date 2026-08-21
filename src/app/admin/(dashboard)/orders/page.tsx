@@ -1,14 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, type Order } from "@/lib/types";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
+import PaymentSelect from "@/components/admin/PaymentSelect";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage() {
   const supabase = await createClient();
   const { data } = await supabase
-    .from("orders")
-    .select("*, order_items(*)")
+    .from("grainbuds_orders")
+    .select("*, order_items:grainbuds_order_items(*)")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -70,10 +71,11 @@ function OrderSection({
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span className="font-display text-xl text-ink">
                     {formatPrice(order.total_cents)}
                   </span>
+                  <PaymentSelect order={order} />
                   <OrderStatusSelect orderId={order.id} status={order.status} />
                 </div>
               </div>

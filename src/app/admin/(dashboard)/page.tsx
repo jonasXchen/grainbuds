@@ -17,13 +17,13 @@ export default async function AdminOverviewPage() {
 
   const [{ count: productCount }, { count: activeCount }, ordersRes] =
     await Promise.all([
-      supabase.from("products").select("id", { count: "exact", head: true }),
+      supabase.from("grainbuds_products").select("id", { count: "exact", head: true }),
       supabase
-        .from("products")
+        .from("grainbuds_products")
         .select("id", { count: "exact", head: true })
         .eq("is_active", true),
       supabase
-        .from("orders")
+        .from("grainbuds_orders")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(8),
@@ -42,9 +42,9 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="font-display text-4xl text-ink">Good day ☀</h1>
+      <h1 className="font-display text-4xl text-ink">Overview</h1>
       <p className="mt-2 text-ink/60">
-        Here&apos;s how the café looks right now.
+        How the café looks right now.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">

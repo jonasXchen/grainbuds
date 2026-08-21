@@ -48,7 +48,8 @@ export default function Header() {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
+      <div className="px-5 sm:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between py-4">
         <Link href="/" className="group flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-matcha text-cream transition-transform duration-500 group-hover:rotate-12">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
@@ -140,6 +141,7 @@ export default function Header() {
               className="block h-0.5 w-4 bg-ink"
             />
           </button>
+        </div>
         </div>
       </div>
 

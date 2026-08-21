@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function NewProductPage() {
   const supabase = await createClient();
   const { data: categories } = await supabase
-    .from("categories")
+    .from("grainbuds_categories")
     .select("*")
     .order("sort_order");
 

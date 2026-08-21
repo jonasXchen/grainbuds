@@ -8,8 +8,8 @@ export default function Footer() {
   const t = useT();
 
   return (
-    <footer className="bg-ink text-cream">
-      <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
+    <footer className="bg-ink px-5 text-cream sm:px-8">
+      <div className="mx-auto max-w-6xl py-16">
         <div className="grid gap-12 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2.5">

@@ -15,6 +15,7 @@ export type CheckoutInput = {
   customerPhone?: string;
   pickupTime?: string;
   notes?: string;
+  marketingOptIn?: boolean;
   lines: CheckoutLine[];
 };
 
@@ -46,6 +47,16 @@ export async function createOrder(
         error: "An item in your cart is no longer available.",
       };
     }
+    // Friendly pre-check; the database trigger is the hard guarantee.
+    if (product.stock != null && product.stock < quantity) {
+      return {
+        ok: false,
+        error:
+          product.stock <= 0
+            ? `“${product.name}” is sold out right now.`
+            : `Only ${product.stock} × “${product.name}” left — please lower the quantity.`,
+      };
+    }
     priced.push({ product, quantity });
   }
   const totalCents = priced.reduce(
@@ -60,7 +71,7 @@ export async function createOrder(
 
   const supabase = await createClient();
   const { data: order, error } = await supabase
-    .from("orders")
+    .from("grainbuds_orders")
     .insert({
       customer_name: input.customerName.trim().slice(0, 120),
       customer_email: input.customerEmail.trim().slice(0, 200),
@@ -69,6 +80,7 @@ export async function createOrder(
       notes: input.notes?.trim().slice(0, 500) || null,
       status: "new",
       total_cents: totalCents,
+      marketing_opt_in: Boolean(input.marketingOptIn),
     })
     .select("id")
     .single();
@@ -77,7 +89,7 @@ export async function createOrder(
     return { ok: false, error: "Could not place the order. Please try again." };
   }
 
-  const { error: itemsError } = await supabase.from("order_items").insert(
+  const { error: itemsError } = await supabase.from("grainbuds_order_items").insert(
     priced.map((line) => ({
       order_id: order.id,
       product_id: line.product.id,
@@ -88,7 +100,26 @@ export async function createOrder(
   );
 
   if (itemsError) {
-    return { ok: false, error: "Could not place the order. Please try again." };
+    // Most likely the stock trigger refused the sale (someone was faster).
+    return {
+      ok: false,
+      error:
+        "An item in your cart just sold out. Please review your cart and try again.",
+    };
+  }
+
+  // Explicit opt-in only (GDPR): add them to the mailing list.
+  if (input.marketingOptIn) {
+    await supabase
+      .from("grainbuds_subscribers")
+      .upsert(
+        {
+          email: input.customerEmail.trim().toLowerCase().slice(0, 200),
+          name: input.customerName.trim().slice(0, 120),
+          source: "checkout",
+        },
+        { onConflict: "email", ignoreDuplicates: true }
+      );
   }
 
   return { ok: true, orderId: order.id, demo: false };

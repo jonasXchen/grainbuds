@@ -33,6 +33,7 @@ export default function CheckoutPage() {
         customerPhone: String(form.get("phone") ?? ""),
         pickupTime: String(form.get("pickup_time") ?? ""),
         notes: String(form.get("notes") ?? ""),
+        marketingOptIn: form.get("marketing_opt_in") === "on",
         lines: lines.map((line) => ({
           productId: line.product.id,
           slug: line.product.slug,
@@ -136,6 +137,15 @@ export default function CheckoutPage() {
                 placeholder={t.checkout.notesPlaceholder}
               />
             </div>
+
+            <label className="flex items-start gap-3 rounded-2xl bg-matcha/10 px-5 py-4 text-sm text-ink/70">
+              <input
+                type="checkbox"
+                name="marketing_opt_in"
+                className="mt-0.5 h-4 w-4 shrink-0 accent-matcha-deep"
+              />
+              {t.checkout.consent}
+            </label>
 
             {error && (
               <motion.p

@@ -99,6 +99,8 @@ export const dictionaries = {
       empty: "Nothing here yet — check back soon.",
       addToOrder: "Add to order",
       added: "Added",
+      soldOut: "Sold out",
+      fewLeft: "left",
     },
     product: {
       back: "Back to shop",
@@ -132,6 +134,8 @@ export const dictionaries = {
       pickupPlaceholder: "Today, around 3pm",
       notes: "Notes for the kitchen",
       notesPlaceholder: "Oat milk, boba topping, less sweet, allergies…",
+      consent:
+        "Email me about new drinks and product launches. You can unsubscribe anytime.",
       placing: "Placing your order…",
       placeOrder: "Place order",
       summary: "Order summary",
@@ -164,7 +168,7 @@ export const dictionaries = {
     },
     hero: {
       eyebrow: "Matcha · Boba · Sushi · Ruhige Ecken",
-      headline: ["Inne-", "halten.", "Grün", "genießen."],
+      headline: ["Kurz", "innehalten.", "Grün", "genießen."],
       sub: "Grainbuds ist ein kleines asiatisches Café in Erlangen mit einer einfachen Idee: Gute Dinge brauchen Zeit zum Ziehen. Frisch aufgeschlagener Matcha, handgerolltes Sushi und Getränke mit Sorgfalt.",
       cta: "Zum Abholen bestellen",
       ourStory: "Unsere Geschichte",
@@ -251,6 +255,8 @@ export const dictionaries = {
       empty: "Hier ist noch nichts — schauen Sie bald wieder vorbei.",
       addToOrder: "In die Bestellung",
       added: "Hinzugefügt",
+      soldOut: "Ausverkauft",
+      fewLeft: "übrig",
     },
     product: {
       back: "Zurück zum Shop",
@@ -285,6 +291,8 @@ export const dictionaries = {
       pickupPlaceholder: "Heute, gegen 15 Uhr",
       notes: "Hinweise für die Küche",
       notesPlaceholder: "Hafermilch, Boba-Topping, weniger süß, Allergien…",
+      consent:
+        "Informieren Sie mich per E-Mail über neue Getränke und Produkte. Jederzeit abbestellbar.",
       placing: "Bestellung wird aufgegeben…",
       placeOrder: "Bestellung aufgeben",
       summary: "Bestellübersicht",

@@ -26,6 +26,20 @@ const links = [
       <path d="M7 5 H17 L18.5 19 H5.5 Z M9.5 8 V7 A2.5 2.5 0 0 1 14.5 7 V8" strokeLinecap="round" strokeLinejoin="round" />
     ),
   },
+  {
+    href: "/admin/analytics",
+    label: "Analytics",
+    icon: (
+      <path d="M5 19 V13 M10 19 V9 M15 19 V11 M20 19 V5" strokeLinecap="round" />
+    ),
+  },
+  {
+    href: "/admin/customers",
+    label: "Customers",
+    icon: (
+      <path d="M12 11 A3.5 3.5 0 1 0 12 4 A3.5 3.5 0 0 0 12 11 Z M5 20 C5 15.5 8 13.5 12 13.5 C16 13.5 19 15.5 19 20" strokeLinecap="round" strokeLinejoin="round" />
+    ),
+  },
 ];
 
 export default function AdminNav() {

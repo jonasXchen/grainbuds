@@ -1,13 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import type { Product } from "@/lib/types";
+import { isSoldOut, type Product } from "@/lib/types";
 import { useT } from "@/lib/i18n/context";
 import AddToCartButton from "./AddToCartButton";
 
 export default function ProductPurchase({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const t = useT();
+
+  if (isSoldOut(product)) {
+    return <AddToCartButton product={product} size="lg" />;
+  }
+
+  const maxQuantity =
+    product.stock != null ? Math.min(20, product.stock) : 20;
 
   return (
     <div className="flex flex-wrap items-center gap-4">
@@ -23,7 +30,7 @@ export default function ProductPurchase({ product }: { product: Product }) {
         <span className="w-8 text-center font-medium">{quantity}</span>
         <button
           type="button"
-          onClick={() => setQuantity((q) => Math.min(20, q + 1))}
+          onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
           className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
           aria-label={t.product.increase}
         >
@@ -31,6 +38,11 @@ export default function ProductPurchase({ product }: { product: Product }) {
         </button>
       </div>
       <AddToCartButton product={product} quantity={quantity} size="lg" />
+      {product.stock != null && product.stock <= 5 && (
+        <span className="text-sm font-medium text-sand-deep">
+          {product.stock} {t.shop.fewLeft}
+        </span>
+      )}
     </div>
   );
 }

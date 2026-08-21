@@ -1,14 +1,57 @@
 "use client";
 
 import { useTransition } from "react";
-import { deleteProduct, toggleProductActive } from "@/lib/actions/admin";
+import {
+  adjustStock,
+  deleteProduct,
+  toggleProductActive,
+} from "@/lib/actions/admin";
 import type { Product } from "@/lib/types";
 
 export default function ProductRowActions({ product }: { product: Product }) {
   const [isPending, startTransition] = useTransition();
 
+  function changeStock(delta: number) {
+    startTransition(async () => {
+      const form = new FormData();
+      form.set("id", product.id);
+      form.set("delta", String(delta));
+      await adjustStock(form);
+    });
+  }
+
   return (
     <div className="flex items-center gap-2">
+      {product.stock != null && (
+        <span
+          className={`flex items-center gap-1 rounded-full border px-1.5 py-1 text-xs font-medium ${
+            product.stock === 0
+              ? "border-red-200 bg-red-50 text-red-500"
+              : "border-ink/15 bg-white text-ink/70"
+          }`}
+          title="Stock on hand — counts down with each order"
+        >
+          <button
+            type="button"
+            disabled={isPending || product.stock === 0}
+            onClick={() => changeStock(-1)}
+            className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-ink/10 disabled:opacity-40"
+            aria-label="Decrease stock"
+          >
+            −
+          </button>
+          <span className="w-7 text-center tabular-nums">{product.stock}</span>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => changeStock(1)}
+            className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-ink/10 disabled:opacity-40"
+            aria-label="Increase stock"
+          >
+            +
+          </button>
+        </span>
+      )}
       <button
         type="button"
         disabled={isPending}
