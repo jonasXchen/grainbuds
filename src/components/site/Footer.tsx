@@ -16,8 +16,8 @@ export default function Footer() {
             <Image
               src="/brand/grainbuds-logo.png"
               alt="Grainbuds Café"
-              width={1947}
-              height={808}
+              width={1248}
+              height={410}
               className="h-auto w-44 brightness-0 invert"
             />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream/60">

@@ -70,9 +70,11 @@ export async function createOrder(
   }
 
   const supabase = await createClient();
-  const { data: order, error } = await supabase
+  const orderId = crypto.randomUUID();
+  const { error } = await supabase
     .from("grainbuds_orders")
     .insert({
+      id: orderId,
       customer_name: input.customerName.trim().slice(0, 120),
       customer_email: input.customerEmail.trim().slice(0, 200),
       customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
@@ -81,17 +83,23 @@ export async function createOrder(
       status: "new",
       total_cents: totalCents,
       marketing_opt_in: Boolean(input.marketingOptIn),
-    })
-    .select("id")
-    .single();
+    });
 
-  if (error || !order) {
+  if (error) {
+    // Do not log customer details, but retain the database diagnostics in the
+    // server logs so production failures can be identified without exposing
+    // them in the checkout UI.
+    console.error("Could not create order", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+    });
     return { ok: false, error: "Could not place the order. Please try again." };
   }
 
   const { error: itemsError } = await supabase.from("grainbuds_order_items").insert(
     priced.map((line) => ({
-      order_id: order.id,
+      order_id: orderId,
       product_id: line.product.id,
       product_name: line.product.name,
       unit_price_cents: line.product.price_cents,
@@ -100,6 +108,12 @@ export async function createOrder(
   );
 
   if (itemsError) {
+    console.error("Could not create order items", {
+      orderId,
+      code: itemsError.code,
+      message: itemsError.message,
+      details: itemsError.details,
+    });
     // Most likely the stock trigger refused the sale (someone was faster).
     return {
       ok: false,
@@ -122,5 +136,5 @@ export async function createOrder(
       );
   }
 
-  return { ok: true, orderId: order.id, demo: false };
+  return { ok: true, orderId, demo: false };
 }

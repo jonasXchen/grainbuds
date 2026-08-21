@@ -55,8 +55,8 @@ export default function Header() {
           <Image
             src="/brand/grainbuds-logo.png"
             alt="Grainbuds Café"
-            width={1947}
-            height={808}
+            width={1248}
+            height={410}
             className="h-auto w-[118px] transition-transform duration-500 group-hover:scale-[1.03] sm:w-[148px]"
           />
         </Link>
