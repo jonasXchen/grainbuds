@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -50,21 +51,14 @@ export default function Header() {
     >
       <div className="px-5 sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between py-4">
-        <Link href="/" className="group flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-matcha text-cream transition-transform duration-500 group-hover:rotate-12">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
-              <path
-                d="M12 20 C5 17, 5.5 8.5, 12 4 C18.5 8.5, 19 17, 12 20 z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path d="M12 19 V6" stroke="currentColor" strokeWidth="1.4" opacity="0.7" />
-            </svg>
-          </span>
-          <span className="font-display text-xl tracking-tight text-ink max-[420px]:hidden">
-            grainbuds
-          </span>
+        <Link href="/" className="group block shrink-0" aria-label="Grainbuds home">
+          <Image
+            src="/brand/grainbuds-logo.png"
+            alt="Grainbuds Café"
+            width={1947}
+            height={808}
+            className="h-auto w-[118px] transition-transform duration-500 group-hover:scale-[1.03] sm:w-[148px]"
+          />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

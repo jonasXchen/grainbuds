@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useT } from "@/lib/i18n/context";
 import { cafeInfo } from "@/lib/cafe-info";
 
@@ -12,19 +13,13 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl py-16">
         <div className="grid gap-12 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-matcha text-ink">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
-                  <path
-                    d="M12 20 C5 17, 5.5 8.5, 12 4 C18.5 8.5, 19 17, 12 20 z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-              <span className="font-display text-xl">grainbuds</span>
-            </div>
+            <Image
+              src="/brand/grainbuds-logo.png"
+              alt="Grainbuds Café"
+              width={1947}
+              height={808}
+              className="h-auto w-44 brightness-0 invert"
+            />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream/60">
               {t.footer.tagline}
             </p>
