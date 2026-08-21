@@ -107,6 +107,10 @@ The easiest path is [Vercel](https://vercel.com): import the repo, set the
 environment variables from `.env.local`, deploy. Any Node host works
 (`npm run build && npm start`).
 
+The canonical production URL is `https://grainbuds.de`. Requests to the old
+`grainbuds.vercel.app` hostname are permanently redirected to the same path on
+the custom domain, and customer order emails always use `grainbuds.de` links.
+
 For an existing Grainbuds database, run
 [`supabase/migrations/20260821_order_edits_and_notifications.sql`](supabase/migrations/20260821_order_edits_and_notifications.sql)
 once in Supabase SQL Editor. It preserves existing products and orders.

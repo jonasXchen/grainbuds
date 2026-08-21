@@ -167,10 +167,7 @@ export async function sendOrderNotification(
     process.env.ORDER_FROM_EMAIL ||
     process.env.MARKETING_FROM_EMAIL ||
     "Grainbuds <onboarding@resend.dev>";
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://grainbuds.de").replace(
-    /\/$/,
-    ""
-  );
+  const siteUrl = "https://grainbuds.de";
   const viewUrl = `${siteUrl}/order/${order.id}`;
   const copy = subjects(event, order, context);
   const details = orderDetails(order);

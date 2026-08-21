@@ -14,12 +14,21 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://grainbuds.de"),
   title: {
     default: "Grainbuds — Matcha & Asian Café",
     template: "%s — Grainbuds",
   },
   description:
     "A calm corner in Erlangen for matcha, boba, and sushi. Order online for pickup at Grainbuds Asian Café, Universitätsstraße 7.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    url: "/",
+    siteName: "Grainbuds",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
