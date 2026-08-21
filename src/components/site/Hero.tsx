@@ -111,8 +111,16 @@ export default function Hero() {
                   d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
                 />
               </defs>
-              <text className="fill-ink/50 text-[10.5px] uppercase tracking-[0.32em]">
-                <textPath href="#circlePath">{t.hero.seal}</textPath>
+              {/* textLength = circle circumference (2π·38) so the text always
+                  closes the loop exactly — never clipped, never gapped. */}
+              <text className="fill-ink/50 text-[10px] uppercase tracking-[0.18em]">
+                <textPath
+                  href="#circlePath"
+                  textLength={238.7}
+                  lengthAdjust="spacing"
+                >
+                  {t.hero.seal}
+                </textPath>
               </text>
             </svg>
           </div>

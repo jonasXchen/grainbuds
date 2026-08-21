@@ -101,7 +101,7 @@ export default function ProductForm({
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="price" className="mb-2 block text-sm font-medium text-ink">
-            Price (USD) *
+            Price (EUR) *
           </label>
           <input
             id="price"
@@ -112,7 +112,7 @@ export default function ProductForm({
               product ? (product.price_cents / 100).toFixed(2) : undefined
             }
             className={inputClass}
-            placeholder="6.50"
+            placeholder="6,50"
           />
         </div>
         <div>

@@ -62,7 +62,7 @@ export default function Header() {
               <path d="M12 19 V6" stroke="currentColor" strokeWidth="1.4" opacity="0.7" />
             </svg>
           </span>
-          <span className="font-display text-xl tracking-tight text-ink">
+          <span className="font-display text-xl tracking-tight text-ink max-[420px]:hidden">
             grainbuds
           </span>
         </Link>
@@ -81,7 +81,7 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
           <button
             type="button"

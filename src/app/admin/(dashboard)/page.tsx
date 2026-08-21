@@ -89,7 +89,7 @@ export default async function AdminOverviewPage() {
               <li key={order.id}>
                 <Link
                   href="/admin/orders"
-                  className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-matcha/10"
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-6 py-4 transition-colors hover:bg-matcha/10"
                 >
                   <div>
                     <p className="text-sm font-medium text-ink">

@@ -50,12 +50,12 @@ export default async function AdminProductsPage() {
           {products.map((product) => (
             <li
               key={product.id}
-              className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-matcha/8"
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 transition-colors hover:bg-matcha/8"
             >
               <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl">
                 <ProductImage product={product} className="h-full w-full" />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-32 flex-1">
                 <Link
                   href={`/admin/products/${product.id}`}
                   className="block truncate text-sm font-medium text-ink hover:text-matcha-deep"

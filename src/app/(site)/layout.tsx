@@ -2,7 +2,7 @@ import { CartProvider } from "@/lib/cart-context";
 import { LocaleProvider } from "@/lib/i18n/context";
 import { AdminModeProvider } from "@/lib/admin-mode-context";
 import { getLocale } from "@/lib/i18n/server";
-import { getIsStaff } from "@/lib/staff";
+import { getViewMode } from "@/lib/staff";
 import SmoothScroll from "@/components/site/SmoothScroll";
 import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
@@ -14,11 +14,14 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [locale, isAdmin] = await Promise.all([getLocale(), getIsStaff()]);
+  const [locale, { isStaff, adminMode }] = await Promise.all([
+    getLocale(),
+    getViewMode(),
+  ]);
 
   return (
     <LocaleProvider locale={locale}>
-      <AdminModeProvider isAdmin={isAdmin}>
+      <AdminModeProvider isAdmin={adminMode}>
         <CartProvider>
           <SmoothScroll>
             <Header />
@@ -27,7 +30,7 @@ export default async function SiteLayout({
           </SmoothScroll>
           <CartDrawer />
         </CartProvider>
-        {isAdmin && <StaffBar />}
+        {isStaff && <StaffBar customerView={!adminMode} />}
       </AdminModeProvider>
     </LocaleProvider>
   );

@@ -17,7 +17,7 @@ export const dictionaries = {
       cta: "Order for pickup",
       ourStory: "Our story",
       scroll: "Scroll",
-      seal: "grainbuds café · whisked daily ·",
+      seal: "grainbuds · whisked daily · ",
     },
     marquee: [
       "Specialty matcha",
@@ -173,7 +173,7 @@ export const dictionaries = {
       cta: "Zum Abholen bestellen",
       ourStory: "Unsere Geschichte",
       scroll: "Scrollen",
-      seal: "grainbuds café · täglich frisch ·",
+      seal: "grainbuds · täglich frisch · ",
     },
     marquee: [
       "Specialty Matcha",

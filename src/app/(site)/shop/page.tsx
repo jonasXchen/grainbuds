@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getCategories, getProducts } from "@/lib/data";
 import { getT } from "@/lib/i18n/server";
-import { getIsStaff } from "@/lib/staff";
+import { getViewMode } from "@/lib/staff";
 import ShopGrid from "@/components/site/ShopGrid";
 import Reveal from "@/components/site/Reveal";
 
@@ -13,10 +13,10 @@ export const metadata: Metadata = {
 
 export default async function ShopPage() {
   // Staff see hidden products too (with a "Hidden" overlay and inline
-  // controls); customers only ever get active ones.
-  const staff = await getIsStaff();
+  // controls) — unless they toggled "view as customer" in the staff pill.
+  const { adminMode } = await getViewMode();
   const [products, categories, { t }] = await Promise.all([
-    getProducts({ includeInactive: staff }),
+    getProducts({ includeInactive: adminMode }),
     getCategories(),
     getT(),
   ]);

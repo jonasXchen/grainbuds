@@ -34,7 +34,7 @@ export default function LanguageSwitcher() {
           key={lang}
           type="button"
           onClick={() => setLocale(lang)}
-          className={`relative rounded-full px-2.5 py-1.5 uppercase tracking-wide transition-colors duration-300 ${
+          className={`relative rounded-full px-2 py-1.5 uppercase tracking-wide transition-colors duration-300 sm:px-2.5 ${
             locale === lang ? "text-cream" : "text-ink/50 hover:text-ink"
           }`}
           aria-pressed={locale === lang}
