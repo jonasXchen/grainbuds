@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { logout } from "@/lib/actions/auth";
+import { getNewOrderCount } from "@/lib/actions/admin";
 
 const links = [
   {
@@ -40,10 +42,51 @@ const links = [
       <path d="M12 11 A3.5 3.5 0 1 0 12 4 A3.5 3.5 0 0 0 12 11 Z M5 20 C5 15.5 8 13.5 12 13.5 C16 13.5 19 15.5 19 20" strokeLinecap="round" strokeLinejoin="round" />
     ),
   },
+  {
+    href: "/admin/settings",
+    label: "Settings",
+    icon: (
+      <path d="M12 8.5 A3.5 3.5 0 1 0 12 15.5 A3.5 3.5 0 0 0 12 8.5 Z M19 13.5 V10.5 L16.8 9.7 L16.2 8.3 L17.2 6.2 L15.1 4.1 L13 5.1 L11.5 4.5 L10.7 2.5 H7.7 L6.9 4.5 L5.4 5.1 L3.3 4.1 L1.2 6.2 L2.2 8.3 L1.6 9.7" strokeLinecap="round" strokeLinejoin="round" transform="translate(1.5 1.5) scale(.85)" />
+    ),
+  },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({
+  initialNewOrderCount,
+}: {
+  initialNewOrderCount: number;
+}) {
   const pathname = usePathname();
+  const [newOrderCount, setNewOrderCount] = useState(initialNewOrderCount);
+
+  useEffect(() => {
+    let active = true;
+    const refreshCount = async () => {
+      try {
+        const count = await getNewOrderCount();
+        if (active) setNewOrderCount(count);
+      } catch {
+        // Keep the last known count during a temporary network/session error.
+      }
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void refreshCount();
+    };
+
+    void refreshCount();
+    const interval = window.setInterval(refreshCount, 15_000);
+    window.addEventListener("focus", refreshCount);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("grainbuds:orders-changed", refreshCount);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshCount);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("grainbuds:orders-changed", refreshCount);
+    };
+  }, [pathname]);
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-2 border-b border-cream/10 bg-ink px-4 py-3 text-cream md:sticky md:top-0 md:h-dvh md:w-60 md:gap-0 md:border-b-0 md:border-r md:px-4 md:py-6">
@@ -95,7 +138,17 @@ export default function AdminNav() {
               <svg viewBox="0 0 24 24" className="hidden h-4.5 w-4.5 md:block" fill="none" stroke="currentColor" strokeWidth="1.7">
                 {link.icon}
               </svg>
-              {link.label}
+              <span>{link.label}</span>
+              {link.href === "/admin/orders" && newOrderCount > 0 && (
+                <span
+                  className="ml-auto flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white shadow-sm"
+                  aria-label={`${newOrderCount} new order${
+                    newOrderCount === 1 ? "" : "s"
+                  }`}
+                >
+                  {newOrderCount > 99 ? "99+" : newOrderCount}
+                </span>
+              )}
             </Link>
           );
         })}

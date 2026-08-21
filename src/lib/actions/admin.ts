@@ -3,9 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
-import type { OrderStatus } from "@/lib/types";
+import { sendOrderNotification } from "@/lib/order-notifications";
+import type { Order, OrderStatus } from "@/lib/types";
 
 export type ActionState = { error: string } | null;
+export type SettingsActionState =
+  | { ok: true; message: string }
+  | { ok: false; error: string }
+  | null;
 
 async function requireAdmin() {
   if (!hasSupabaseEnv()) {
@@ -22,6 +27,22 @@ async function requireAdmin() {
   const { data: isStaff } = await supabase.rpc("grainbuds_is_staff");
   if (isStaff !== true) redirect("/admin");
   return supabase;
+}
+
+export async function getNewOrderCount(): Promise<number> {
+  const supabase = await requireAdmin();
+  const { count, error } = await supabase
+    .from("grainbuds_orders")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "new");
+  if (error) {
+    console.error("Could not count new orders", {
+      code: error.code,
+      message: error.message,
+    });
+    return 0;
+  }
+  return count ?? 0;
 }
 
 function slugify(name: string): string {
@@ -204,15 +225,39 @@ export async function updateOrderPayment(formData: FormData) {
   if (!id) return;
   if (!["unpaid", "paid", "refunded"].includes(status)) return;
   if (method && !["cash", "card"].includes(method)) return;
-  await supabase
+  const { data: existing } = await supabase
+    .from("grainbuds_orders")
+    .select("*, order_items:grainbuds_order_items(*)")
+    .eq("id", id)
+    .maybeSingle();
+  if (!existing) return;
+
+  const nextPaymentMethod = method || null;
+  if (
+    existing.payment_status === status &&
+    existing.payment_method === nextPaymentMethod
+  ) {
+    return;
+  }
+
+  const paidAt = status === "paid" ? new Date().toISOString() : null;
+  const { error } = await supabase
     .from("grainbuds_orders")
     .update({
       payment_status: status,
-      payment_method: method || null,
-      paid_at: status === "paid" ? new Date().toISOString() : null,
+      payment_method: nextPaymentMethod,
+      paid_at: paidAt,
     })
     .eq("id", id);
+  if (error) return;
+
+  await sendOrderNotification("payment_updated", {
+    ...(existing as Order),
+    payment_status: status as Order["payment_status"],
+    payment_method: nextPaymentMethod as Order["payment_method"],
+  });
   revalidatePath("/admin/orders");
+  revalidatePath(`/order/${id}`);
 }
 
 export async function updateOrderStatus(formData: FormData) {
@@ -227,7 +272,76 @@ export async function updateOrderStatus(formData: FormData) {
     "cancelled",
   ];
   if (id && allowed.includes(status)) {
-    await supabase.from("grainbuds_orders").update({ status }).eq("id", id);
+    const { data: existing } = await supabase
+      .from("grainbuds_orders")
+      .select("*, order_items:grainbuds_order_items(*)")
+      .eq("id", id)
+      .maybeSingle();
+    if (!existing || existing.status === status) return;
+
+    const { error } = await supabase
+      .from("grainbuds_orders")
+      .update({ status })
+      .eq("id", id);
+    if (error) return;
+
+    await sendOrderNotification(
+      "status_updated",
+      { ...(existing as Order), status },
+      { previousStatus: existing.status as OrderStatus }
+    );
     revalidatePath("/admin/orders");
+    revalidatePath(`/order/${id}`);
   }
+}
+
+export async function saveOrderNotificationEmails(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const supabase = await requireAdmin();
+  const raw = String(formData.get("emails") ?? "");
+  const emails = [...new Set(
+    raw
+      .split(/[\n,;]/)
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean)
+  )];
+
+  if (!emails.length) {
+    return { ok: false, error: "Add at least one notification email." };
+  }
+  if (emails.length > 50) {
+    return { ok: false, error: "You can configure up to 50 recipients." };
+  }
+  const invalid = emails.find(
+    (email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200
+  );
+  if (invalid) {
+    return { ok: false, error: `“${invalid}” is not a valid email address.` };
+  }
+
+  const { error } = await supabase.from("grainbuds_settings").upsert(
+    {
+      key: "order_notification_emails",
+      value: emails,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" }
+  );
+  if (error) {
+    console.error("Could not save order notification emails", {
+      code: error.code,
+      message: error.message,
+    });
+    return { ok: false, error: "Could not save the notification emails." };
+  }
+
+  revalidatePath("/admin/settings");
+  return {
+    ok: true,
+    message: `Saved ${emails.length} notification recipient${
+      emails.length === 1 ? "" : "s"
+    }.`,
+  };
 }

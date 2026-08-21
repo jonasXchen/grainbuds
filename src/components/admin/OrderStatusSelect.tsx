@@ -39,6 +39,7 @@ export default function OrderStatusSelect({
         form.set("status", event.target.value);
         startTransition(async () => {
           await updateOrderStatus(form);
+          window.dispatchEvent(new Event("grainbuds:orders-changed"));
         });
       }}
       className={`cursor-pointer rounded-full border px-3.5 py-2 text-xs font-medium outline-none transition-colors disabled:opacity-50 ${colors[status]}`}

@@ -1,7 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getProductBySlug } from "@/lib/data";
+import { sendOrderNotification } from "@/lib/order-notifications";
+import type { Order } from "@/lib/types";
 
 export type CheckoutLine = {
   productId: string;
@@ -22,6 +25,14 @@ export type CheckoutInput = {
 export type CheckoutResult =
   | { ok: true; orderId: string; demo: boolean }
   | { ok: false; error: string };
+
+export type EditOrderState =
+  | { ok: true; message: string }
+  | { ok: false; error: string }
+  | null;
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function createOrder(
   input: CheckoutInput
@@ -136,5 +147,90 @@ export async function createOrder(
       );
   }
 
+  await sendOrderNotification("created", {
+    id: orderId,
+    customer_name: input.customerName.trim().slice(0, 120),
+    customer_email: input.customerEmail.trim().toLowerCase().slice(0, 200),
+    customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
+    pickup_time: input.pickupTime?.trim().slice(0, 80) || null,
+    notes: input.notes?.trim().slice(0, 500) || null,
+    status: "new",
+    total_cents: totalCents,
+    payment_status: "unpaid",
+    payment_method: null,
+    order_items: priced.map((line) => ({
+      product_name: line.product.name,
+      unit_price_cents: line.product.price_cents,
+      quantity: line.quantity,
+    })),
+  });
+
   return { ok: true, orderId, demo: false };
+}
+
+export async function updateCustomerOrder(
+  _previousState: EditOrderState,
+  formData: FormData
+): Promise<EditOrderState> {
+  const orderId = String(formData.get("order_id") ?? "").trim();
+  const customerName = String(formData.get("customer_name") ?? "").trim();
+  const customerEmail = String(formData.get("customer_email") ?? "")
+    .trim()
+    .toLowerCase();
+  const customerPhone = String(formData.get("customer_phone") ?? "").trim();
+  const pickupTime = String(formData.get("pickup_time") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+
+  if (!UUID_PATTERN.test(orderId)) {
+    return { ok: false, error: "This order link is invalid." };
+  }
+  if (!customerName || !customerEmail) {
+    return { ok: false, error: "Please fill in your name and email." };
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    return { ok: false, error: "Please enter a valid email address." };
+  }
+  if (
+    customerName.length > 120 ||
+    customerEmail.length > 200 ||
+    customerPhone.length > 40 ||
+    pickupTime.length > 80 ||
+    notes.length > 500
+  ) {
+    return { ok: false, error: "One of the entered values is too long." };
+  }
+  if (!hasSupabaseEnv()) {
+    return { ok: false, error: "Order editing is unavailable in demo mode." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("grainbuds_update_order_details", {
+    p_order_id: orderId,
+    p_customer_name: customerName,
+    p_customer_email: customerEmail,
+    p_customer_phone: customerPhone,
+    p_pickup_time: pickupTime,
+    p_notes: notes,
+  });
+
+  const order = data as Order | null;
+  if (error || !order) {
+    if (error) {
+      console.error("Could not update customer order", {
+        orderId,
+        code: error.code,
+        message: error.message,
+      });
+    }
+    return {
+      ok: false,
+      error:
+        "This order can no longer be edited, or the update could not be saved.",
+    };
+  }
+
+  await sendOrderNotification("customer_updated", order);
+  revalidatePath(`/order/${orderId}`);
+  revalidatePath("/admin/orders");
+  return { ok: true, message: "Your order details have been updated." };
 }

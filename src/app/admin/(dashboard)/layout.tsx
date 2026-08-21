@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import AdminNav from "@/components/admin/AdminNav";
 import { getIsStaff } from "@/lib/staff";
 import { logout } from "@/lib/actions/auth";
+import { getNewOrderCount } from "@/lib/actions/admin";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -45,9 +46,11 @@ export default async function AdminLayout({
     );
   }
 
+  const newOrderCount = await getNewOrderCount();
+
   return (
     <div className="flex min-h-dvh flex-col bg-cream md:flex-row">
-      <AdminNav />
+      <AdminNav initialNewOrderCount={newOrderCount} />
       <main className="flex-1 px-5 py-8 md:px-10 md:py-10">{children}</main>
     </div>
   );

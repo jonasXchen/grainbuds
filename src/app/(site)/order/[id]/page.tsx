@@ -3,6 +3,7 @@ import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getT } from "@/lib/i18n/server";
 import { formatPrice, type Order } from "@/lib/types";
 import Reveal from "@/components/site/Reveal";
+import OrderEditForm from "@/components/site/OrderEditForm";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -61,6 +62,12 @@ export default async function OrderConfirmationPage({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sand-deep">
               {t.order.orderFor} {order.customer_name}
             </p>
+            <div className="mt-3 flex items-center justify-between rounded-full bg-cream px-4 py-2 text-sm">
+              <span className="text-ink/55">{t.order.status}</span>
+              <span className="font-medium text-matcha-deep">
+                {t.order.statuses[order.status]}
+              </span>
+            </div>
             <ul className="mt-4 space-y-2.5">
               {order.order_items?.map((item) => (
                 <li key={item.id} className="flex justify-between text-sm">
@@ -82,6 +89,27 @@ export default async function OrderConfirmationPage({
             {order.pickup_time && (
               <p className="mt-4 text-sm text-ink/55">
                 {t.order.pickup}: {order.pickup_time}
+              </p>
+            )}
+            {order.customer_email &&
+            ["new", "in_progress"].includes(order.status) ? (
+              <OrderEditForm
+                order={order}
+                labels={{
+                  title: t.order.editTitle,
+                  hint: t.order.editHint,
+                  name: t.order.name,
+                  email: t.order.email,
+                  phone: t.order.phone,
+                  pickup: t.order.pickup,
+                  notes: t.order.notes,
+                  save: t.order.save,
+                  saving: t.order.saving,
+                }}
+              />
+            ) : (
+              <p className="mt-5 rounded-2xl bg-cream px-4 py-3 text-sm text-ink/55">
+                {t.order.editLocked}
               </p>
             )}
           </Reveal>

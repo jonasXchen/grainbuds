@@ -53,11 +53,11 @@ order. The admin panel needs Supabase (next section).
    To revoke access later, delete the row (`delete from grainbuds_staff where
    email = '...'`).
 5. **Add the keys to the site**: copy `.env.example` to `.env.local` and fill in
-   the two values from **Project Settings → API Keys**: the Project URL and the
-   **publishable** key (`sb_publishable_...`). The **secret** key is not needed —
-   the site never uses it, so leave it where it is. (Older projects that only
-   have a legacy `anon` key can use `NEXT_PUBLIC_SUPABASE_ANON_KEY` instead;
-   both are supported.)
+   the values from **Project Settings → API Keys**: the Project URL, the
+   **publishable** key (`sb_publishable_...`), and the server-only **secret** key
+   (`sb_secret_...`). The secret key is used only on the server to read protected
+   notification recipients; never give it a `NEXT_PUBLIC_` prefix. Older
+   projects with a legacy `anon` key can use `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 6. Restart `npm run dev`. The shop now reads from your database, orders are
    saved, and `/admin/login` works.
 
@@ -79,7 +79,11 @@ order. The admin panel needs Supabase (next section).
 - **Orders** — new online orders appear here, newest first. Move them through
   *New → In progress → Ready for pickup → Completed* as you work. Customers pay
   in store at pickup — record it on the order (*Paid · cash* / *Paid · card*),
-  which stamps the payment time so you have a full payment history.
+  which stamps the payment time so you have a full payment history. Customers
+  can update their contact, pickup, and kitchen-note details from their private
+  order link while the order is *New* or *In progress*. A red badge in the
+  admin navigation shows how many orders are still *New* and refreshes while
+  the admin app is open.
 - **Inventory** — give a product a stock number and it counts down with every
   order; at 0 the shop shows "Sold out" automatically. Adjust stock with the
   +/− stepper right in the product list. Leave stock empty for made-to-order
@@ -91,14 +95,21 @@ order. The admin panel needs Supabase (next section).
   email people who didn't opt in). Write a subject and message and send a
   product-launch update to the whole list, or use *Copy all emails* to BCC
   them from your own mail program.
+- **Settings** — maintain the staff email addresses that receive new-order,
+  customer-edit, payment, and status notifications. Customers receive the same
+  transactional updates at the email address on their order.
 
 Changes go live on the website within about a minute.
 
 ## Deploying
 
-The easiest path is [Vercel](https://vercel.com): import the repo, set the two
+The easiest path is [Vercel](https://vercel.com): import the repo, set the
 environment variables from `.env.local`, deploy. Any Node host works
 (`npm run build && npm start`).
+
+For an existing Grainbuds database, run
+[`supabase/migrations/20260821_order_edits_and_notifications.sql`](supabase/migrations/20260821_order_edits_and_notifications.sql)
+once in Supabase SQL Editor. It preserves existing products and orders.
 
 ## Project layout
 
@@ -130,13 +141,16 @@ supabase/
   live products and create orders; every write to products/categories and all
   order management requires a signed-in staff user. Orders can never be listed
   with the public key — the confirmation page uses a lookup function that
-  requires the exact unguessable order ID and returns no contact details.
+  requires the exact unguessable order ID. That private link acts as the
+  customer's capability to view and edit pickup details while an order is
+  still new or in progress; it must not be shared publicly.
   Stock is decremented by a database trigger, so it can't be bypassed or
   oversold by racing checkouts.
-- **Secret keys**: the Supabase *secret* key is never used — don't put it in
-  any env file of this project. The only server-side secret is the optional
-  `RESEND_API_KEY` for email campaigns (see `.env.example`).
+- **Secret keys**: `SUPABASE_SECRET_KEY` and `RESEND_API_KEY` are server-only.
+  Never prefix them with `NEXT_PUBLIC_`, commit real values, or expose them to
+  browser code.
 - **Email sending** uses [Resend](https://resend.com) (free tier: 3,000
-  emails/month). Without a key configured, the Customers page still works —
-  use *Copy all emails* and BCC from your own mail program.
+  emails/month). Verify the sending domain, set `RESEND_API_KEY` and
+  `ORDER_FROM_EMAIL`, then configure recipients in Admin → Settings. Without a
+  key, order operations still succeed but notification delivery is skipped.
 - **Brand palette**: sand `#C7A880`, matcha `#9DB34B`, ink `#121A25`, cream `#EAE3DA`.
