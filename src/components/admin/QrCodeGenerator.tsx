@@ -571,38 +571,40 @@ export default function QrCodeGenerator({
         </div>
       </section>
 
-      <section className="qr-print-root aspect-[74/105] w-full overflow-hidden rounded-3xl bg-white px-6 py-5 text-center shadow-sm">
-        <NextImage
-          src="/brand/grainbuds-logo.png"
-          alt="Grainbuds Café"
-          width={1248}
-          height={410}
-          className="qr-print-logo mx-auto h-auto w-36"
-        />
-        <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-matcha-deep">
-          {copy.eyebrow}
-        </p>
-        <h2 className="mt-1 font-display text-3xl text-ink">{label}</h2>
-        <p className="mx-auto mt-1 max-w-[310px] text-xs leading-snug text-ink/55">
-          {copy.description}
-        </p>
-        <div className="qr-print-code mx-auto mt-3 aspect-square w-full max-w-[235px]">
-          {qrDataUrl ? (
-            <NextImage
-              src={qrDataUrl}
-              alt={`QR code for ${label}`}
-              width={1000}
-              height={1000}
-              unoptimized
-              className="h-full w-full"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center rounded-2xl bg-cream text-sm text-ink/40">
-              {ui.previewError}
-            </div>
-          )}
+      <section className="qr-print-root flex aspect-[74/105] w-full items-center justify-center overflow-hidden rounded-3xl bg-white px-6 py-5 text-center shadow-sm">
+        <div className="qr-label-content w-full">
+          <NextImage
+            src="/brand/grainbuds-logo.png"
+            alt="Grainbuds Café"
+            width={1248}
+            height={410}
+            className="qr-print-logo mx-auto h-auto w-36"
+          />
+          <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-matcha-deep">
+            {copy.eyebrow}
+          </p>
+          <h2 className="mt-1 font-display text-3xl text-ink">{label}</h2>
+          <p className="mx-auto mt-1 max-w-[310px] text-xs leading-snug text-ink/55">
+            {copy.description}
+          </p>
+          <div className="qr-print-code mx-auto mt-3 aspect-square w-full max-w-[235px]">
+            {qrDataUrl ? (
+              <NextImage
+                src={qrDataUrl}
+                alt={`QR code for ${label}`}
+                width={1000}
+                height={1000}
+                unoptimized
+                className="h-full w-full"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center rounded-2xl bg-cream text-sm text-ink/40">
+                {ui.previewError}
+              </div>
+            )}
+          </div>
+          <p className="mt-2 text-[10px] text-ink/45">grainbuds.de</p>
         </div>
-        <p className="mt-2 text-[10px] text-ink/45">grainbuds.de</p>
       </section>
     </div>
   );

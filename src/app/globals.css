@@ -245,6 +245,11 @@ select:not([multiple]) {
     -webkit-print-color-adjust: exact;
   }
 
+  .qr-print-root .qr-label-content {
+    transform: scale(0.94);
+    transform-origin: center;
+  }
+
   .qr-print-root .qr-print-logo {
     width: 33mm;
   }
