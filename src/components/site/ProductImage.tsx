@@ -19,7 +19,7 @@ function hashString(value: string): number {
 /** A calm, deterministic illustration used when a product has no photo yet. */
 function Placeholder({ product }: { product: Product }) {
   const palette = palettes[hashString(product.slug) % palettes.length];
-  const glyph = hashString(product.name) % 3;
+  const glyph = hashString(product.name || product.name_de || product.slug) % 3;
 
   return (
     <div
@@ -72,7 +72,7 @@ export default function ProductImage({
       {product.image_url ? (
         <img
           src={product.image_url}
-          alt={product.name}
+          alt={product.name || product.name_de || "Product"}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
       ) : (

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/types";
+import { formatPrice, localizedName } from "@/lib/types";
 import { getLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -45,8 +45,8 @@ export default async function AnalyticsPage() {
   const supabase = await createClient();
   const locale = await getLocale();
   const copy = locale === "de"
-    ? { title: "Analysen", description: "Was sich verkauft und wann. Stornierte Bestellungen sind ausgeschlossen.", orders30: "Bestellungen · 30 Tage", revenue30: "Umsatz · 30 Tage", average: "Ø Bestellwert", mailing: "Mailingliste", emptyTitle: "Noch keine Bestellungen", empty: "Sobald Kunden online bestellen, erscheinen hier Bestseller und Tagesumsätze.", revenueDays: "Umsatz – letzte 14 Tage", mostOrdered: "Am häufigsten bestellt", allTime: "Gesamtzeitraum, nach verkaufter Menge.", categories: "Umsatz nach Kategorie" }
-    : { title: "Analytics", description: "What sells, when it sells. Cancelled orders are excluded.", orders30: "Orders · 30 days", revenue30: "Revenue · 30 days", average: "Avg order value", mailing: "Mailing list", emptyTitle: "No orders yet", empty: "Once customers start ordering online, your best sellers and daily revenue will show up here.", revenueDays: "Revenue — last 14 days", mostOrdered: "Most ordered", allTime: "All time, by quantity sold.", categories: "Revenue by category" };
+    ? { title: "Analysen", description: "Was sich verkauft und wann. Stornierte Bestellungen sind ausgeschlossen.", orders30: "Bestellungen · 30 Tage", revenue30: "Umsatz · 30 Tage", average: "Ø Bestellwert", mailing: "Mailingliste", emptyTitle: "Noch keine Bestellungen", empty: "Sobald Kunden online bestellen, erscheinen hier Bestseller und Tagesumsätze.", revenueDays: "Umsatz – letzte 14 Tage", mostOrdered: "Am häufigsten bestellt", allTime: "Gesamtzeitraum, nach verkaufter Menge.", categories: "Umsatz nach Kategorie", uncategorized: "Ohne Kategorie" }
+    : { title: "Analytics", description: "What sells, when it sells. Cancelled orders are excluded.", orders30: "Orders · 30 days", revenue30: "Revenue · 30 days", average: "Avg order value", mailing: "Mailing list", emptyTitle: "No orders yet", empty: "Once customers start ordering online, your best sellers and daily revenue will show up here.", revenueDays: "Revenue — last 14 days", mostOrdered: "Most ordered", allTime: "All time, by quantity sold.", categories: "Revenue by category", uncategorized: "Uncategorized" };
 
   const [ordersRes, itemsRes, productsRes, subsRes] = await Promise.all([
     supabase
@@ -59,7 +59,9 @@ export default async function AnalyticsPage() {
       .from("grainbuds_order_items")
       .select("order_id, product_id, product_name, unit_price_cents, quantity")
       .limit(10000),
-    supabase.from("grainbuds_products").select("id, category_id, category:grainbuds_categories(name)"),
+    supabase
+      .from("grainbuds_products")
+      .select("id, category_id, category:grainbuds_categories(name, name_de)"),
     supabase.from("grainbuds_subscribers").select("id", { count: "exact", head: true }),
   ]);
 
@@ -70,9 +72,13 @@ export default async function AnalyticsPage() {
   );
   const categoryOfProduct = new Map<string, string>(
     (productsRes.data ?? []).map((product) => {
-      const category = product.category as { name: string } | { name: string }[] | null;
-      const name = Array.isArray(category) ? category[0]?.name : category?.name;
-      return [product.id as string, name ?? "Uncategorized"];
+      const category = product.category as
+        | { name: string; name_de?: string }
+        | { name: string; name_de?: string }[]
+        | null;
+      const value = Array.isArray(category) ? category[0] : category;
+      const name = value ? localizedName(value, locale) : "";
+      return [product.id as string, name || copy.uncategorized];
     })
   );
 

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice, type Category, type Product } from "@/lib/types";
+import {
+  formatPrice,
+  localizedName,
+  type Category,
+  type Product,
+} from "@/lib/types";
 import ProductImage from "@/components/site/ProductImage";
 import ProductRowActions from "@/components/admin/ProductRowActions";
 import CategoryManager from "@/components/admin/CategoryManager";
@@ -73,10 +78,12 @@ export default async function AdminProductsPage() {
                   href={`/admin/products/${product.id}?returnTo=${encodeURIComponent(`/admin/products#product-${product.id}`)}`}
                   className="block truncate text-sm font-medium text-ink hover:text-matcha-deep"
                 >
-                  {product.name}
+                  {localizedName(product, locale)}
                 </Link>
                 <p className="text-xs text-ink/50">
-                  {product.category?.name ?? copy.uncategorized} ·{" "}
+                  {product.category
+                    ? localizedName(product.category, locale)
+                    : copy.uncategorized} ·{" "}
                   {formatPrice(product.price_cents)}
                   {product.is_featured && ` · ★ ${copy.favorite}`}
                 </p>

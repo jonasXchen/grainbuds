@@ -5,6 +5,7 @@ import ProductForm from "@/components/admin/ProductForm";
 import CategoryManager from "@/components/admin/CategoryManager";
 import { safeReturnPath } from "@/lib/return-path";
 import { getLocale } from "@/lib/i18n/server";
+import { localizedName } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function EditProductPage({
         {locale === "de" ? "← Zurück" : "← Back"}
       </Link>
       <h1 className="mt-4 font-display text-4xl text-ink">
-        {locale === "de" ? "Bearbeiten" : "Edit"} “{product.name}”
+        {locale === "de" ? "Bearbeiten" : "Edit"} “{localizedName(product, locale)}”
       </h1>
       <div className="mt-8">
         <ProductForm

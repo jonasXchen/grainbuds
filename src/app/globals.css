@@ -195,6 +195,32 @@ select:not([multiple]) {
 }
 
 @media print {
+  html,
+  body {
+    width: 74mm !important;
+    height: 105mm !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body,
+  .admin-shell {
+    display: block !important;
+  }
+
+  .admin-shell {
+    width: 74mm !important;
+    height: 105mm !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .admin-shell > main {
+    padding: 0 !important;
+  }
+
   body * {
     visibility: hidden !important;
   }
@@ -205,7 +231,7 @@ select:not([multiple]) {
   }
 
   .qr-print-root {
-    position: fixed;
+    position: absolute;
     inset: 0;
     box-sizing: border-box;
     width: 74mm;

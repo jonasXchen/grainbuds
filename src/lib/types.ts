@@ -90,19 +90,21 @@ export function formatPrice(cents: number, locale: Locale = "en"): string {
   });
 }
 
-/** Product/category text in the requested language, falling back to English. */
+/** Product/category text in the requested language, falling back to the other language. */
 export function localizedName(
   item: { name: string; name_de?: string | null },
   locale: Locale
 ): string {
-  return locale === "de" && item.name_de ? item.name_de : item.name;
+  const english = item.name?.trim();
+  const german = item.name_de?.trim();
+  return locale === "de" ? german || english || "" : english || german || "";
 }
 
 export function localizedDescription(
   product: { description: string; description_de?: string | null },
   locale: Locale
 ): string {
-  return locale === "de" && product.description_de
-    ? product.description_de
-    : product.description;
+  const english = product.description?.trim();
+  const german = product.description_de?.trim();
+  return locale === "de" ? german || english || "" : english || german || "";
 }

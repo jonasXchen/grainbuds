@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getProductBySlug } from "@/lib/data";
 import { sendOrderNotification } from "@/lib/order-notifications";
-import type { FulfillmentType, Order } from "@/lib/types";
+import { localizedName, type FulfillmentType, type Order } from "@/lib/types";
 
 export type CheckoutLine = {
   productId: string;
@@ -138,12 +138,13 @@ export async function createOrder(
     }
     // Friendly pre-check; the database trigger is the hard guarantee.
     if (product.stock != null && product.stock < quantity) {
+      const productName = localizedName(product, "en");
       return {
         ok: false,
         error:
           product.stock <= 0
-            ? `“${product.name}” is sold out right now.`
-            : `Only ${product.stock} × “${product.name}” left — please lower the quantity.`,
+            ? `“${productName}” is sold out right now.`
+            : `Only ${product.stock} × “${productName}” left — please lower the quantity.`,
       };
     }
     priced.push({ product, quantity });
@@ -214,7 +215,7 @@ export async function createOrder(
     priced.map((line) => ({
       order_id: orderId,
       product_id: line.product.id,
-      product_name: line.product.name,
+      product_name: localizedName(line.product, "en"),
       unit_price_cents: line.product.price_cents,
       quantity: line.quantity,
     }))
@@ -265,7 +266,7 @@ export async function createOrder(
     payment_status: "unpaid",
     payment_method: null,
     order_items: priced.map((line) => ({
-      product_name: line.product.name,
+      product_name: localizedName(line.product, "en"),
       unit_price_cents: line.product.price_cents,
       quantity: line.quantity,
     })),

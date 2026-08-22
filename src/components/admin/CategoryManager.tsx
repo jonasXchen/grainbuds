@@ -16,7 +16,7 @@ import {
   updateCategory,
   type ActionState,
 } from "@/lib/actions/admin";
-import type { Category } from "@/lib/types";
+import { localizedName, type Category } from "@/lib/types";
 
 type EditingLanguage = "de" | "en";
 
@@ -96,7 +96,6 @@ function InlineCategoryEditor({
           <input
             id={`category-name-${category.id}`}
             name="name"
-            required={editingLanguage === "en"}
             maxLength={80}
             defaultValue={category.name}
             className="h-8 w-32 rounded-full border border-matcha-deep/40 bg-white px-3 text-sm text-ink outline-none focus:ring-2 focus:ring-matcha/30 sm:w-44"
@@ -111,9 +110,8 @@ function InlineCategoryEditor({
           <input
             id={`category-name-de-${category.id}`}
             name="name_de"
-            required={editingLanguage === "de"}
             maxLength={80}
-            defaultValue={category.name_de || category.name}
+            defaultValue={category.name_de ?? ""}
             className="h-8 w-32 rounded-full border border-matcha-deep/40 bg-white px-3 text-sm text-ink outline-none focus:ring-2 focus:ring-matcha/30 sm:w-44"
             autoFocus={editingLanguage === "de"}
           />
@@ -319,12 +317,11 @@ export default function CategoryManager({
         <form ref={addFormRef} action={formAction} className="mt-4 space-y-4">
           <div className={editingLanguage === "en" ? "" : "hidden"}>
             <label htmlFor="new-category-name" className="mb-1.5 block text-xs font-medium text-ink/60">
-              English category name <span className="text-red-500">*</span>
+              English category name
             </label>
             <input
               id="new-category-name"
               name="name"
-              required={editingLanguage === "en"}
               maxLength={80}
               placeholder="e.g. Matcha"
               className="w-full rounded-xl border border-ink/15 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20"
@@ -332,17 +329,20 @@ export default function CategoryManager({
           </div>
           <div className={editingLanguage === "de" ? "" : "hidden"}>
             <label htmlFor="new-category-name-de" className="mb-1.5 block text-xs font-medium text-ink/60">
-              Kategoriename <span className="text-red-500">*</span>
+              Kategoriename
             </label>
             <input
               id="new-category-name-de"
               name="name_de"
-              required={editingLanguage === "de"}
               maxLength={80}
               placeholder="z. B. Matcha"
               className="w-full rounded-xl border border-ink/15 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20"
             />
           </div>
+          <p className="text-xs leading-relaxed text-ink/45">
+            Add either language or both. An empty translation automatically
+            uses the name from the other language.
+          </p>
           <button
             type="submit"
             disabled={isPending}
@@ -379,7 +379,7 @@ export default function CategoryManager({
           <>
             <ul ref={listRef} className="mt-4 flex flex-wrap gap-2 select-none">
               {orderedCategories.map((category, index) => {
-                const displayName = category.name_de || category.name;
+                const displayName = localizedName(category, editingLanguage);
                 const selected = category.id === selectedCategoryId;
                 return (
                   <motion.li
@@ -514,7 +514,7 @@ export default function CategoryManager({
                   <circle cx="11" cy="13" r="1.2" />
                 </svg>
                 <span className="max-w-48 truncate">
-                  {draggedCategory.name_de || draggedCategory.name}
+                  {localizedName(draggedCategory, editingLanguage)}
                 </span>
               </div>
             )}

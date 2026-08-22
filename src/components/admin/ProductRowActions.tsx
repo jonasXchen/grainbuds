@@ -6,7 +6,7 @@ import {
   deleteProduct,
   toggleProductActive,
 } from "@/lib/actions/admin";
-import type { Product } from "@/lib/types";
+import { localizedName, type Product } from "@/lib/types";
 
 export default function ProductRowActions({ product }: { product: Product }) {
   const [isPending, startTransition] = useTransition();
@@ -77,7 +77,7 @@ export default function ProductRowActions({ product }: { product: Product }) {
         onSubmit={(event) => {
           if (
             !confirm(
-              `Delete “${product.name}” permanently? If you just want to take it off the shop, use Live/Hidden instead.`
+              `Delete “${localizedName(product, "en")}” permanently? If you just want to take it off the shop, use Live/Hidden instead.`
             )
           ) {
             event.preventDefault();

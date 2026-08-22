@@ -5,7 +5,7 @@
 import { useActionState, useState } from "react";
 import { motion } from "framer-motion";
 import { saveProduct, type ActionState } from "@/lib/actions/admin";
-import type { Category, Product } from "@/lib/types";
+import { localizedName, type Category, type Product } from "@/lib/types";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-white px-5 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-300 focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
@@ -57,14 +57,13 @@ export default function ProductForm({
         <div className={`mt-5 space-y-5 ${editingLanguage === "de" ? "" : "hidden"}`}>
           <div>
             <label htmlFor="name_de" className="mb-2 block text-sm font-medium text-ink">
-              Produktname *
+              Produktname
             </label>
             <input
               id="name_de"
               name="name_de"
-              required={editingLanguage === "de"}
               maxLength={120}
-              defaultValue={product?.name_de || product?.name || ""}
+              defaultValue={product?.name_de ?? ""}
               className={inputClass}
               placeholder="Pistazien-Matcha"
             />
@@ -78,7 +77,7 @@ export default function ProductForm({
               name="description_de"
               rows={3}
               maxLength={1000}
-              defaultValue={product?.description_de || product?.description || ""}
+              defaultValue={product?.description_de ?? ""}
               className={`${inputClass} resize-none`}
               placeholder="Matcha, Pistaziencreme, Milch"
             />
@@ -88,12 +87,11 @@ export default function ProductForm({
         <div className={`mt-5 space-y-5 ${editingLanguage === "en" ? "" : "hidden"}`}>
           <div>
             <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">
-              Product name *
+              Product name
             </label>
             <input
               id="name"
               name="name"
-              required={editingLanguage === "en"}
               maxLength={120}
               defaultValue={product?.name ?? ""}
               className={inputClass}
@@ -115,6 +113,10 @@ export default function ProductForm({
             />
           </div>
         </div>
+        <p className="mt-3 text-xs text-ink/45">
+          Add either language or both. If one is empty, customers see the other
+          language automatically.
+        </p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -172,7 +174,7 @@ export default function ProductForm({
             <option value="">— No category —</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name_de || category.name}
+                {localizedName(category, editingLanguage)}
               </option>
             ))}
           </select>

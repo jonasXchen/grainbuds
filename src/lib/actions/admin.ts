@@ -86,10 +86,9 @@ export async function saveProduct(
   const returnTo = safeReturnPath(formData.get("return_to"));
   const nameInput = String(formData.get("name") ?? "").trim();
   const nameDe = String(formData.get("name_de") ?? "").trim();
-  const name = nameInput || nameDe;
+  const fallbackName = nameInput || nameDe;
   const descriptionInput = String(formData.get("description") ?? "").trim();
   const descriptionDe = String(formData.get("description_de") ?? "").trim();
-  const description = descriptionInput || descriptionDe;
   const priceRaw = String(formData.get("price") ?? "")
     .replace(",", ".")
     .replace(/[^0-9.]/g, "");
@@ -100,7 +99,9 @@ export async function saveProduct(
   const imageFile = formData.get("image") as File | null;
   const removeImage = formData.get("remove_image") === "on";
 
-  if (!name) return { error: "Please give the product a name." };
+  if (!fallbackName) {
+    return { error: "Please give the product a German or English name." };
+  }
   const price = Number.parseFloat(priceRaw);
   if (!Number.isFinite(price) || price < 0) {
     return { error: "Please enter a valid price, e.g. 6.50." };
@@ -125,9 +126,9 @@ export async function saveProduct(
   }
 
   const row: Record<string, unknown> = {
-    name: name.slice(0, 120),
+    name: nameInput.slice(0, 120),
     name_de: nameDe.slice(0, 120),
-    description: description.slice(0, 1000),
+    description: descriptionInput.slice(0, 1000),
     description_de: descriptionDe.slice(0, 1000),
     price_cents: Math.round(price * 100),
     category_id: categoryId,
@@ -142,7 +143,7 @@ export async function saveProduct(
     if (error) return { error: "Could not save the product." };
   } else {
     // Make the slug unique if a product with the same name already exists.
-    const base = slugify(name) || "product";
+    const base = slugify(fallbackName) || "product";
     const { data: clash } = await supabase
       .from("grainbuds_products")
       .select("id")
@@ -204,8 +205,8 @@ export async function addCategory(
   const supabase = await requireAdmin();
   const nameInput = String(formData.get("name") ?? "").trim();
   const nameDe = String(formData.get("name_de") ?? "").trim();
-  const name = nameInput || nameDe;
-  if (!name) return { error: "Please enter a category name." };
+  const fallbackName = nameInput || nameDe;
+  if (!fallbackName) return { error: "Please enter a German or English category name." };
   const { data: lastCategory } = await supabase
     .from("grainbuds_categories")
     .select("sort_order")
@@ -213,15 +214,15 @@ export async function addCategory(
     .limit(1)
     .maybeSingle();
   const { error } = await supabase.from("grainbuds_categories").insert({
-    name: name.slice(0, 80),
+    name: nameInput.slice(0, 80),
     name_de: nameDe.slice(0, 80),
-    slug: slugify(name) || `category-${crypto.randomUUID().slice(0, 6)}`,
+    slug: slugify(fallbackName) || `category-${crypto.randomUUID().slice(0, 6)}`,
     sort_order: (lastCategory?.sort_order ?? -1) + 1,
   });
   if (error) return { error: "Could not add the category (name may already exist)." };
   revalidatePath("/", "layout");
   revalidatePath("/admin/products");
-  return { message: `Added “${name.slice(0, 80)}”.` };
+  return { message: `Added “${fallbackName.slice(0, 80)}”.` };
 }
 
 export async function updateCategory(
@@ -232,12 +233,14 @@ export async function updateCategory(
   const id = String(formData.get("id") ?? "");
   const nameInput = String(formData.get("name") ?? "").trim();
   const nameDe = String(formData.get("name_de") ?? "").trim();
-  const name = nameInput || nameDe;
-  if (!id || !name) return { error: "Please enter a category name." };
+  const fallbackName = nameInput || nameDe;
+  if (!id || !fallbackName) {
+    return { error: "Please enter a German or English category name." };
+  }
 
   const { error } = await supabase
     .from("grainbuds_categories")
-    .update({ name: name.slice(0, 80), name_de: nameDe.slice(0, 80) })
+    .update({ name: nameInput.slice(0, 80), name_de: nameDe.slice(0, 80) })
     .eq("id", id);
   if (error) return { error: "Could not update the category." };
 
