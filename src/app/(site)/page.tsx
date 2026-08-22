@@ -33,7 +33,7 @@ export default async function HomePage() {
       {marqueeItems.length > 0 && <Marquee items={marqueeItems} />}
 
       {/* Featured products */}
-      <section className="px-5 py-28 sm:px-8">
+      <section className="bg-matcha/10 px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <Reveal className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
@@ -66,7 +66,7 @@ export default async function HomePage() {
       </section>
 
       {/* Gallery */}
-      <section className="overflow-hidden px-5 pb-28 sm:px-8">
+      <section className="overflow-hidden px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">

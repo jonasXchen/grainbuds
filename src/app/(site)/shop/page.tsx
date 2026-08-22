@@ -32,7 +32,7 @@ export default async function ShopPage() {
   ]);
 
   return (
-    <div className="px-5 pb-28 pt-36 sm:px-8">
+    <div className="min-h-dvh bg-matcha/10 px-5 pb-28 pt-36 sm:px-8">
       <div className="mx-auto max-w-6xl">
         <OrderingContextBanner />
         <Reveal className="mx-auto max-w-2xl text-center">

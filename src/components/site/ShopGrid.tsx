@@ -36,7 +36,7 @@ export default function ShopGrid({
 
   return (
     <div>
-      <div className="sticky top-[71px] z-30 -mx-5 bg-cream/90 pb-3 pt-4 backdrop-blur-md sm:top-[81px] sm:mx-0">
+      <div className="sticky top-[71px] z-30 -mx-5 bg-[#e2decc]/90 pb-3 pt-4 backdrop-blur-md sm:top-[81px] sm:mx-0">
         <div className="overflow-x-auto overscroll-x-contain px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:px-4">
           <div className="flex w-max snap-x snap-proximity gap-2.5 sm:w-auto sm:flex-wrap sm:justify-center">
             {[
