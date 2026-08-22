@@ -75,15 +75,17 @@ export default function OrderEditForm({
               className={`${inputClass} mt-2`}
             />
           </label>
-          <label className="text-sm font-medium text-ink">
-            {labels.pickup}
-            <input
-              name="pickup_time"
-              maxLength={80}
-              defaultValue={order.pickup_time ?? ""}
-              className={`${inputClass} mt-2`}
-            />
-          </label>
+          {order.fulfillment_type !== "dine_in" && (
+            <label className="text-sm font-medium text-ink">
+              {labels.pickup}
+              <input
+                name="pickup_time"
+                maxLength={80}
+                defaultValue={order.pickup_time ?? ""}
+                className={`${inputClass} mt-2`}
+              />
+            </label>
+          )}
         </div>
         <label className="block text-sm font-medium text-ink">
           {labels.notes}

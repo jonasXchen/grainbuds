@@ -49,6 +49,10 @@ create table grainbuds_orders (
   pickup_time text,
   fulfillment_type text not null default 'pickup'
     check (fulfillment_type in ('pickup', 'dine_in')),
+  table_number smallint check (table_number between 1 and 999),
+  order_source text not null default 'website'
+    check (order_source in ('website', 'qr_online', 'qr_table')),
+  qr_campaign text check (qr_campaign ~ '^[a-z0-9-]{1,60}$'),
   notes text,
   status text not null default 'new'
     check (status in ('new', 'in_progress', 'ready', 'completed', 'cancelled')),
@@ -100,6 +104,20 @@ create table grainbuds_settings (
   updated_at timestamptz not null default now()
 );
 
+-- Anonymous, privacy-friendly scan events. No IP address, user agent, cookie,
+-- or other customer identifier is stored.
+create table grainbuds_qr_scans (
+  id bigint generated always as identity primary key,
+  campaign text not null check (campaign ~ '^[a-z0-9-]{1,60}$'),
+  qr_kind text not null check (qr_kind in ('online', 'table')),
+  table_number smallint check (table_number between 1 and 999),
+  destination_path text not null check (char_length(destination_path) <= 500),
+  scanned_at timestamptz not null default now()
+);
+
+create index grainbuds_qr_scans_campaign_idx
+  on grainbuds_qr_scans (campaign, scanned_at desc);
+
 -- ============ Staff allowlist ============
 -- Being a logged-in user of this Supabase project is NOT enough to manage
 -- Grainbuds — only accounts listed here count as staff. This keeps other
@@ -143,6 +161,7 @@ alter table grainbuds_orders enable row level security;
 alter table grainbuds_order_items enable row level security;
 alter table grainbuds_subscribers enable row level security;
 alter table grainbuds_settings enable row level security;
+alter table grainbuds_qr_scans enable row level security;
 
 -- Anyone can browse grainbuds_categories and live grainbuds_products.
 create policy "public read grainbuds_categories" on grainbuds_categories
@@ -189,6 +208,46 @@ create policy "staff read grainbuds_settings" on grainbuds_settings
   for select to authenticated using (public.grainbuds_is_staff());
 create policy "staff write grainbuds_settings" on grainbuds_settings
   for all to authenticated using (public.grainbuds_is_staff()) with check (public.grainbuds_is_staff());
+
+create policy "public record grainbuds qr scans" on grainbuds_qr_scans
+  for insert with check (true);
+create policy "staff read grainbuds qr scans" on grainbuds_qr_scans
+  for select to authenticated using (public.grainbuds_is_staff());
+
+create or replace function public.grainbuds_qr_campaign_stats()
+returns table (
+  campaign text,
+  scans bigint,
+  orders bigint,
+  last_scan timestamptz
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  with scan_totals as (
+    select s.campaign, count(*)::bigint as scans, max(s.scanned_at) as last_scan
+    from public.grainbuds_qr_scans s
+    group by s.campaign
+  ), order_totals as (
+    select o.qr_campaign as campaign, count(*)::bigint as orders
+    from public.grainbuds_orders o
+    where o.qr_campaign is not null and o.status <> 'cancelled'
+    group by o.qr_campaign
+  )
+  select coalesce(s.campaign, o.campaign),
+         coalesce(s.scans, 0),
+         coalesce(o.orders, 0),
+         s.last_scan
+  from scan_totals s
+  full outer join order_totals o using (campaign)
+  where public.grainbuds_is_staff()
+  order by coalesce(s.scans, 0) desc, coalesce(o.orders, 0) desc;
+$$;
+
+revoke all on function public.grainbuds_qr_campaign_stats() from public;
+grant execute on function public.grainbuds_qr_campaign_stats() to authenticated;
 
 -- Public homepage access to the single safe Instagram gallery setting without
 -- exposing email recipients or future private settings.
@@ -255,6 +314,9 @@ as $$
     'customer_phone', o.customer_phone,
     'pickup_time', o.pickup_time,
     'fulfillment_type', o.fulfillment_type,
+    'table_number', o.table_number,
+    'order_source', o.order_source,
+    'qr_campaign', o.qr_campaign,
     'notes', o.notes,
     'status', o.status,
     'total_cents', o.total_cents,
@@ -356,6 +418,9 @@ begin
     'customer_phone', o.customer_phone,
     'pickup_time', o.pickup_time,
     'fulfillment_type', o.fulfillment_type,
+    'table_number', o.table_number,
+    'order_source', o.order_source,
+    'qr_campaign', o.qr_campaign,
     'notes', o.notes,
     'status', o.status,
     'total_cents', o.total_cents,

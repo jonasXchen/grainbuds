@@ -3,11 +3,32 @@
 import { useActionState } from "react";
 import { motion } from "framer-motion";
 import { login, type AuthState } from "@/lib/actions/auth";
+import { useLocale } from "@/lib/i18n/context";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-5 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-300 focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
 
 export default function LoginForm({ configured }: { configured: boolean }) {
+  const locale = useLocale();
+  const copy = locale === "de"
+    ? {
+        staffArea: "Mitarbeiterbereich",
+        almost: "Fast geschafft.",
+        setup: "Supabase ist noch nicht verbunden. Tragen Sie Projekt-URL und Schlüssel in .env.local ein; danach funktioniert die Anmeldung.",
+        email: "E-Mail",
+        password: "Passwort",
+        signingIn: "Anmeldung…",
+        signIn: "Anmelden",
+      }
+    : {
+        staffArea: "Staff area",
+        almost: "Almost there.",
+        setup: "Supabase isn’t connected yet. Add your project URL and key to .env.local; then this login will work.",
+        email: "Email",
+        password: "Password",
+        signingIn: "Signing in…",
+        signIn: "Sign in",
+      };
   const [state, formAction, isPending] = useActionState<AuthState, FormData>(
     login,
     null
@@ -34,23 +55,21 @@ export default function LoginForm({ configured }: { configured: boolean }) {
         <div>
           <h1 className="font-display text-2xl text-ink">grainbuds</h1>
           <p className="text-xs uppercase tracking-[0.2em] text-ink/50">
-            Staff area
+            {copy.staffArea}
           </p>
         </div>
       </div>
 
       {!configured && (
         <div className="mt-6 rounded-2xl bg-sand/25 px-5 py-4 text-sm leading-relaxed text-ink/75">
-          <strong>Almost there.</strong> Supabase isn&apos;t connected yet. Add
-          your project URL and key to <code>.env.local</code> (see the README),
-          then this login will work.
+          <strong>{copy.almost}</strong> {copy.setup}
         </div>
       )}
 
       <form action={formAction} className="mt-7 space-y-4">
         <div>
           <label htmlFor="email" className="mb-2 block text-sm font-medium text-ink">
-            Email
+            {copy.email}
           </label>
           <input
             id="email"
@@ -64,7 +83,7 @@ export default function LoginForm({ configured }: { configured: boolean }) {
         </div>
         <div>
           <label htmlFor="password" className="mb-2 block text-sm font-medium text-ink">
-            Password
+            {copy.password}
           </label>
           <input
             id="password"
@@ -93,7 +112,7 @@ export default function LoginForm({ configured }: { configured: boolean }) {
           whileTap={{ scale: 0.97 }}
           className="w-full rounded-full bg-ink py-3.5 text-sm font-medium text-cream transition-colors duration-300 hover:bg-matcha-deep disabled:opacity-60"
         >
-          {isPending ? "Signing in…" : "Sign in"}
+          {isPending ? copy.signingIn : copy.signIn}
         </motion.button>
       </form>
     </motion.div>

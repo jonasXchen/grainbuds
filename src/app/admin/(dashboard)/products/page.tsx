@@ -4,11 +4,16 @@ import { formatPrice, type Category, type Product } from "@/lib/types";
 import ProductImage from "@/components/site/ProductImage";
 import ProductRowActions from "@/components/admin/ProductRowActions";
 import CategoryManager from "@/components/admin/CategoryManager";
+import { getLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
   const supabase = await createClient();
+  const locale = await getLocale();
+  const copy = locale === "de"
+    ? { title: "Produkte", description: "Alle Inhalte des Online-Shops. Änderungen werden sofort veröffentlicht.", categories: "Kategorien verwalten", add: "+ Produkt hinzufügen", emptyTitle: "Noch keine Produkte", empty: "Fügen Sie das erste Getränk oder Gericht hinzu oder laden Sie das Beispielmenü aus der README.", uncategorized: "Ohne Kategorie", favorite: "Favorit", edit: "Bearbeiten" }
+    : { title: "Products", description: "Everything shown in the online shop. Changes go live right away.", categories: "Manage categories", add: "+ Add a product", emptyTitle: "No products yet", empty: "Add your first drink or dish, or run the seed script in the README to start with the sample menu.", uncategorized: "Uncategorized", favorite: "favorite", edit: "Edit" };
   const [productsRes, categoriesRes] = await Promise.all([
     supabase
       .from("grainbuds_products")
@@ -24,9 +29,9 @@ export default async function AdminProductsPage() {
     <div className="mx-auto max-w-4xl">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl text-ink">Products</h1>
+          <h1 className="font-display text-4xl text-ink">{copy.title}</h1>
           <p className="mt-2 text-ink/60">
-            Everything shown in the online shop. Changes go live right away.
+            {copy.description}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -34,23 +39,22 @@ export default async function AdminProductsPage() {
             href="#categories"
             className="rounded-full border border-ink/15 px-5 py-3 text-sm font-medium text-ink/70 transition-colors hover:border-ink hover:text-ink"
           >
-            Manage categories
+            {copy.categories}
           </Link>
           <Link
             href="/admin/products/new"
             className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
           >
-            + Add a product
+            {copy.add}
           </Link>
         </div>
       </div>
 
       {products.length === 0 ? (
         <div className="mt-10 rounded-3xl bg-cream-light p-10 text-center">
-          <p className="font-display text-2xl text-ink">No products yet</p>
+          <p className="font-display text-2xl text-ink">{copy.emptyTitle}</p>
           <p className="mx-auto mt-2 max-w-sm text-sm text-ink/55">
-            Add your first drink or dish — or run the seed script in the README
-            to start with the sample menu.
+            {copy.empty}
           </p>
         </div>
       ) : (
@@ -72,16 +76,16 @@ export default async function AdminProductsPage() {
                   {product.name}
                 </Link>
                 <p className="text-xs text-ink/50">
-                  {product.category?.name ?? "Uncategorized"} ·{" "}
+                  {product.category?.name ?? copy.uncategorized} ·{" "}
                   {formatPrice(product.price_cents)}
-                  {product.is_featured && " · ★ favorite"}
+                  {product.is_featured && ` · ★ ${copy.favorite}`}
                 </p>
               </div>
               <Link
                 href={`/admin/products/${product.id}?returnTo=${encodeURIComponent(`/admin/products#product-${product.id}`)}`}
                 className="hidden rounded-full border border-ink/15 px-4 py-1.5 text-xs font-medium text-ink/70 transition-colors hover:border-ink hover:text-ink sm:block"
               >
-                Edit
+                {copy.edit}
               </Link>
               <ProductRowActions product={product} />
             </li>

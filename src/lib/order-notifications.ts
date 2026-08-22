@@ -15,6 +15,9 @@ type NotificationOrder = Pick<
   | "customer_phone"
   | "pickup_time"
   | "fulfillment_type"
+  | "table_number"
+  | "order_source"
+  | "qr_campaign"
   | "notes"
   | "status"
   | "total_cents"
@@ -33,7 +36,7 @@ type NotificationContext = {
 const statusLabels: Record<OrderStatus, string> = {
   new: "New",
   in_progress: "In progress",
-  ready: "Ready for pickup",
+  ready: "Ready",
   completed: "Completed",
   cancelled: "Cancelled",
 };
@@ -102,6 +105,8 @@ function orderDetails(order: NotificationOrder): string {
     order.customer_phone ? `Phone: ${order.customer_phone}` : null,
     order.pickup_time ? `Pickup: ${order.pickup_time}` : null,
     `Order type: ${fulfillmentLabels[order.fulfillment_type ?? "pickup"]}`,
+    order.table_number ? `Table: ${order.table_number}` : null,
+    order.qr_campaign ? `QR campaign: ${order.qr_campaign}` : null,
     `Status: ${statusLabels[order.status]}`,
     order.payment_status
       ? `Payment: ${order.payment_status}${
@@ -134,7 +139,7 @@ function subjects(
       return {
         customer: `Your Grainbuds order ${shortId} was updated`,
         admin: `Customer updated order ${shortId}`,
-        intro: "The customer updated their pickup details.",
+        intro: "The customer updated their order details.",
       };
     case "status_updated":
       return {

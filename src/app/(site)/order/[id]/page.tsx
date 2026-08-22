@@ -76,6 +76,7 @@ export default async function OrderConfirmationPage({
   const { id } = await params;
   const [order, { locale, t }] = await Promise.all([getOrder(id), getT()]);
   const isDemo = id === "demo";
+  const isDineIn = order?.fulfillment_type === "dine_in";
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-5 py-32 sm:px-8">
@@ -125,12 +126,16 @@ export default async function OrderConfirmationPage({
               labels={[
                 t.order.progress.orderSent,
                 t.order.progress.inPreparation,
-                t.order.progress.readyForPickup,
+                isDineIn
+                  ? t.order.progress.readyForDineIn
+                  : t.order.progress.readyForPickup,
               ]}
             />
             <p className="mt-5 rounded-2xl bg-cream px-4 py-3 text-sm text-ink/60">
               <span className="font-medium text-ink">{t.order.fulfillment}:</span>{" "}
-              {t.order.fulfillmentTypes[order.fulfillment_type ?? "pickup"]}
+              {order.table_number
+                ? `${t.order.fulfillmentTypes.dine_in} · ${t.order.table} ${order.table_number}`
+                : t.order.fulfillmentTypes[order.fulfillment_type ?? "pickup"]}
             </p>
             <ul className="mt-4 space-y-2.5">
               {order.order_items?.map((item) => (

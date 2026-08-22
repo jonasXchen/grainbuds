@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/types";
+import { getLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,10 @@ function timeWindows(orders: OrderRow[]) {
 
 export default async function AnalyticsPage() {
   const supabase = await createClient();
+  const locale = await getLocale();
+  const copy = locale === "de"
+    ? { title: "Analysen", description: "Was sich verkauft und wann. Stornierte Bestellungen sind ausgeschlossen.", orders30: "Bestellungen · 30 Tage", revenue30: "Umsatz · 30 Tage", average: "Ø Bestellwert", mailing: "Mailingliste", emptyTitle: "Noch keine Bestellungen", empty: "Sobald Kunden online bestellen, erscheinen hier Bestseller und Tagesumsätze.", revenueDays: "Umsatz – letzte 14 Tage", mostOrdered: "Am häufigsten bestellt", allTime: "Gesamtzeitraum, nach verkaufter Menge.", categories: "Umsatz nach Kategorie" }
+    : { title: "Analytics", description: "What sells, when it sells. Cancelled orders are excluded.", orders30: "Orders · 30 days", revenue30: "Revenue · 30 days", average: "Avg order value", mailing: "Mailing list", emptyTitle: "No orders yet", empty: "Once customers start ordering online, your best sellers and daily revenue will show up here.", revenueDays: "Revenue — last 14 days", mostOrdered: "Most ordered", allTime: "All time, by quantity sold.", categories: "Revenue by category" };
 
   const [ordersRes, itemsRes, productsRes, subsRes] = await Promise.all([
     supabase
@@ -111,19 +116,19 @@ export default async function AnalyticsPage() {
   const maxDay = Math.max(1, ...days.map((day) => day.revenue));
 
   const stats = [
-    { label: "Orders · 30 days", value: String(orders30.length) },
-    { label: "Revenue · 30 days", value: formatPrice(revenue30) },
-    { label: "Avg order value", value: formatPrice(avgOrder) },
-    { label: "Mailing list", value: String(subsRes.count ?? 0) },
+    { label: copy.orders30, value: String(orders30.length) },
+    { label: copy.revenue30, value: formatPrice(revenue30) },
+    { label: copy.average, value: formatPrice(avgOrder) },
+    { label: copy.mailing, value: String(subsRes.count ?? 0) },
   ];
 
   const hasData = items.length > 0;
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="font-display text-4xl text-ink">Analytics</h1>
+      <h1 className="font-display text-4xl text-ink">{copy.title}</h1>
       <p className="mt-2 text-ink/60">
-        What sells, when it sells. Cancelled orders are excluded.
+        {copy.description}
       </p>
 
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -142,10 +147,9 @@ export default async function AnalyticsPage() {
 
       {!hasData ? (
         <div className="mt-10 rounded-3xl bg-cream-light p-10 text-center">
-          <p className="font-display text-2xl text-ink">No orders yet</p>
+          <p className="font-display text-2xl text-ink">{copy.emptyTitle}</p>
           <p className="mx-auto mt-2 max-w-sm text-sm text-ink/55">
-            Once customers start ordering online, your best sellers and daily
-            revenue will show up here.
+            {copy.empty}
           </p>
         </div>
       ) : (
@@ -153,7 +157,7 @@ export default async function AnalyticsPage() {
           {/* Revenue per day — column chart, single series */}
           <section className="mt-10 rounded-3xl bg-cream-light p-7">
             <h2 className="font-display text-2xl text-ink">
-              Revenue — last 14 days
+              {copy.revenueDays}
             </h2>
             <div className="mt-6 flex h-40 items-end gap-1.5">
               {days.map((day) => (
@@ -187,9 +191,9 @@ export default async function AnalyticsPage() {
 
           {/* Most ordered — ranked bar list */}
           <section className="mt-8 rounded-3xl bg-cream-light p-7">
-            <h2 className="font-display text-2xl text-ink">Most ordered</h2>
+            <h2 className="font-display text-2xl text-ink">{copy.mostOrdered}</h2>
             <p className="mt-1 text-xs text-ink/50">
-              All time, by quantity sold.
+              {copy.allTime}
             </p>
             <ul className="mt-6 space-y-4">
               {topProducts.map((product) => (
@@ -217,7 +221,7 @@ export default async function AnalyticsPage() {
           {/* Revenue by category — ranked bar list */}
           <section className="mt-8 rounded-3xl bg-cream-light p-7">
             <h2 className="font-display text-2xl text-ink">
-              Revenue by category
+              {copy.categories}
             </h2>
             <ul className="mt-6 space-y-4">
               {topCategories.map((category) => (

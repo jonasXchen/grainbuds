@@ -18,11 +18,22 @@ const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-5 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-300 focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
 
 export default function CheckoutPage() {
-  const { lines, totalCents, clearCart } = useCart();
+  const {
+    lines,
+    totalCents,
+    clearCart,
+    orderingContext,
+    clearOrderingContext,
+  } = useCart();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [queueEstimate, setQueueEstimate] = useState<QueueEstimate | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [selectedFulfillmentType, setSelectedFulfillmentType] = useState<
+    "pickup" | "dine_in"
+  >(
+    "pickup"
+  );
   const locale = useLocale();
   const t = useT();
 
@@ -45,6 +56,13 @@ export default function CheckoutPage() {
     };
   }, [lines]);
 
+  const fulfillmentType =
+    orderingContext?.source === "qr_table"
+      ? "dine_in"
+      : orderingContext?.source === "qr_online"
+        ? "pickup"
+        : selectedFulfillmentType;
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -56,8 +74,13 @@ export default function CheckoutPage() {
         customerEmail: String(form.get("email") ?? ""),
         customerPhone: "",
         pickupTime: "",
-        fulfillmentType:
-          form.get("fulfillment_type") === "dine_in" ? "dine_in" : "pickup",
+        fulfillmentType,
+        tableNumber:
+          orderingContext?.source === "qr_table"
+            ? orderingContext.tableNumber
+            : null,
+        orderSource: orderingContext?.source ?? "website",
+        qrCampaign: orderingContext?.campaign ?? null,
         notes: String(form.get("notes") ?? ""),
         marketingOptIn: form.get("marketing_opt_in") === "on",
         lines: lines.map((line) => ({
@@ -72,6 +95,7 @@ export default function CheckoutPage() {
         return;
       }
       clearCart();
+      clearOrderingContext();
       router.push(
         result.demo ? "/order/demo" : `/order/${result.orderId}`
       );
@@ -166,7 +190,9 @@ export default function CheckoutPage() {
                     type="radio"
                     name="fulfillment_type"
                     value="pickup"
-                    defaultChecked
+                    checked={fulfillmentType === "pickup"}
+                    disabled={orderingContext?.source === "qr_table"}
+                    onChange={() => setSelectedFulfillmentType("pickup")}
                     className="peer sr-only"
                   />
                   <span className="block text-sm font-semibold text-ink">
@@ -181,6 +207,9 @@ export default function CheckoutPage() {
                     type="radio"
                     name="fulfillment_type"
                     value="dine_in"
+                    checked={fulfillmentType === "dine_in"}
+                    disabled={orderingContext?.source === "qr_online"}
+                    onChange={() => setSelectedFulfillmentType("dine_in")}
                     className="peer sr-only"
                   />
                   <span className="block text-sm font-semibold text-ink">
@@ -209,6 +238,13 @@ export default function CheckoutPage() {
                   </span>
                 </label>
               </div>
+              {orderingContext?.source === "qr_table" && (
+                <p className="mt-3 rounded-2xl bg-matcha/15 px-4 py-3 text-sm font-medium text-matcha-deep">
+                  {locale === "de"
+                    ? `Diese Bestellung wird an Tisch ${orderingContext.tableNumber} gebracht.`
+                    : `This order will be brought to table ${orderingContext.tableNumber}.`}
+                </p>
+              )}
             </fieldset>
 
             <div className="grid gap-5 sm:grid-cols-2">

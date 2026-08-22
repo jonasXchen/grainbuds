@@ -183,3 +183,30 @@ select:not([multiple]) {
     animation: none;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .qr-print-root,
+  .qr-print-root * {
+    visibility: visible !important;
+  }
+
+  .qr-print-root {
+    position: fixed;
+    inset: 0;
+    width: 148mm;
+    height: 210mm;
+    margin: auto;
+    padding: 18mm;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  @page {
+    size: A5 portrait;
+    margin: 0;
+  }
+}

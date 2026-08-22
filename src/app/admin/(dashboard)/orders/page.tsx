@@ -2,11 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { formatPrice, type Order } from "@/lib/types";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import PaymentSelect from "@/components/admin/PaymentSelect";
+import { getLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage() {
   const supabase = await createClient();
+  const locale = await getLocale();
+  const copy = locale === "de"
+    ? { title: "Bestellungen", description: "Neueste zuerst. Aktualisieren Sie den Status während der Bearbeitung; bezahlt wird im Café.", open: "Offen", done: "Erledigt", noOpen: "Zurzeit keine offenen Bestellungen.", noDone: "Noch keine abgeschlossenen Bestellungen.", table: "Tisch", dineIn: "Vor Ort", pickup: "Abholung", qr: "QR", note: "Hinweis" }
+    : { title: "Orders", description: "Newest first. Change the status as you work through them; customers pay at the café.", open: "Open", done: "Done", noOpen: "No open orders right now—enjoy the quiet.", noDone: "Nothing completed yet.", table: "Table", dineIn: "Dine in", pickup: "Pickup", qr: "QR", note: "Note" };
   const { data } = await supabase
     .from("grainbuds_orders")
     .select("*, order_items:grainbuds_order_items(*)")
@@ -23,14 +28,13 @@ export default async function AdminOrdersPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="font-display text-4xl text-ink">Orders</h1>
+      <h1 className="font-display text-4xl text-ink">{copy.title}</h1>
       <p className="mt-2 text-ink/60">
-        Newest first. Change the status as you work through them — customers
-        pay at pickup.
+        {copy.description}
       </p>
 
-      <OrderSection title="Open" orders={open} emptyText="No open orders right now — enjoy the quiet." />
-      <OrderSection title="Done" orders={closed} emptyText="Nothing completed yet." />
+      <OrderSection title={copy.open} orders={open} emptyText={copy.noOpen} copy={copy} />
+      <OrderSection title={copy.done} orders={closed} emptyText={copy.noDone} copy={copy} />
     </div>
   );
 }
@@ -39,10 +43,12 @@ function OrderSection({
   title,
   orders,
   emptyText,
+  copy,
 }: {
   title: string;
   orders: Order[];
   emptyText: string;
+  copy: { table: string; dineIn: string; pickup: string; qr: string; note: string };
 }) {
   return (
     <section className="mt-10">
@@ -67,12 +73,21 @@ function OrderSection({
                   </p>
                   {order.pickup_time && (
                     <p className="mt-1.5 inline-block rounded-full bg-sand/25 px-3 py-1 text-xs font-medium text-sand-deep">
-                      Pickup: {order.pickup_time}
+                      {copy.pickup}: {order.pickup_time}
                     </p>
                   )}
                   <p className="mt-1.5 inline-block rounded-full bg-matcha/15 px-3 py-1 text-xs font-medium text-matcha-deep">
-                    {order.fulfillment_type === "dine_in" ? "Dine in" : "Pickup"}
+                    {order.table_number
+                      ? `${copy.table} ${order.table_number}`
+                      : order.fulfillment_type === "dine_in"
+                        ? copy.dineIn
+                        : copy.pickup}
                   </p>
+                  {order.order_source?.startsWith("qr_") && (
+                    <span className="ml-2 mt-1.5 inline-block rounded-full bg-sand/20 px-3 py-1 text-xs font-medium text-sand-deep">
+                      {copy.qr}{order.qr_campaign ? ` · ${order.qr_campaign}` : ""}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="font-display text-xl text-ink">
@@ -98,7 +113,7 @@ function OrderSection({
 
               {order.notes && (
                 <p className="mt-3 rounded-2xl bg-matcha/10 px-4 py-3 text-sm text-ink/70">
-                  <span className="font-medium text-matcha-deep">Note:</span>{" "}
+                  <span className="font-medium text-matcha-deep">{copy.note}:</span>{" "}
                   {order.notes}
                 </p>
               )}

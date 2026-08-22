@@ -4,12 +4,22 @@ import { getT } from "@/lib/i18n/server";
 import { getViewMode } from "@/lib/staff";
 import ShopGrid from "@/components/site/ShopGrid";
 import Reveal from "@/components/site/Reveal";
+import OrderingContextBanner from "@/components/site/OrderingContextBanner";
 
-export const metadata: Metadata = {
-  title: "Shop & Menu",
-  description:
-    "Order matcha, boba, sushi, and smoothies for pickup at Grainbuds in Erlangen.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await getT();
+  return locale === "de"
+    ? {
+        title: "Speisekarte & Bestellen",
+        description:
+          "Matcha, Boba, Sushi und Smoothies bei Grainbuds in Erlangen zur Abholung oder direkt am Tisch bestellen.",
+      }
+    : {
+        title: "Menu & Order",
+        description:
+          "Order matcha, boba, sushi, and smoothies at Grainbuds in Erlangen for pickup or directly from your table.",
+      };
+}
 
 export default async function ShopPage() {
   // Staff see hidden products too (with a "Hidden" overlay and inline
@@ -24,6 +34,7 @@ export default async function ShopPage() {
   return (
     <div className="px-5 pb-28 pt-36 sm:px-8">
       <div className="mx-auto max-w-6xl">
+        <OrderingContextBanner />
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
             {t.shop.eyebrow}

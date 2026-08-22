@@ -2,11 +2,16 @@ import NotificationSettingsForm from "@/components/admin/NotificationSettingsFor
 import InstagramGallerySettingsForm from "@/components/admin/InstagramGallerySettingsForm";
 import { parseInstagramGallerySettings } from "@/lib/instagram-gallery";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
   const supabase = await createClient();
+  const locale = await getLocale();
+  const copy = locale === "de"
+    ? { title: "Einstellungen", description: "Legen Sie fest, wohin betriebliche Bestellbenachrichtigungen gesendet werden.", emails: "Bestell-E-Mails", emailHint: "Kunden erhalten Bestätigungs- und Stornierungs-E-Mails an die Adresse ihrer Bestellung.", configured: "Versand eingerichtet", setup: "Einrichtung erforderlich", instagram: "Instagram-Galerie", instagramHint: "Wählen Sie das Instagram-Profil und die Fotos für die Galerie auf der Startseite. Es werden keine Instagram-Tracking-Skripte geladen." }
+    : { title: "Settings", description: "Configure where operational order notifications are delivered.", emails: "Order emails", emailHint: "Customers receive confirmation and cancellation emails at the address on their order.", configured: "Delivery configured", setup: "Setup required", instagram: "Instagram gallery", instagramHint: "Choose the Instagram profile and photos shown in the homepage café gallery. Instagram tracking scripts are not loaded." };
   const { data } = await supabase
     .from("grainbuds_settings")
     .select("key, value")
@@ -27,18 +32,17 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="font-display text-4xl text-ink">Settings</h1>
+      <h1 className="font-display text-4xl text-ink">{copy.title}</h1>
       <p className="mt-2 text-ink/60">
-        Configure where operational order notifications are delivered.
+        {copy.description}
       </p>
 
       <section className="mt-10 rounded-3xl bg-cream-light p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-2xl text-ink">Order emails</h2>
+            <h2 className="font-display text-2xl text-ink">{copy.emails}</h2>
             <p className="mt-1 text-sm text-ink/55">
-              Customers receive confirmation and cancellation emails at the
-              address on their order.
+              {copy.emailHint}
             </p>
           </div>
           <span
@@ -49,8 +53,8 @@ export default async function AdminSettingsPage() {
             }`}
           >
             {emailConfigured && secureSettingsConfigured
-              ? "Delivery configured"
-              : "Setup required"}
+              ? copy.configured
+              : copy.setup}
           </span>
         </div>
 
@@ -76,11 +80,9 @@ export default async function AdminSettingsPage() {
 
       <section className="mt-8 rounded-3xl bg-cream-light p-6 sm:p-8">
         <div>
-          <h2 className="font-display text-2xl text-ink">Instagram gallery</h2>
+          <h2 className="font-display text-2xl text-ink">{copy.instagram}</h2>
           <p className="mt-1 text-sm leading-relaxed text-ink/55">
-            Choose the Instagram profile and photos shown in the homepage café
-            gallery. This uses plain image links and does not load Instagram
-            tracking scripts.
+            {copy.instagramHint}
           </p>
         </div>
 

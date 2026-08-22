@@ -56,6 +56,9 @@ export type Order = {
   customer_phone: string | null;
   pickup_time: string | null;
   fulfillment_type?: FulfillmentType;
+  table_number?: number | null;
+  order_source?: "website" | "qr_online" | "qr_table";
+  qr_campaign?: string | null;
   notes: string | null;
   status: OrderStatus;
   total_cents: number;

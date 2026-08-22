@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import ProductForm from "@/components/admin/ProductForm";
 import CategoryManager from "@/components/admin/CategoryManager";
 import { safeReturnPath } from "@/lib/return-path";
+import { getLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function EditProductPage({
     Array.isArray(query.returnTo) ? query.returnTo[0] : query.returnTo
   );
   const supabase = await createClient();
+  const locale = await getLocale();
   const [{ data: product }, { data: categories }] = await Promise.all([
     supabase.from("grainbuds_products").select("*").eq("id", id).maybeSingle(),
     supabase.from("grainbuds_categories").select("*").order("sort_order"),
@@ -33,10 +35,10 @@ export default async function EditProductPage({
         href={returnTo}
         className="text-sm font-medium text-ink/60 transition-colors hover:text-ink"
       >
-        ← Back
+        {locale === "de" ? "← Zurück" : "← Back"}
       </Link>
       <h1 className="mt-4 font-display text-4xl text-ink">
-        Edit “{product.name}”
+        {locale === "de" ? "Bearbeiten" : "Edit"} “{product.name}”
       </h1>
       <div className="mt-8">
         <ProductForm

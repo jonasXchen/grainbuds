@@ -18,6 +18,9 @@ export type CheckoutInput = {
   customerPhone?: string;
   pickupTime?: string;
   fulfillmentType?: FulfillmentType;
+  tableNumber?: number | null;
+  orderSource?: "website" | "qr_online" | "qr_table";
+  qrCampaign?: string | null;
   notes?: string;
   marketingOptIn?: boolean;
   lines: CheckoutLine[];
@@ -151,6 +154,24 @@ export async function createOrder(
   );
   const fulfillmentType: FulfillmentType =
     input.fulfillmentType === "dine_in" ? "dine_in" : "pickup";
+  const tableNumber =
+    fulfillmentType === "dine_in" &&
+    Number.isInteger(input.tableNumber) &&
+    Number(input.tableNumber) >= 1 &&
+    Number(input.tableNumber) <= 999
+      ? Number(input.tableNumber)
+      : null;
+  const orderSource =
+    input.orderSource === "qr_table" && tableNumber
+      ? "qr_table"
+      : input.orderSource === "qr_online"
+        ? "qr_online"
+        : "website";
+  const qrCampaign =
+    orderSource.startsWith("qr_") &&
+    input.qrCampaign?.match(/^[a-z0-9-]{1,60}$/)
+      ? input.qrCampaign
+      : null;
 
   if (!hasSupabaseEnv()) {
     // Demo mode: no database connected yet.
@@ -168,6 +189,9 @@ export async function createOrder(
       customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
       pickup_time: input.pickupTime?.trim().slice(0, 80) || null,
       fulfillment_type: fulfillmentType,
+      table_number: tableNumber,
+      order_source: orderSource,
+      qr_campaign: qrCampaign,
       notes: input.notes?.trim().slice(0, 500) || null,
       status: "new",
       total_cents: totalCents,
@@ -232,6 +256,9 @@ export async function createOrder(
     customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
     pickup_time: input.pickupTime?.trim().slice(0, 80) || null,
     fulfillment_type: fulfillmentType,
+    table_number: tableNumber,
+    order_source: orderSource,
+    qr_campaign: qrCampaign,
     notes: input.notes?.trim().slice(0, 500) || null,
     status: "new",
     total_cents: totalCents,
