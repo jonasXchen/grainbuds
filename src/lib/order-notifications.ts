@@ -14,6 +14,7 @@ type NotificationOrder = Pick<
   | "customer_email"
   | "customer_phone"
   | "pickup_time"
+  | "fulfillment_type"
   | "notes"
   | "status"
   | "total_cents"
@@ -36,6 +37,11 @@ const statusLabels: Record<OrderStatus, string> = {
   completed: "Completed",
   cancelled: "Cancelled",
 };
+
+const fulfillmentLabels = {
+  pickup: "Pickup",
+  dine_in: "Dine in",
+} as const;
 
 function parseRecipientList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -95,6 +101,7 @@ function orderDetails(order: NotificationOrder): string {
     `Email: ${order.customer_email}`,
     order.customer_phone ? `Phone: ${order.customer_phone}` : null,
     order.pickup_time ? `Pickup: ${order.pickup_time}` : null,
+    `Order type: ${fulfillmentLabels[order.fulfillment_type ?? "pickup"]}`,
     `Status: ${statusLabels[order.status]}`,
     order.payment_status
       ? `Payment: ${order.payment_status}${
@@ -103,7 +110,7 @@ function orderDetails(order: NotificationOrder): string {
       : null,
     "",
     items || "No order items available.",
-    `Total at pickup: ${formatPrice(order.total_cents)}`,
+    `Total: ${formatPrice(order.total_cents)}`,
     order.notes ? `\nNotes: ${order.notes}` : null,
   ]
     .filter((line): line is string => line !== null)

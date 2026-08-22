@@ -12,7 +12,7 @@ const sections = {
   en: {
     eyebrow: "Privacy",
     title: "Privacy policy",
-    updated: "Last updated: 21 August 2026",
+    updated: "Last updated: 22 August 2026",
     intro:
       "This notice explains how personal data and browser storage are used when you visit grainbuds.de, place an order, or use the staff area.",
     controllerTitle: "1. Controller",
@@ -23,7 +23,7 @@ const sections = {
       "The website is hosted by Vercel. When it is accessed, technically required connection and log data may be processed, including IP address, time, requested page, browser information, and error data. This processing is necessary to deliver and secure the website and is based on our legitimate interest in reliable operation (Article 6(1)(f) GDPR). Log retention is determined by operational and security requirements and the hosting provider's applicable terms.",
     ordersTitle: "3. Orders and customer service",
     orders:
-      "When you place or edit an order, we process your name, email address, optional telephone number, pickup details, notes, ordered products, prices, status, and payment record. This is necessary to prepare and fulfil your order (Article 6(1)(b) GDPR). Order data is stored in Supabase and is available only to authorised staff. Your private order URL contains an unguessable identifier and must not be shared. Data is retained only as long as needed for fulfilment and applicable commercial, tax, or legal retention duties.",
+      "When you place or edit an order, we process your name, email address, optional telephone number, selected fulfilment method, pickup details, notes, ordered products, prices, status, and payment record. This is necessary to prepare and fulfil your order (Article 6(1)(b) GDPR). Order data is stored in Supabase and is available only to authorised staff. Your private order URL contains an unguessable identifier and must not be shared. Data is retained only as long as needed for fulfilment and applicable commercial, tax, or legal retention duties.",
     emailTitle: "4. Transactional and marketing email",
     email:
       "Order confirmations, cancellation notices, and staff notifications for new or customer-edited orders are delivered through Resend. The email address and order details required for each message are transmitted for this purpose (Article 6(1)(b) GDPR). Marketing email is sent only after explicit opt-in (Article 6(1)(a) GDPR); consent can be withdrawn at any time. Withdrawing marketing consent does not affect operational messages required for an active order.",
@@ -52,7 +52,7 @@ const sections = {
   de: {
     eyebrow: "Datenschutz",
     title: "Datenschutzerklärung",
-    updated: "Stand: 21. August 2026",
+    updated: "Stand: 22. August 2026",
     intro:
       "Diese Erklärung informiert darüber, wie personenbezogene Daten und Browser-Speicher beim Besuch von grainbuds.de, bei Bestellungen und im Mitarbeiterbereich verwendet werden.",
     controllerTitle: "1. Verantwortlicher",
@@ -63,7 +63,7 @@ const sections = {
       "Die Website wird bei Vercel gehostet. Beim Aufruf können technisch erforderliche Verbindungs- und Protokolldaten verarbeitet werden, darunter IP-Adresse, Zeitpunkt, aufgerufene Seite, Browserinformationen und Fehlerdaten. Die Verarbeitung dient der Auslieferung und Sicherheit der Website und beruht auf unserem berechtigten Interesse an einem zuverlässigen Betrieb (Art. 6 Abs. 1 lit. f DSGVO). Die Speicherdauer der Protokolle richtet sich nach betrieblichen und sicherheitsbezogenen Erfordernissen sowie den geltenden Bedingungen des Hosting-Anbieters.",
     ordersTitle: "3. Bestellungen und Kundenservice",
     orders:
-      "Bei einer Bestellung oder Änderung verarbeiten wir Name, E-Mail-Adresse, optionale Telefonnummer, Abholdaten, Hinweise, bestellte Produkte, Preise, Status und Zahlungsnachweis. Dies ist zur Vorbereitung und Erfüllung der Bestellung erforderlich (Art. 6 Abs. 1 lit. b DSGVO). Bestelldaten werden in Supabase gespeichert und sind nur für berechtigte Mitarbeiter zugänglich. Die private Bestell-URL enthält eine nicht erratbare Kennung und darf nicht weitergegeben werden. Daten werden nur so lange gespeichert, wie es für die Abwicklung und gesetzliche handels-, steuer- oder sonstige Aufbewahrungspflichten erforderlich ist.",
+      "Bei einer Bestellung oder Änderung verarbeiten wir Name, E-Mail-Adresse, optionale Telefonnummer, gewählte Bestellart, Abholdaten, Hinweise, bestellte Produkte, Preise, Status und Zahlungsnachweis. Dies ist zur Vorbereitung und Erfüllung der Bestellung erforderlich (Art. 6 Abs. 1 lit. b DSGVO). Bestelldaten werden in Supabase gespeichert und sind nur für berechtigte Mitarbeiter zugänglich. Die private Bestell-URL enthält eine nicht erratbare Kennung und darf nicht weitergegeben werden. Daten werden nur so lange gespeichert, wie es für die Abwicklung und gesetzliche handels-, steuer- oder sonstige Aufbewahrungspflichten erforderlich ist.",
     emailTitle: "4. Bestell- und Marketing-E-Mails",
     email:
       "Bestellbestätigungen, Stornierungsmitteilungen und Mitarbeiterhinweise zu neuen oder vom Kunden geänderten Bestellungen werden über Resend zugestellt. Dafür werden die jeweils benötigte E-Mail-Adresse und Bestelldaten übermittelt (Art. 6 Abs. 1 lit. b DSGVO). Marketing-E-Mails versenden wir nur nach ausdrücklicher Einwilligung (Art. 6 Abs. 1 lit. a DSGVO); diese kann jederzeit für die Zukunft widerrufen werden. Der Widerruf betrifft nicht notwendige Nachrichten zu einer laufenden Bestellung.",

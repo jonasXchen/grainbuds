@@ -82,13 +82,21 @@ export const dictionaries = {
       browse: "Browse the menu",
       subtotal: "Subtotal",
       payNote: "Pay in store when you pick up.",
-      continue: "Continue to pickup details",
+      continue: "Continue to order details",
       remove: "Remove",
     },
     checkout: {
       eyebrow: "Checkout",
-      title: "Pickup details",
-      sub: "Tell us who to look for. You'll pay at the counter — cash or card.",
+      title: "Order details",
+      sub: "Choose how you would like your order and tell us who to look for. Pay at the counter — cash or card.",
+      fulfillmentTitle: "How would you like your order?",
+      pickup: "Pickup",
+      pickupDescription: "Collect it at the counter.",
+      dineIn: "Dine in",
+      dineInDescription: "Enjoy it here at Grainbuds.",
+      delivery: "Delivery",
+      deliveryDescription: "Delivered to your address.",
+      comingSoon: "Coming soon",
       name: "Your name *",
       namePlaceholder: "Mei Lin",
       email: "Email *",
@@ -99,14 +107,14 @@ export const dictionaries = {
         "Email me about new drinks and product launches. You can unsubscribe anytime.",
       placing: "Placing your order…",
       placeOrder: "Place order",
-      queueTitle: "Live pickup queue",
+      queueTitle: "Live preparation queue",
       queuePosition: "Your queue number",
       estimatedWait: "Estimated drink wait",
       calculatingQueue: "Calculating the current queue…",
       minute: "minute",
       minutes: "minutes",
       summary: "Order summary",
-      total: "Total at pickup",
+      total: "Total",
       emptyTitle: "Your cart is empty",
       emptySub:
         "Add a few things from the menu first — then come back here to set up pickup.",
@@ -117,9 +125,14 @@ export const dictionaries = {
       titleB: "The whisk is moving.",
       subDemo:
         "This is a demo order — connect Supabase to start saving real orders.",
-      sub: "We'll have everything ready for your pickup. Pay at the counter — see you soon.",
+      sub: "We're preparing everything fresh. Pay at the counter — see you soon.",
       orderFor: "Order for",
-      total: "Total at pickup",
+      total: "Total",
+      fulfillment: "Order type",
+      fulfillmentTypes: {
+        pickup: "Pickup",
+        dine_in: "Dine in",
+      },
       pickup: "Pickup",
       status: "Status",
       statuses: {
@@ -128,6 +141,11 @@ export const dictionaries = {
         ready: "Ready for pickup",
         completed: "Completed",
         cancelled: "Cancelled",
+      },
+      progress: {
+        orderSent: "Order sent",
+        inPreparation: "In preparation",
+        readyForPickup: "Ready for pickup",
       },
       editTitle: "Edit pickup details",
       editHint:
@@ -224,13 +242,21 @@ export const dictionaries = {
       browse: "Zur Karte",
       subtotal: "Zwischensumme",
       payNote: "Bezahlt wird bei der Abholung im Laden.",
-      continue: "Weiter zu den Abholdetails",
+      continue: "Weiter zu den Bestelldetails",
       remove: "Entfernen",
     },
     checkout: {
       eyebrow: "Bestellung",
-      title: "Abholdetails",
-      sub: "Sagen Sie uns, auf wen wir warten. Bezahlt wird an der Theke — bar oder mit Karte.",
+      title: "Bestelldetails",
+      sub: "Wählen Sie, wie Sie Ihre Bestellung erhalten möchten, und sagen Sie uns, auf wen wir warten. Bezahlt wird an der Theke — bar oder mit Karte.",
+      fulfillmentTitle: "Wie möchten Sie Ihre Bestellung?",
+      pickup: "Abholung",
+      pickupDescription: "An der Theke abholen.",
+      dineIn: "Vor Ort",
+      dineInDescription: "Hier im Grainbuds genießen.",
+      delivery: "Lieferung",
+      deliveryDescription: "Lieferung an Ihre Adresse.",
+      comingSoon: "Demnächst",
       name: "Ihr Name *",
       namePlaceholder: "Mei Lin",
       email: "E-Mail *",
@@ -241,14 +267,14 @@ export const dictionaries = {
         "Informieren Sie mich per E-Mail über neue Getränke und Produkte. Jederzeit abbestellbar.",
       placing: "Bestellung wird aufgegeben…",
       placeOrder: "Bestellung aufgeben",
-      queueTitle: "Aktuelle Abholwarteschlange",
+      queueTitle: "Aktuelle Warteschlange",
       queuePosition: "Ihre Wartenummer",
       estimatedWait: "Geschätzte Wartezeit",
       calculatingQueue: "Aktuelle Warteschlange wird berechnet…",
       minute: "Minute",
       minutes: "Minuten",
       summary: "Bestellübersicht",
-      total: "Gesamt bei Abholung",
+      total: "Gesamt",
       emptyTitle: "Ihr Warenkorb ist leer",
       emptySub:
         "Legen Sie zuerst etwas von der Karte hinein — dann geht es hier weiter zur Abholung.",
@@ -259,9 +285,14 @@ export const dictionaries = {
       titleB: "Der Besen ist im Einsatz.",
       subDemo:
         "Dies ist eine Demo-Bestellung — verbinden Sie Supabase, um echte Bestellungen zu speichern.",
-      sub: "Wir machen alles für Ihre Abholung bereit. Bezahlt wird an der Theke — bis gleich!",
+      sub: "Wir bereiten alles frisch zu. Bezahlt wird an der Theke — bis gleich!",
       orderFor: "Bestellung für",
-      total: "Gesamt bei Abholung",
+      total: "Gesamt",
+      fulfillment: "Bestellart",
+      fulfillmentTypes: {
+        pickup: "Abholung",
+        dine_in: "Vor Ort",
+      },
       pickup: "Abholung",
       status: "Status",
       statuses: {
@@ -270,6 +301,11 @@ export const dictionaries = {
         ready: "Abholbereit",
         completed: "Abgeschlossen",
         cancelled: "Storniert",
+      },
+      progress: {
+        orderSent: "Bestellung gesendet",
+        inPreparation: "In Zubereitung",
+        readyForPickup: "Abholbereit",
       },
       editTitle: "Abholdetails bearbeiten",
       editHint:
@@ -289,5 +325,5 @@ export const dictionaries = {
 export type Dictionary = (typeof dictionaries)["en"];
 
 export function getDictionary(locale: Locale): Dictionary {
-  return dictionaries[locale] ?? dictionaries.en;
+  return dictionaries[locale] ?? dictionaries.de;
 }

@@ -1,4 +1,5 @@
 export type Locale = "en" | "de";
+export type FulfillmentType = "pickup" | "dine_in";
 
 export type Category = {
   id: string;
@@ -54,6 +55,7 @@ export type Order = {
   customer_email: string;
   customer_phone: string | null;
   pickup_time: string | null;
+  fulfillment_type?: FulfillmentType;
   notes: string | null;
   status: OrderStatus;
   total_cents: number;

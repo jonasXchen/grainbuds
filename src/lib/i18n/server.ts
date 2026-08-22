@@ -7,7 +7,7 @@ export const LOCALE_COOKIE = "grainbuds-lang";
 export async function getLocale(): Promise<Locale> {
   const cookieStore = await cookies();
   const value = cookieStore.get(LOCALE_COOKIE)?.value;
-  return value === "de" ? "de" : "en";
+  return value === "en" ? "en" : "de";
 }
 
 export async function getT(): Promise<{ locale: Locale; t: Dictionary }> {

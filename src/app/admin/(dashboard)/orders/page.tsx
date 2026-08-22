@@ -70,6 +70,9 @@ function OrderSection({
                       Pickup: {order.pickup_time}
                     </p>
                   )}
+                  <p className="mt-1.5 inline-block rounded-full bg-matcha/15 px-3 py-1 text-xs font-medium text-matcha-deep">
+                    {order.fulfillment_type === "dine_in" ? "Dine in" : "Pickup"}
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="font-display text-xl text-ink">

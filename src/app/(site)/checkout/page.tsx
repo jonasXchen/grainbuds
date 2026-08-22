@@ -56,6 +56,8 @@ export default function CheckoutPage() {
         customerEmail: String(form.get("email") ?? ""),
         customerPhone: "",
         pickupTime: "",
+        fulfillmentType:
+          form.get("fulfillment_type") === "dine_in" ? "dine_in" : "pickup",
         notes: String(form.get("notes") ?? ""),
         marketingOptIn: form.get("marketing_opt_in") === "on",
         lines: lines.map((line) => ({
@@ -154,6 +156,61 @@ export default function CheckoutPage() {
             onSubmit={handleSubmit}
             className="space-y-5 lg:col-start-1 lg:row-start-2"
           >
+            <fieldset>
+              <legend className="mb-3 text-sm font-medium text-ink">
+                {t.checkout.fulfillmentTitle}
+              </legend>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="relative cursor-pointer rounded-2xl border border-ink/15 bg-cream-light p-4 transition-colors has-[:checked]:border-matcha-deep has-[:checked]:bg-matcha/10 has-[:checked]:ring-2 has-[:checked]:ring-matcha/20">
+                  <input
+                    type="radio"
+                    name="fulfillment_type"
+                    value="pickup"
+                    defaultChecked
+                    className="peer sr-only"
+                  />
+                  <span className="block text-sm font-semibold text-ink">
+                    {t.checkout.pickup}
+                  </span>
+                  <span className="mt-1 block text-xs leading-relaxed text-ink/50">
+                    {t.checkout.pickupDescription}
+                  </span>
+                </label>
+                <label className="relative cursor-pointer rounded-2xl border border-ink/15 bg-cream-light p-4 transition-colors has-[:checked]:border-matcha-deep has-[:checked]:bg-matcha/10 has-[:checked]:ring-2 has-[:checked]:ring-matcha/20">
+                  <input
+                    type="radio"
+                    name="fulfillment_type"
+                    value="dine_in"
+                    className="peer sr-only"
+                  />
+                  <span className="block text-sm font-semibold text-ink">
+                    {t.checkout.dineIn}
+                  </span>
+                  <span className="mt-1 block text-xs leading-relaxed text-ink/50">
+                    {t.checkout.dineInDescription}
+                  </span>
+                </label>
+                <label className="relative cursor-not-allowed rounded-2xl border border-ink/8 bg-ink/[0.03] p-4 text-ink/35">
+                  <input
+                    type="radio"
+                    name="fulfillment_type"
+                    value="delivery"
+                    disabled
+                    className="sr-only"
+                  />
+                  <span className="block text-sm font-semibold">
+                    {t.checkout.delivery}
+                  </span>
+                  <span className="mt-1 block text-xs leading-relaxed">
+                    {t.checkout.deliveryDescription}
+                  </span>
+                  <span className="mt-2 inline-block rounded-full bg-ink/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider">
+                    {t.checkout.comingSoon}
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">

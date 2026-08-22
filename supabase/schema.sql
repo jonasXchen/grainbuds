@@ -47,6 +47,8 @@ create table grainbuds_orders (
   customer_email text not null,
   customer_phone text,
   pickup_time text,
+  fulfillment_type text not null default 'pickup'
+    check (fulfillment_type in ('pickup', 'dine_in')),
   notes text,
   status text not null default 'new'
     check (status in ('new', 'in_progress', 'ready', 'completed', 'cancelled')),
@@ -252,6 +254,7 @@ as $$
     'customer_email', o.customer_email,
     'customer_phone', o.customer_phone,
     'pickup_time', o.pickup_time,
+    'fulfillment_type', o.fulfillment_type,
     'notes', o.notes,
     'status', o.status,
     'total_cents', o.total_cents,
@@ -352,6 +355,7 @@ begin
     'customer_email', o.customer_email,
     'customer_phone', o.customer_phone,
     'pickup_time', o.pickup_time,
+    'fulfillment_type', o.fulfillment_type,
     'notes', o.notes,
     'status', o.status,
     'total_cents', o.total_cents,

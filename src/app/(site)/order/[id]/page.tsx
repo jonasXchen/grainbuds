@@ -1,12 +1,61 @@
 import Link from "next/link";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getT } from "@/lib/i18n/server";
-import { formatPrice, type Order } from "@/lib/types";
+import { formatPrice, type Order, type OrderStatus } from "@/lib/types";
 import Reveal from "@/components/site/Reveal";
 import OrderEditForm from "@/components/site/OrderEditForm";
+import OrderStatusRefresh from "@/components/site/OrderStatusRefresh";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function OrderProgress({
+  status,
+  labels,
+}: {
+  status: OrderStatus;
+  labels: [string, string, string];
+}) {
+  const activeStage =
+    status === "new" ? 0 : status === "in_progress" ? 1 : status === "cancelled" ? -1 : 2;
+
+  return (
+    <ol className={`mt-5 grid grid-cols-3 ${status === "cancelled" ? "opacity-40" : ""}`}>
+      {labels.map((label, index) => {
+        const reached = activeStage >= index;
+        const current = activeStage === index;
+        return (
+          <li
+            key={label}
+            aria-current={current ? "step" : undefined}
+            className="relative flex min-w-0 flex-col items-center text-center"
+          >
+            {index < labels.length - 1 && (
+              <span
+                aria-hidden="true"
+                className={`absolute left-1/2 top-4 h-0.5 w-full ${
+                  activeStage > index ? "bg-matcha-deep" : "bg-ink/10"
+                }`}
+              />
+            )}
+            <span
+              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                reached
+                  ? "border-matcha-deep bg-matcha-deep text-cream"
+                  : "border-ink/15 bg-cream-light text-ink/35"
+              } ${current ? "ring-4 ring-matcha/20" : ""}`}
+            >
+              {activeStage > index ? "✓" : index + 1}
+            </span>
+            <span className={`mt-2 px-1 text-[11px] leading-tight sm:text-xs ${reached ? "font-medium text-ink" : "text-ink/40"}`}>
+              {label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 async function getOrder(id: string): Promise<Order | null> {
   if (!UUID_PATTERN.test(id) || !hasSupabaseEnv()) return null;
@@ -30,6 +79,9 @@ export default async function OrderConfirmationPage({
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-5 py-32 sm:px-8">
+      {order && ["new", "in_progress"].includes(order.status) && (
+        <OrderStatusRefresh />
+      )}
       <div className="w-full max-w-lg text-center">
         <Reveal>
           <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-matcha/20">
@@ -68,6 +120,18 @@ export default async function OrderConfirmationPage({
                 {t.order.statuses[order.status]}
               </span>
             </div>
+            <OrderProgress
+              status={order.status}
+              labels={[
+                t.order.progress.orderSent,
+                t.order.progress.inPreparation,
+                t.order.progress.readyForPickup,
+              ]}
+            />
+            <p className="mt-5 rounded-2xl bg-cream px-4 py-3 text-sm text-ink/60">
+              <span className="font-medium text-ink">{t.order.fulfillment}:</span>{" "}
+              {t.order.fulfillmentTypes[order.fulfillment_type ?? "pickup"]}
+            </p>
             <ul className="mt-4 space-y-2.5">
               {order.order_items?.map((item) => (
                 <li key={item.id} className="flex justify-between text-sm">

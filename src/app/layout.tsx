@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Instrument_Sans } from "next/font/google";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s — Grainbuds",
   },
   description:
-    "A calm corner in Erlangen for matcha, boba, and sushi. Order online for pickup at Grainbuds, Universitätsstraße 7.",
+    "Grainbuds in Erlangen: Matcha, Boba und Sushi. Online zur Abholung oder zum Essen vor Ort bestellen.",
   alternates: {
     canonical: "/",
   },
@@ -31,10 +32,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${fraunces.variable} ${instrumentSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

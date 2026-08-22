@@ -4,7 +4,7 @@ import { createContext, useContext } from "react";
 import type { Locale } from "@/lib/types";
 import { getDictionary, type Dictionary } from "./dictionaries";
 
-const LocaleContext = createContext<Locale>("en");
+const LocaleContext = createContext<Locale>("de");
 
 export function LocaleProvider({
   locale,

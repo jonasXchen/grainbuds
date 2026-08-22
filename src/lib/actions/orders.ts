@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getProductBySlug } from "@/lib/data";
 import { sendOrderNotification } from "@/lib/order-notifications";
-import type { Order } from "@/lib/types";
+import type { FulfillmentType, Order } from "@/lib/types";
 
 export type CheckoutLine = {
   productId: string;
@@ -17,6 +17,7 @@ export type CheckoutInput = {
   customerEmail: string;
   customerPhone?: string;
   pickupTime?: string;
+  fulfillmentType?: FulfillmentType;
   notes?: string;
   marketingOptIn?: boolean;
   lines: CheckoutLine[];
@@ -148,6 +149,8 @@ export async function createOrder(
     (sum, line) => sum + line.product.price_cents * line.quantity,
     0
   );
+  const fulfillmentType: FulfillmentType =
+    input.fulfillmentType === "dine_in" ? "dine_in" : "pickup";
 
   if (!hasSupabaseEnv()) {
     // Demo mode: no database connected yet.
@@ -164,6 +167,7 @@ export async function createOrder(
       customer_email: input.customerEmail.trim().slice(0, 200),
       customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
       pickup_time: input.pickupTime?.trim().slice(0, 80) || null,
+      fulfillment_type: fulfillmentType,
       notes: input.notes?.trim().slice(0, 500) || null,
       status: "new",
       total_cents: totalCents,
@@ -227,6 +231,7 @@ export async function createOrder(
     customer_email: input.customerEmail.trim().toLowerCase().slice(0, 200),
     customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
     pickup_time: input.pickupTime?.trim().slice(0, 80) || null,
+    fulfillment_type: fulfillmentType,
     notes: input.notes?.trim().slice(0, 500) || null,
     status: "new",
     total_cents: totalCents,
