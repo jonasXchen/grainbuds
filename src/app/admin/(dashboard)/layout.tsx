@@ -56,7 +56,7 @@ export default async function AdminLayout({
 
   return (
     <LocaleProvider locale={locale}>
-      <div className="flex min-h-dvh flex-col bg-cream md:flex-row">
+      <div className="admin-shell flex min-h-dvh flex-col bg-cream md:flex-row">
         <AdminNav initialNewOrderCount={newOrderCount} />
         <main className="flex-1 px-5 py-8 md:px-10 md:py-10">{children}</main>
       </div>

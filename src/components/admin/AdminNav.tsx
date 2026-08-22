@@ -56,7 +56,14 @@ const links = [
     href: "/admin/settings",
     label: "settings",
     icon: (
-      <path d="M12 8.5 A3.5 3.5 0 1 0 12 15.5 A3.5 3.5 0 0 0 12 8.5 Z M19 13.5 V10.5 L16.8 9.7 L16.2 8.3 L17.2 6.2 L15.1 4.1 L13 5.1 L11.5 4.5 L10.7 2.5 H7.7 L6.9 4.5 L5.4 5.1 L3.3 4.1 L1.2 6.2 L2.2 8.3 L1.6 9.7" strokeLinecap="round" strokeLinejoin="round" transform="translate(1.5 1.5) scale(.85)" />
+      <>
+        <path
+          d="M12.22 2 H11.78 A2 2 0 0 0 9.78 4 V4.18 A2 2 0 0 1 8.78 5.91 L8.35 6.16 A2 2 0 0 1 6.35 6.16 L6.2 6.08 A2 2 0 0 0 3.47 6.81 L3.25 7.19 A2 2 0 0 0 3.98 9.92 L4.13 10.01 A2 2 0 0 1 5.13 11.74 V12.25 A2 2 0 0 1 4.13 13.99 L3.98 14.08 A2 2 0 0 0 3.25 16.81 L3.47 17.19 A2 2 0 0 0 6.2 17.92 L6.35 17.84 A2 2 0 0 1 8.35 17.84 L8.78 18.09 A2 2 0 0 1 9.78 19.82 V20 A2 2 0 0 0 11.78 22 H12.22 A2 2 0 0 0 14.22 20 V19.82 A2 2 0 0 1 15.22 18.09 L15.65 17.84 A2 2 0 0 1 17.65 17.84 L17.8 17.92 A2 2 0 0 0 20.53 17.19 L20.75 16.81 A2 2 0 0 0 20.02 14.08 L19.87 13.99 A2 2 0 0 1 18.87 12.25 V11.74 A2 2 0 0 1 19.87 10.01 L20.02 9.92 A2 2 0 0 0 20.75 7.19 L20.53 6.81 A2 2 0 0 0 17.8 6.08 L17.65 6.16 A2 2 0 0 1 15.65 6.16 L15.22 5.91 A2 2 0 0 1 14.22 4.18 V4 A2 2 0 0 0 12.22 2 Z"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="12" cy="12" r="3" />
+      </>
     ),
   },
 ];
@@ -167,7 +174,7 @@ export default function AdminNav({
                   : "text-cream/65 hover:bg-cream/10 hover:text-cream"
               }`}
             >
-              <svg viewBox="0 0 24 24" className="hidden h-4.5 w-4.5 md:block" fill="none" stroke="currentColor" strokeWidth="1.7">
+              <svg viewBox="0 0 24 24" className="hidden h-4.5 w-4.5 shrink-0 md:block" fill="none" stroke="currentColor" strokeWidth="1.7">
                 {link.icon}
               </svg>
               <span>{copy[link.label as keyof typeof copy]}</span>

@@ -21,7 +21,7 @@ export default function ProductRowActions({ product }: { product: Product }) {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-2">
       {product.stock != null && (
         <span
           className={`flex items-center gap-1 rounded-full border px-1.5 py-1 text-xs font-medium ${
@@ -63,7 +63,7 @@ export default function ProductRowActions({ product }: { product: Product }) {
             await toggleProductActive(form);
           })
         }
-        className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+        className={`min-h-8 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
           product.is_active
             ? "bg-matcha/25 text-matcha-deep hover:bg-matcha/40"
             : "bg-ink/8 text-ink/50 hover:bg-ink/15"
@@ -87,7 +87,7 @@ export default function ProductRowActions({ product }: { product: Product }) {
         <input type="hidden" name="id" value={product.id} />
         <button
           type="submit"
-          className="rounded-full px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50"
+          className="min-h-8 rounded-full px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50"
         >
           Delete
         </button>
