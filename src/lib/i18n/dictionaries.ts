@@ -3,7 +3,7 @@ import type { Locale } from "@/lib/types";
 export const dictionaries = {
   en: {
     nav: {
-      shop: "Menu",
+      shop: "Shop",
       visit: "Visit",
       orderPickup: "Order now",
       openMenu: "Toggle menu",
@@ -13,7 +13,7 @@ export const dictionaries = {
       eyebrow: "Matcha · Boba · Sushi · Quiet corners",
       headline: ["Slow", "down.", "Sip", "green."],
       sub: "Grainbuds is a small Asian café in Erlangen built around one idea: good things take time to steep. Freshly whisked matcha, hand-rolled sushi, and drinks made with care.",
-      cta: "View menu & order",
+      cta: "Shop & order",
       scroll: "Scroll",
       seal: "grainbuds · whisked daily · ",
     },
@@ -21,7 +21,7 @@ export const dictionaries = {
       eyebrow: "From the bar",
       title: "House favorites",
       desc: "The drinks and rolls our regulars ask for by name. Choose pickup, or order from your table while you’re here.",
-      browseAll: "Browse the full menu",
+      browseAll: "Browse the full range",
       favorite: "Favorite",
     },
     gallery: {
@@ -38,7 +38,7 @@ export const dictionaries = {
       sunday: "Sunday",
       closed: "Closed",
       note: "Everything is prepared fresh. Order for your table or choose pickup before you arrive.",
-      orderAhead: "View menu & order",
+      orderAhead: "Shop & order",
       callUs: "Call us",
       directions: "Google Maps",
     },
@@ -47,7 +47,7 @@ export const dictionaries = {
         "A calm corner in Erlangen for matcha, sushi, and slow moments. Everything whisked, rolled, and prepared with care.",
       visitUs: "Visit us",
       explore: "Explore",
-      shopMenu: "Menu & ordering",
+      shopMenu: "Shop & ordering",
       hoursLocation: "Hours & location",
       staffLogin: "Staff login",
       privacy: "Privacy policy",
@@ -55,7 +55,7 @@ export const dictionaries = {
       whisked: "Whisked with patience.",
     },
     shop: {
-      eyebrow: "Menu & ordering",
+      eyebrow: "Shop & ordering",
       titleA: "Made fresh,",
       titleB: "ordered your way",
       sub: "Choose your favorites, then order for pickup or to enjoy at Grainbuds. Pay at the café by cash or card. Milk alternatives, boba toppings, or allergies? Add a note at checkout.",
@@ -67,7 +67,7 @@ export const dictionaries = {
       fewLeft: "left",
     },
     product: {
-      back: "Back to menu",
+      back: "Back to shop",
       alsoLike: "You might also like",
       madeToOrder: "Made to order — nothing sits around.",
       payInStore: "Pay at the café by cash or card. Choose pickup or dine-in at checkout.",
@@ -78,8 +78,8 @@ export const dictionaries = {
       title: "Your order",
       close: "Close cart",
       empty: "Your cart is empty",
-      emptySub: "Choose something fresh from the menu to get started.",
-      browse: "Browse the menu",
+      emptySub: "Choose something from the shop to get started.",
+      browse: "Browse the shop",
       subtotal: "Subtotal",
       payNote: "Pay at the café by cash or card.",
       continue: "Continue to order details",
@@ -117,8 +117,8 @@ export const dictionaries = {
       total: "Total",
       emptyTitle: "Your cart is empty",
       emptySub:
-        "Choose a few things from the menu, then come back here to complete your order.",
-      browse: "Browse the menu",
+        "Choose a few things from the shop, then come back here to complete your order.",
+      browse: "Browse the shop",
     },
     order: {
       titleA: "Order received.",
@@ -164,7 +164,7 @@ export const dictionaries = {
   },
   de: {
     nav: {
-      shop: "Speisekarte",
+      shop: "Shop",
       visit: "Besuch",
       orderPickup: "Jetzt bestellen",
       openMenu: "Menü umschalten",
@@ -174,7 +174,7 @@ export const dictionaries = {
       eyebrow: "Matcha · Boba · Sushi · Ruhige Ecken",
       headline: ["Kurz", "innehalten.", "Grün", "genießen."],
       sub: "Grainbuds ist ein kleines asiatisches Café in Erlangen mit einer einfachen Idee: Gute Dinge brauchen Zeit zum Ziehen. Frisch aufgeschlagener Matcha, handgerolltes Sushi und Getränke mit Sorgfalt.",
-      cta: "Speisekarte & Bestellung",
+      cta: "Shop & Bestellung",
       scroll: "Scrollen",
       seal: "grainbuds · täglich frisch · ",
     },
@@ -182,7 +182,7 @@ export const dictionaries = {
       eyebrow: "Von der Bar",
       title: "Unsere Favoriten",
       desc: "Die Getränke und Rollen, die unsere Stammgäste beim Namen kennen. Zur Abholung bestellen oder direkt vom Tisch aus auswählen.",
-      browseAll: "Zur ganzen Karte",
+      browseAll: "Zum ganzen Sortiment",
       favorite: "Favorit",
     },
     gallery: {
@@ -199,7 +199,7 @@ export const dictionaries = {
       sunday: "Sonntag",
       closed: "Geschlossen",
       note: "Alles wird frisch zubereitet. Bestellen Sie am Tisch oder wählen Sie Abholung vor Ihrer Ankunft.",
-      orderAhead: "Speisekarte & Bestellung",
+      orderAhead: "Shop & Bestellung",
       callUs: "Anrufen",
       directions: "Google Maps",
     },
@@ -208,7 +208,7 @@ export const dictionaries = {
         "Eine ruhige Ecke in Erlangen für Matcha, Sushi und langsame Momente. Alles mit Sorgfalt aufgeschlagen, gerollt und zubereitet.",
       visitUs: "Besuchen Sie uns",
       explore: "Entdecken",
-      shopMenu: "Speisekarte & Bestellung",
+      shopMenu: "Shop & Bestellung",
       hoursLocation: "Öffnungszeiten & Anfahrt",
       staffLogin: "Mitarbeiter-Login",
       privacy: "Datenschutz",
@@ -216,7 +216,7 @@ export const dictionaries = {
       whisked: "Mit Geduld aufgeschlagen.",
     },
     shop: {
-      eyebrow: "Speisekarte & Bestellung",
+      eyebrow: "Shop & Bestellung",
       titleA: "Frisch gemacht,",
       titleB: "so wie Sie möchten",
       sub: "Wählen Sie Ihre Favoriten und bestellen Sie zur Abholung oder zum Genießen im Grainbuds. Bezahlt wird im Café – bar oder mit Karte. Milchalternativen, Boba-Toppings oder Allergien? Einfach beim Checkout vermerken.",
@@ -228,7 +228,7 @@ export const dictionaries = {
       fewLeft: "übrig",
     },
     product: {
-      back: "Zurück zur Speisekarte",
+      back: "Zurück zum Shop",
       alsoLike: "Das könnte Ihnen auch schmecken",
       madeToOrder: "Frisch zubereitet — nichts bleibt liegen.",
       payInStore:
@@ -240,8 +240,8 @@ export const dictionaries = {
       title: "Ihre Bestellung",
       close: "Warenkorb schließen",
       empty: "Ihr Warenkorb ist leer",
-      emptySub: "Wählen Sie etwas Frisches aus der Speisekarte, um zu beginnen.",
-      browse: "Zur Karte",
+      emptySub: "Wählen Sie etwas aus unserem Sortiment, um zu beginnen.",
+      browse: "Zum Shop",
       subtotal: "Zwischensumme",
       payNote: "Bezahlt wird im Café – bar oder mit Karte.",
       continue: "Weiter zu den Bestelldetails",
@@ -279,8 +279,8 @@ export const dictionaries = {
       total: "Gesamt",
       emptyTitle: "Ihr Warenkorb ist leer",
       emptySub:
-        "Wählen Sie zuerst etwas von der Speisekarte und schließen Sie danach Ihre Bestellung hier ab.",
-      browse: "Zur Karte",
+        "Wählen Sie zuerst etwas aus unserem Sortiment und schließen Sie danach Ihre Bestellung hier ab.",
+      browse: "Zum Shop",
     },
     order: {
       titleA: "Bestellung erhalten.",

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import NextImage from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { useLocale } from "@/lib/i18n/context";
@@ -13,13 +13,13 @@ const signCopy = {
     eyebrow: "Scan · Choose · Enjoy",
     table: "Table",
     online: "Order online",
-    description: "Scan the code to browse the menu and place your order.",
+    description: "Scan the code to browse our selection and place your order.",
   },
   de: {
     eyebrow: "Scannen · Auswählen · Genießen",
     table: "Tisch",
     online: "Online bestellen",
-    description: "Scannen Sie den Code, wählen Sie aus und bestellen Sie direkt.",
+    description: "Scannen Sie den Code, entdecken Sie unser Sortiment und bestellen Sie direkt.",
   },
 } as const;
 
@@ -82,6 +82,122 @@ const generatorCopy = {
   },
 } as const;
 
+const A7_PNG_WIDTH = 874;
+const A7_PNG_HEIGHT = 1240;
+
+function loadCanvasImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Could not load image: ${src}`));
+    image.src = src;
+  });
+}
+
+function drawCenteredLines(
+  context: CanvasRenderingContext2D,
+  text: string,
+  centerX: number,
+  startY: number,
+  maxWidth: number,
+  lineHeight: number
+) {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && context.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+
+  lines.forEach((value, index) => {
+    context.fillText(value, centerX, startY + index * lineHeight);
+  });
+}
+
+function drawCenteredSpacedText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  centerX: number,
+  y: number,
+  spacing: number
+) {
+  const characters = [...text];
+  const width =
+    characters.reduce(
+      (total, character) => total + context.measureText(character).width,
+      0
+    ) + spacing * Math.max(0, characters.length - 1);
+  let x = centerX - width / 2;
+
+  for (const character of characters) {
+    context.fillText(character, x, y);
+    x += context.measureText(character).width + spacing;
+  }
+}
+
+function crc32(bytes: Uint8Array) {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+async function setPngPrintDensity(blob: Blob) {
+  const source = new Uint8Array(await blob.arrayBuffer());
+  const densityChunk = new Uint8Array(21);
+  const view = new DataView(densityChunk.buffer);
+  view.setUint32(0, 9);
+  densityChunk.set([112, 72, 89, 115], 4); // pHYs
+  view.setUint32(8, 11811); // 300 DPI in pixels per metre
+  view.setUint32(12, 11811);
+  densityChunk[16] = 1;
+  view.setUint32(17, crc32(densityChunk.subarray(4, 17)));
+
+  // Canvas PNGs normally have no density metadata. Remove it if present so
+  // print software always receives one unambiguous 300-DPI A7 definition.
+  const parts: Uint8Array[] = [source.slice(0, 8)];
+  let offset = 8;
+  let inserted = false;
+  while (offset + 12 <= source.length) {
+    const chunkLength = new DataView(
+      source.buffer,
+      source.byteOffset + offset,
+      4
+    ).getUint32(0);
+    const end = offset + 12 + chunkLength;
+    if (end > source.length) break;
+    const type = String.fromCharCode(...source.subarray(offset + 4, offset + 8));
+    if (type !== "pHYs") parts.push(source.slice(offset, end));
+    if (type === "IHDR" && !inserted) {
+      parts.push(densityChunk);
+      inserted = true;
+    }
+    offset = end;
+  }
+
+  const output = new Uint8Array(
+    parts.reduce((total, part) => total + part.byteLength, 0)
+  );
+  let outputOffset = 0;
+  for (const part of parts) {
+    output.set(part, outputOffset);
+    outputOffset += part.byteLength;
+  }
+  return new Blob([output.buffer], { type: "image/png" });
+}
+
 function slugifyCampaign(value: string) {
   return value
     .toLowerCase()
@@ -111,6 +227,7 @@ export default function QrCodeGenerator({
     dataUrl: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const { orderUrl, destinationError } = useMemo(() => {
     try {
@@ -171,14 +288,83 @@ export default function QrCodeGenerator({
     kind === "table" ? `${copy.table} ${tableNumber}` : copy.online;
   const fileName =
     kind === "table"
-      ? `grainbuds-table-${tableNumber}-qr.png`
-      : "grainbuds-online-ordering-qr.png";
+      ? `grainbuds-table-${tableNumber}-a7.png`
+      : "grainbuds-online-ordering-a7.png";
 
   async function copyLink() {
     if (!orderUrl) return;
     await navigator.clipboard.writeText(orderUrl);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+  }
+
+  async function downloadLabel() {
+    if (!qrDataUrl || downloading) return;
+    setDownloading(true);
+
+    try {
+      await document.fonts.ready;
+      const [logo, qrImage] = await Promise.all([
+        loadCanvasImage("/brand/grainbuds-logo.png"),
+        loadCanvasImage(qrDataUrl),
+      ]);
+      const canvas = document.createElement("canvas");
+      canvas.width = A7_PNG_WIDTH;
+      canvas.height = A7_PNG_HEIGHT;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+
+      const rootStyle = getComputedStyle(document.documentElement);
+      const displayFont =
+        rootStyle.getPropertyValue("--font-display").trim() || "Georgia";
+      const bodyFont =
+        rootStyle.getPropertyValue("--font-body").trim() || "sans-serif";
+      const centerX = A7_PNG_WIDTH / 2;
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, A7_PNG_WIDTH, A7_PNG_HEIGHT);
+
+      const logoWidth = 390;
+      const logoHeight = logoWidth * (logo.naturalHeight / logo.naturalWidth);
+      context.drawImage(logo, centerX - logoWidth / 2, 64, logoWidth, logoHeight);
+
+      context.textAlign = "center";
+      context.textBaseline = "alphabetic";
+      context.fillStyle = "#6d7f2e";
+      context.font = `600 24px ${bodyFont}`;
+      drawCenteredSpacedText(context, copy.eyebrow.toUpperCase(), centerX, 250, 5);
+
+      context.fillStyle = "#121a25";
+      context.font = `600 64px ${displayFont}`;
+      context.fillText(label, centerX, 330);
+
+      context.fillStyle = "rgba(18, 26, 37, 0.64)";
+      context.font = `400 29px ${bodyFont}`;
+      drawCenteredLines(context, copy.description, centerX, 382, 720, 40);
+
+      const qrSize = 620;
+      context.imageSmoothingEnabled = false;
+      context.drawImage(qrImage, centerX - qrSize / 2, 458, qrSize, qrSize);
+      context.imageSmoothingEnabled = true;
+
+      context.fillStyle = "rgba(18, 26, 37, 0.55)";
+      context.font = `400 25px ${bodyFont}`;
+      context.fillText("grainbuds.de", centerX, 1160);
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/png")
+      );
+      if (!blob) return;
+      const printReadyBlob = await setPngPrintDensity(blob);
+      const url = URL.createObjectURL(printReadyBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    } finally {
+      setDownloading(false);
+    }
   }
 
   return (
@@ -366,14 +552,14 @@ export default function QrCodeGenerator({
           >
             {copied ? ui.copied : ui.copyLink}
           </button>
-          <a
-            href={qrDataUrl || undefined}
-            download={fileName}
-            aria-disabled={!qrDataUrl}
-            className="rounded-full border border-ink/15 px-5 py-3 text-sm font-medium text-ink transition-colors hover:bg-cream aria-disabled:pointer-events-none aria-disabled:opacity-40"
+          <button
+            type="button"
+            onClick={downloadLabel}
+            disabled={!qrDataUrl || downloading}
+            className="rounded-full border border-ink/15 px-5 py-3 text-sm font-medium text-ink transition-colors hover:bg-cream disabled:opacity-40"
           >
             {ui.download}
-          </a>
+          </button>
           <button
             type="button"
             onClick={() => window.print()}
@@ -385,24 +571,24 @@ export default function QrCodeGenerator({
         </div>
       </section>
 
-      <section className="qr-print-root rounded-3xl bg-white p-7 text-center shadow-sm">
-        <Image
+      <section className="qr-print-root aspect-[74/105] w-full overflow-hidden rounded-3xl bg-white px-6 py-5 text-center shadow-sm">
+        <NextImage
           src="/brand/grainbuds-logo.png"
           alt="Grainbuds Café"
           width={1248}
           height={410}
-          className="mx-auto h-auto w-44"
+          className="qr-print-logo mx-auto h-auto w-36"
         />
-        <p className="mt-7 text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
+        <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-matcha-deep">
           {copy.eyebrow}
         </p>
-        <h2 className="mt-2 font-display text-4xl text-ink">{label}</h2>
-        <p className="mt-2 text-sm text-ink/55">
+        <h2 className="mt-1 font-display text-3xl text-ink">{label}</h2>
+        <p className="mx-auto mt-1 max-w-[310px] text-xs leading-snug text-ink/55">
           {copy.description}
         </p>
-        <div className="mx-auto mt-5 aspect-square w-full max-w-[300px]">
+        <div className="qr-print-code mx-auto mt-3 aspect-square w-full max-w-[235px]">
           {qrDataUrl ? (
-            <Image
+            <NextImage
               src={qrDataUrl}
               alt={`QR code for ${label}`}
               width={1000}
@@ -416,7 +602,7 @@ export default function QrCodeGenerator({
             </div>
           )}
         </div>
-        <p className="mt-4 text-xs text-ink/45">grainbuds.de</p>
+        <p className="mt-2 text-[10px] text-ink/45">grainbuds.de</p>
       </section>
     </div>
   );

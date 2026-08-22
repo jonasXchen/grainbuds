@@ -10,14 +10,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const { locale } = await getT();
   return locale === "de"
     ? {
-        title: "Speisekarte & Bestellen",
+        title: "Shop & Bestellen",
         description:
-          "Matcha, Boba, Sushi und Smoothies bei Grainbuds in Erlangen zur Abholung oder direkt am Tisch bestellen.",
+          "Matcha-Pulver, Boba, Sushi, Getränke und mehr bei Grainbuds in Erlangen entdecken und bestellen.",
       }
     : {
-        title: "Menu & Order",
+        title: "Shop & Order",
         description:
-          "Order matcha, boba, sushi, and smoothies at Grainbuds in Erlangen for pickup or directly from your table.",
+          "Discover and order matcha powder, boba, sushi, drinks, and more from Grainbuds in Erlangen.",
       };
 }
 

@@ -207,16 +207,28 @@ select:not([multiple]) {
   .qr-print-root {
     position: fixed;
     inset: 0;
-    width: 148mm;
-    height: 210mm;
-    margin: auto;
-    padding: 18mm;
+    box-sizing: border-box;
+    width: 74mm;
+    height: 105mm;
+    margin: 0;
+    padding: 5mm 6mm;
     border-radius: 0;
     box-shadow: none;
+    overflow: hidden;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .qr-print-root .qr-print-logo {
+    width: 33mm;
+  }
+
+  .qr-print-root .qr-print-code {
+    width: 52.5mm;
   }
 
   @page {
-    size: A5 portrait;
+    size: 74mm 105mm;
     margin: 0;
   }
 }
