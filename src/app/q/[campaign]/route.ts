@@ -22,12 +22,12 @@ export async function GET(
   const tableNumber =
     kind === "table" && rawTable >= 1 && rawTable <= 999 ? rawTable : null;
   const requestedDestination =
-    request.nextUrl.searchParams.get("destination") || "/shop";
+    request.nextUrl.searchParams.get("destination") || "/#shop";
   const safeDestination =
     requestedDestination.startsWith("/") &&
     !requestedDestination.startsWith("//")
       ? requestedDestination
-      : "/shop";
+      : "/#shop";
   const destination = new URL(safeDestination, request.nextUrl.origin);
   destination.searchParams.set("order", kind);
   destination.searchParams.set("campaign", campaign);
@@ -40,10 +40,11 @@ export async function GET(
         campaign,
         qr_kind: kind,
         table_number: tableNumber,
-        destination_path: `${destination.pathname}${destination.search}`.slice(
-          0,
-          500
-        ),
+        destination_path:
+          `${destination.pathname}${destination.search}${destination.hash}`.slice(
+            0,
+            500
+          ),
       });
       if (error) {
         console.error("Could not record QR scan", {

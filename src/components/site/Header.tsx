@@ -26,7 +26,7 @@ export default function Header() {
   const t = useT();
 
   const navLinks = [
-    { href: "/shop", label: t.nav.shop },
+    { href: "/#shop", label: t.nav.shop },
     { href: "/#visit", label: t.nav.visit },
   ];
 
@@ -113,7 +113,7 @@ export default function Header() {
           </button>
 
           <Link
-            href="/shop"
+            href="/#shop"
             className="hidden rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition-colors duration-300 hover:bg-matcha-deep lg:block"
           >
             {t.nav.orderPickup}
@@ -159,7 +159,7 @@ export default function Header() {
                 </Link>
               ))}
               <Link
-                href="/shop"
+                href="/#shop"
                 onClick={() => setMenuOpen(false)}
                 className="mt-2 rounded-full bg-ink px-5 py-3 text-center text-sm font-medium text-cream"
               >

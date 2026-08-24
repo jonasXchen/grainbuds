@@ -71,7 +71,7 @@ export default function CartDrawer() {
                 <p className="font-display text-xl text-ink">{t.cart.empty}</p>
                 <p className="text-sm text-ink/60">{t.cart.emptySub}</p>
                 <Link
-                  href="/shop"
+                  href="/#shop"
                   onClick={closeCart}
                   className="mt-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
                 >

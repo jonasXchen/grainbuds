@@ -68,7 +68,7 @@ export default function Footer() {
               {t.footer.explore}
             </h3>
             <nav className="mt-4 flex flex-col gap-2 text-sm text-cream/70">
-              <Link href="/shop" className="w-fit transition-colors hover:text-matcha">
+              <Link href="/#shop" className="w-fit transition-colors hover:text-matcha">
                 {t.footer.shopMenu}
               </Link>
               <Link href="/#visit" className="w-fit transition-colors hover:text-matcha">

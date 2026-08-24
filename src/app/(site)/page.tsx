@@ -1,17 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { getProducts } from "@/lib/data";
+import { getCategories, getProducts } from "@/lib/data";
 import { getT } from "@/lib/i18n/server";
 import { getInstagramGallerySettings } from "@/lib/instagram-gallery";
 import { cafeInfo, galleryImages } from "@/lib/cafe-info";
 import Hero from "@/components/site/Hero";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
-import ProductCard from "@/components/site/ProductCard";
+import HomeProductSearch from "@/components/site/HomeProductSearch";
+import OrderingContextBanner from "@/components/site/OrderingContextBanner";
+import SectionNavigator from "@/components/site/SectionNavigator";
 
 export default async function HomePage() {
-  const [featured, { t }, instagram] = await Promise.all([
-    getProducts({ featuredOnly: true }),
+  const [products, categories, { t }, instagram] = await Promise.all([
+    getProducts(),
+    getCategories(),
     getT(),
     getInstagramGallerySettings(),
   ]);
@@ -24,8 +27,9 @@ export default async function HomePage() {
       <Hero />
 
       {/* Featured products */}
-      <section className="bg-matcha/10 px-5 py-28 sm:px-8">
+      <section id="shop" className="scroll-mt-16 bg-matcha/10 px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
+          <OrderingContextBanner />
           <Reveal className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
               {t.featured.eyebrow}
@@ -37,27 +41,12 @@ export default async function HomePage() {
               {t.featured.desc}
             </p>
           </Reveal>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.slice(0, 6).map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
-            ))}
-          </div>
-          <Reveal className="mt-12 text-center">
-            <Link
-              href="/shop"
-              className="group inline-flex items-center gap-2 rounded-full border border-ink/20 px-8 py-4 text-sm font-medium text-ink transition-all duration-300 hover:border-ink hover:bg-ink hover:text-cream"
-            >
-              {t.featured.browseAll}
-              <span className="transition-transform duration-300 group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-          </Reveal>
+          <HomeProductSearch products={products} categories={categories} />
         </div>
       </section>
 
       {/* Gallery */}
-      <section className="overflow-hidden px-5 py-28 sm:px-8">
+      <section id="gallery" className="scroll-mt-16 overflow-hidden px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
@@ -119,7 +108,7 @@ export default async function HomePage() {
       </section>
 
       {/* Visit */}
-      <section id="visit" className="relative overflow-hidden bg-cream-light px-5 py-28 sm:px-8">
+      <section id="visit" className="relative scroll-mt-16 overflow-hidden bg-cream-light px-5 py-28 sm:px-8">
         <Parallax
           speed={0.35}
           className="pointer-events-none absolute -left-24 bottom-0 hidden lg:block"
@@ -177,7 +166,7 @@ export default async function HomePage() {
             </Reveal>
             <Reveal delay={0.2} className="mt-8 flex flex-wrap gap-4">
               <Link
-                href="/shop"
+                href="/#shop"
                 className="rounded-full bg-matcha-deep px-8 py-4 text-sm font-medium text-cream transition-colors duration-300 hover:bg-ink"
               >
                 {t.visit.orderAhead}
@@ -200,6 +189,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      <SectionNavigator />
     </>
   );
 }

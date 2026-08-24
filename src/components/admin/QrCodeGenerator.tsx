@@ -37,7 +37,7 @@ const generatorCopy = {
     trackingCampaign: "Tracking campaign",
     campaignHint: "Use a unique name for each placement.",
     destination: "Destination URL or path",
-    destinationHint: "For example /shop or a specific product URL.",
+    destinationHint: "For example /#shop or a specific product URL.",
     website: "Website address",
     scannedLink: "Scanned link",
     invalidLink: "Invalid website address",
@@ -65,7 +65,7 @@ const generatorCopy = {
     trackingCampaign: "Tracking-Kampagne",
     campaignHint: "Verwenden Sie für jeden Standort einen eindeutigen Namen.",
     destination: "Ziel-URL oder Pfad",
-    destinationHint: "Zum Beispiel /shop oder die URL eines bestimmten Produkts.",
+    destinationHint: "Zum Beispiel /#shop oder die URL eines bestimmten Produkts.",
     website: "Website-Adresse",
     scannedLink: "Link im QR-Code",
     invalidLink: "Ungültige Website-Adresse",
@@ -220,7 +220,7 @@ export default function QrCodeGenerator({
   const [language, setLanguage] = useState<QrLanguage>(initialLanguage);
   const [tableNumber, setTableNumber] = useState(1);
   const [baseUrl, setBaseUrl] = useState(initialBaseUrl);
-  const [destination, setDestination] = useState("/shop");
+  const [destination, setDestination] = useState("/#shop");
   const [campaign, setCampaign] = useState(`table-1-${initialLanguage}`);
   const [qrCode, setQrCode] = useState<{
     url: string;
@@ -235,7 +235,7 @@ export default function QrCodeGenerator({
       if (!["http:", "https:"].includes(siteUrl.protocol)) {
         return { orderUrl: "", destinationError: ui.invalidWebsite };
       }
-      const destinationUrl = new URL(destination.trim() || "/shop", siteUrl);
+      const destinationUrl = new URL(destination.trim() || "/#shop", siteUrl);
       if (destinationUrl.origin !== siteUrl.origin) {
         return {
           orderUrl: "",
@@ -507,7 +507,7 @@ export default function QrCodeGenerator({
               id="destination"
               value={destination}
               onChange={(event) => setDestination(event.target.value)}
-              placeholder="/shop"
+              placeholder="/#shop"
               className="mt-2 w-full rounded-2xl border border-ink/15 bg-cream px-5 py-3.5 text-sm text-ink outline-none focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20"
             />
             <p className="mt-2 text-xs text-ink/45">

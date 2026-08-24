@@ -37,7 +37,7 @@ export default async function ProductPage({
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <Link
-            href="/shop"
+            href="/#shop"
             className="group inline-flex items-center gap-2 text-sm font-medium text-ink/60 transition-colors hover:text-ink"
           >
             <span className="transition-transform duration-300 group-hover:-translate-x-1">

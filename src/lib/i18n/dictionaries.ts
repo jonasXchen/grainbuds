@@ -8,6 +8,9 @@ export const dictionaries = {
       orderPickup: "Order now",
       openMenu: "Toggle menu",
       openCart: "Open cart",
+      sectionNavigation: "Page sections",
+      previousSection: "Previous section",
+      nextSection: "Next section",
     },
     hero: {
       eyebrow: "Matcha · Quiet moments",
@@ -18,10 +21,11 @@ export const dictionaries = {
       seal: "grainbuds · whisked daily · ",
     },
     featured: {
-      eyebrow: "From the bar",
+      eyebrow: "Order fresh",
       title: "House favorites",
       desc: "The drinks and rolls our regulars ask for by name. Choose pickup, or order from your table while you’re here.",
       browseAll: "Browse the full range",
+      showFavorites: "Show favorites",
       favorite: "Favorite",
     },
     gallery: {
@@ -63,7 +67,6 @@ export const dictionaries = {
       empty: "Nothing here yet — check back soon.",
       searchLabel: "Search the shop",
       searchPlaceholder: "Search matcha, sushi, drinks…",
-      searchButton: "Search",
       noResults: "No products match your search.",
       clearSearch: "Clear search",
       addToOrder: "Add to order",
@@ -174,6 +177,9 @@ export const dictionaries = {
       orderPickup: "Jetzt bestellen",
       openMenu: "Menü umschalten",
       openCart: "Warenkorb öffnen",
+      sectionNavigation: "Seitenabschnitte",
+      previousSection: "Vorheriger Abschnitt",
+      nextSection: "Nächster Abschnitt",
     },
     hero: {
       eyebrow: "Matcha · Ruhige Momente",
@@ -184,10 +190,11 @@ export const dictionaries = {
       seal: "grainbuds · täglich frisch · ",
     },
     featured: {
-      eyebrow: "Von der Bar",
+      eyebrow: "Frisch bestellen",
       title: "Unsere Favoriten",
       desc: "Die Getränke und Rollen, die unsere Stammgäste beim Namen kennen. Zur Abholung bestellen oder direkt vom Tisch aus auswählen.",
       browseAll: "Zum ganzen Sortiment",
+      showFavorites: "Favoriten anzeigen",
       favorite: "Favorit",
     },
     gallery: {
@@ -229,7 +236,6 @@ export const dictionaries = {
       empty: "Hier ist noch nichts — schauen Sie bald wieder vorbei.",
       searchLabel: "Shop durchsuchen",
       searchPlaceholder: "Matcha, Sushi, Getränke suchen…",
-      searchButton: "Suchen",
       noResults: "Keine Produkte passen zu Ihrer Suche.",
       clearSearch: "Suche löschen",
       addToOrder: "In die Bestellung",

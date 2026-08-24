@@ -110,7 +110,7 @@ export default function CheckoutPage() {
         </h1>
         <p className="max-w-sm text-ink/60">{t.checkout.emptySub}</p>
         <Link
-          href="/shop"
+          href="/#shop"
           className="rounded-full bg-ink px-8 py-4 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
         >
           {t.checkout.browse}
