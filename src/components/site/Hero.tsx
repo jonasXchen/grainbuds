@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useT } from "@/lib/i18n/context";
+import ShopSearchForm from "./ShopSearchForm";
 
 export default function Hero() {
   const t = useT();
@@ -83,7 +84,16 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 1.05 }}
-            className="mt-8 flex flex-wrap items-center gap-4"
+            className="mt-8 max-w-xl"
+          >
+            <ShopSearchForm tone="dark" />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.15 }}
+            className="mt-4 flex flex-wrap items-center gap-4"
           >
             <Link
               href="/shop"

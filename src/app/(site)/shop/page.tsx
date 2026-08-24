@@ -21,10 +21,18 @@ export async function generateMetadata(): Promise<Metadata> {
       };
 }
 
-export default async function ShopPage() {
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
   // Staff see hidden products too (with a "Hidden" overlay and inline
   // controls) — unless they toggled "view as customer" in the staff pill.
-  const { adminMode } = await getViewMode();
+  const [{ adminMode }, { q }] = await Promise.all([
+    getViewMode(),
+    searchParams,
+  ]);
+  const initialQuery = Array.isArray(q) ? q[0] ?? "" : q ?? "";
   const [products, categories, { t }] = await Promise.all([
     getProducts({ includeInactive: adminMode }),
     getCategories(),
@@ -50,7 +58,11 @@ export default async function ShopPage() {
         </Reveal>
 
         <div className="mt-14">
-          <ShopGrid products={products} categories={categories} />
+          <ShopGrid
+            products={products}
+            categories={categories}
+            initialQuery={initialQuery}
+          />
         </div>
       </div>
     </div>
