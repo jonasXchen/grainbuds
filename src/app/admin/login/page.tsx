@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { hasSupabaseEnv } from "@/lib/supabase/server";
+import { activateCurrentAdmin } from "@/lib/actions/auth";
 import LoginForm from "@/components/admin/LoginForm";
 import LanguageSwitcher from "@/components/site/LanguageSwitcher";
 import { LocaleProvider } from "@/lib/i18n/context";
@@ -11,6 +13,13 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLoginPage() {
+  // Reuse an existing verified storefront session. If its email is on the
+  // server-side admin allowlist, no second login or OTP is necessary.
+  if (hasSupabaseEnv()) {
+    const activation = await activateCurrentAdmin();
+    if (activation.ok && activation.isAdmin) redirect("/admin");
+  }
+
   const locale = await getLocale();
   return (
     <LocaleProvider locale={locale}>

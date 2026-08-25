@@ -96,6 +96,7 @@ export async function saveProduct(
   const categoryId = String(formData.get("category_id") ?? "") || null;
   const isActive = formData.get("is_active") === "on";
   const isFeatured = formData.get("is_featured") === "on";
+  const loyaltyEligible = formData.get("loyalty_eligible") === "on";
   const imageFile = formData.get("image") as File | null;
   const removeImage = formData.get("remove_image") === "on";
 
@@ -134,6 +135,7 @@ export async function saveProduct(
     category_id: categoryId,
     is_active: isActive,
     is_featured: isFeatured,
+    loyalty_eligible: loyaltyEligible,
     stock,
   };
   if (imageUrl !== undefined) row.image_url = imageUrl;
@@ -287,6 +289,42 @@ export async function deleteCategory(formData: FormData) {
     revalidatePath("/", "layout");
     revalidatePath("/admin/products");
   }
+}
+
+export async function setLoyaltyStampBalance(formData: FormData) {
+  const supabase = await requireAdmin();
+  const userId = String(formData.get("user_id") ?? "");
+  const target = Number(formData.get("stamps"));
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
+    return;
+  }
+  if (!Number.isInteger(target) || target < 0 || target > 1000) return;
+
+  const { data } = await supabase
+    .from("grainbuds_loyalty_ledger")
+    .select("delta")
+    .eq("user_id", userId);
+  const balance = (data ?? []).reduce(
+    (sum, entry) => sum + Number(entry.delta),
+    0
+  );
+  const delta = target - balance;
+  if (delta === 0 || delta < -1000 || delta > 1000) return;
+
+  const { error } = await supabase.from("grainbuds_loyalty_ledger").insert({
+    user_id: userId,
+    delta,
+    kind: "staff_adjustment",
+    note: `Manual balance change from ${balance} to ${target}`,
+  });
+  if (error) {
+    console.error("Could not adjust loyalty stamps", {
+      code: error.code,
+      message: error.message,
+    });
+    return;
+  }
+  revalidatePath("/admin/customers");
 }
 
 export async function updateOrderPayment(formData: FormData) {

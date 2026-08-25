@@ -21,6 +21,7 @@ type NotificationOrder = Pick<
   | "notes"
   | "status"
   | "total_cents"
+  | "loyalty_reward_cents"
   | "payment_status"
   | "payment_method"
 > & {
@@ -115,6 +116,9 @@ function orderDetails(order: NotificationOrder): string {
       : null,
     "",
     items || "No order items available.",
+    order.loyalty_reward_cents
+      ? `Loyalty reward: -${formatPrice(order.loyalty_reward_cents)}`
+      : null,
     `Total: ${formatPrice(order.total_cents)}`,
     order.notes ? `\nNotes: ${order.notes}` : null,
   ]

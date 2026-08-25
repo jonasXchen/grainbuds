@@ -10,8 +10,8 @@ export default async function AdminOrdersPage() {
   const supabase = await createClient();
   const locale = await getLocale();
   const copy = locale === "de"
-    ? { title: "Bestellungen", description: "Neueste zuerst. Aktualisieren Sie den Status während der Bearbeitung; bezahlt wird im Café.", open: "Offen", done: "Erledigt", noOpen: "Zurzeit keine offenen Bestellungen.", noDone: "Noch keine abgeschlossenen Bestellungen.", table: "Tisch", dineIn: "Vor Ort", pickup: "Abholung", qr: "QR", note: "Hinweis" }
-    : { title: "Orders", description: "Newest first. Change the status as you work through them; customers pay at the café.", open: "Open", done: "Done", noOpen: "No open orders right now—enjoy the quiet.", noDone: "Nothing completed yet.", table: "Table", dineIn: "Dine in", pickup: "Pickup", qr: "QR", note: "Note" };
+    ? { title: "Bestellungen", description: "Neueste zuerst. Aktualisieren Sie den Status während der Bearbeitung; bezahlt wird im Café.", open: "Offen", done: "Erledigt", noOpen: "Zurzeit keine offenen Bestellungen.", noDone: "Noch keine abgeschlossenen Bestellungen.", table: "Tisch", dineIn: "Vor Ort", pickup: "Abholung", qr: "QR", note: "Hinweis", reward: "11. Getränk gratis" }
+    : { title: "Orders", description: "Newest first. Change the status as you work through them; customers pay at the café.", open: "Open", done: "Done", noOpen: "No open orders right now—enjoy the quiet.", noDone: "Nothing completed yet.", table: "Table", dineIn: "Dine in", pickup: "Pickup", qr: "QR", note: "Note", reward: "11th drink free" };
   const { data } = await supabase
     .from("grainbuds_orders")
     .select("*, order_items:grainbuds_order_items(*)")
@@ -48,7 +48,7 @@ function OrderSection({
   title: string;
   orders: Order[];
   emptyText: string;
-  copy: { table: string; dineIn: string; pickup: string; qr: string; note: string };
+  copy: { table: string; dineIn: string; pickup: string; qr: string; note: string; reward: string };
 }) {
   return (
     <section className="mt-10">
@@ -110,6 +110,12 @@ function OrderSection({
                   </li>
                 ))}
               </ul>
+              {Boolean(order.loyalty_reward_cents) && (
+                <div className="mt-3 flex items-center justify-between rounded-2xl bg-matcha/10 px-4 py-3 text-sm font-medium text-matcha-deep">
+                  <span>{copy.reward}</span>
+                  <span>−{formatPrice(order.loyalty_reward_cents ?? 0)}</span>
+                </div>
+              )}
 
               {order.notes && (
                 <p className="mt-3 rounded-2xl bg-matcha/10 px-4 py-3 text-sm text-ink/70">

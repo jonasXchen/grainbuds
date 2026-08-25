@@ -57,16 +57,27 @@ For an existing database, run
 [`supabase/migrations/20260825_customer_loyalty.sql`](supabase/migrations/20260825_customer_loyalty.sql)
 and
 [`supabase/migrations/20260825_resend_auth_rate_limit.sql`](supabase/migrations/20260825_resend_auth_rate_limit.sql)
+and
+[`supabase/migrations/20260825_drink_loyalty_rewards.sql`](supabase/migrations/20260825_drink_loyalty_rewards.sql)
+and
+[`supabase/migrations/20260825_product_loyalty_eligibility.sql`](supabase/migrations/20260825_product_loyalty_eligibility.sql)
+and
+[`supabase/migrations/20260825_loyalty_balance_editor.sql`](supabase/migrations/20260825_loyalty_balance_editor.sql)
 once each in the SQL Editor. Login codes are generated securely against the
 Supabase identity but delivered directly through Resend; Supabase's email
 mailer and email template are not used. Set `RESEND_API_KEY` and a verified
 `AUTH_FROM_EMAIL` or `ORDER_FROM_EMAIL` sender before testing.
 
-Customer login is optional and guest checkout continues to work. A signed-in
-order earns one stamp only when staff marks it **Paid**; changing it to
-**Refunded** reverses that stamp. Repeated payment updates cannot duplicate a
-stamp. Ten stamps make one reward visible on the card; staff redemption is a
-deliberate follow-up rather than part of this first test version.
+Customer login is optional and guest checkout continues to work. Each eligible
+drink in a signed-in order earns one stamp when staff marks the order **Paid**.
+After 10 stamps, one unit of the lowest-priced eligible drink in the next order
+is automatically free and shown at checkout. Cancelling or refunding restores
+the reserved reward as appropriate, while refunded paid drinks lose their
+stamps. Admin → Customers provides an editable stamp balance with an explicit
+save button; each saved difference is recorded as one audited adjustment.
+Each product also has a **Stempelkarte** checkbox in its Admin edit form, so
+eligibility can be changed without modifying categories or code. The setting is
+snapshotted when an order is placed and never rewrites past stamp history.
 
 ## For the owner — day-to-day use (no coding)
 

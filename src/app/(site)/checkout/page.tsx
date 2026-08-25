@@ -14,6 +14,7 @@ import {
 } from "@/lib/actions/orders";
 import ProductImage from "@/components/site/ProductImage";
 import { useLoyalty } from "@/lib/loyalty-context";
+import { isLoyaltyEligible, LOYALTY_REWARD_STAMPS } from "@/lib/loyalty";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-5 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-300 focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
@@ -37,7 +38,20 @@ export default function CheckoutPage() {
   );
   const locale = useLocale();
   const t = useT();
-  const { user } = useLoyalty();
+  const { user, stamps } = useLoyalty();
+
+  const loyaltyDrinkLines = lines.filter((line) => isLoyaltyEligible(line.product));
+  const loyaltyDrinkCount = loyaltyDrinkLines.reduce(
+    (sum, line) => sum + line.quantity,
+    0
+  );
+  const rewardLine =
+    user && stamps + loyaltyDrinkCount > LOYALTY_REWARD_STAMPS
+      ? loyaltyDrinkLines
+          .sort((a, b) => a.product.price_cents - b.product.price_cents)[0]
+      : undefined;
+  const rewardCents = rewardLine?.product.price_cents ?? 0;
+  const checkoutTotalCents = Math.max(0, totalCents - rewardCents);
 
   useEffect(() => {
     let active = true;
@@ -315,7 +329,7 @@ export default function CheckoutPage() {
             >
               {isPending
                 ? t.checkout.placing
-                : `${t.checkout.placeOrder} · ${formatPrice(totalCents, locale)}`}
+                : `${t.checkout.placeOrder} · ${formatPrice(checkoutTotalCents, locale)}`}
             </motion.button>
           </motion.form>
 
@@ -349,10 +363,27 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
+            {rewardLine && (
+              <div className="mt-5 rounded-2xl border border-matcha/35 bg-matcha/10 px-4 py-3">
+                <div className="flex items-start justify-between gap-4 text-sm">
+                  <div>
+                    <p className="font-semibold text-matcha-deep">
+                      {t.checkout.loyaltyReward}
+                    </p>
+                    <p className="mt-0.5 text-xs text-ink/55">
+                      {t.checkout.lowestDrinkFree}: {localizedName(rewardLine.product, locale)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-medium text-matcha-deep">
+                    −{formatPrice(rewardCents, locale)}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="mt-6 flex items-center justify-between border-t border-ink/10 pt-5">
               <span className="text-sm text-ink/60">{t.checkout.total}</span>
               <span className="font-display text-2xl text-ink">
-                {formatPrice(totalCents, locale)}
+                {formatPrice(checkoutTotalCents, locale)}
               </span>
             </div>
           </motion.aside>

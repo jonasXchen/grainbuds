@@ -134,9 +134,12 @@ export default function LoginForm({ configured }: { configured: boolean }) {
               inputMode="numeric"
               autoComplete="one-time-code"
               required
+              minLength={6}
+              maxLength={6}
+              pattern="[0-9]{6}"
               autoFocus
               value={code}
-              onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 8))}
+              onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
               className={`${inputClass} text-center text-xl tracking-[0.35em]`}
               placeholder="123456"
             />

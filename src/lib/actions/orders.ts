@@ -6,6 +6,7 @@ import { getProductBySlug } from "@/lib/data";
 import { sendOrderNotification } from "@/lib/order-notifications";
 import { localizedName, type FulfillmentType, type Order } from "@/lib/types";
 import { isAdminEmail } from "@/lib/admin-emails";
+import { isLoyaltyEligible } from "@/lib/loyalty";
 
 export type CheckoutLine = {
   productId: string;
@@ -43,16 +44,6 @@ export type QueueEstimate = {
   queuedDrinkCount: number;
 };
 
-const DRINK_CATEGORY_SLUGS = new Set([
-  "specialty-matcha",
-  "matcha-refresher",
-  "hojicha",
-  "smoothies",
-  "fruit-tea",
-  "fruit-cloud",
-  "tapioca-boba",
-]);
-
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -65,7 +56,7 @@ export async function getCheckoutEstimate(
     lines.map((line) => getProductBySlug(line.slug))
   );
   const currentDrinkCount = products.reduce((total, product, index) => {
-    if (!product?.category || !DRINK_CATEGORY_SLUGS.has(product.category.slug)) {
+    if (!product || !isLoyaltyEligible(product)) {
       return total;
     }
     const quantity = Math.max(
@@ -150,7 +141,7 @@ export async function createOrder(
     }
     priced.push({ product, quantity });
   }
-  const totalCents = priced.reduce(
+  const subtotalCents = priced.reduce(
     (sum, line) => sum + line.product.price_cents * line.quantity,
     0
   );
@@ -205,7 +196,7 @@ export async function createOrder(
       qr_campaign: qrCampaign,
       notes: input.notes?.trim().slice(0, 500) || null,
       status: "new",
-      total_cents: totalCents,
+      total_cents: subtotalCents,
       marketing_opt_in: Boolean(input.marketingOptIn),
     });
 
@@ -246,6 +237,27 @@ export async function createOrder(
     };
   }
 
+  let rewardCents = 0;
+  if (customerUserId && priced.some((line) => isLoyaltyEligible(line.product))) {
+    const { data: reward, error: rewardError } = await supabase.rpc(
+      "grainbuds_redeem_order_reward",
+      { p_order_id: orderId }
+    );
+    if (rewardError) {
+      console.error("Could not apply loyalty reward", {
+        orderId,
+        code: rewardError.code,
+        message: rewardError.message,
+      });
+    } else if (reward && typeof reward === "object") {
+      rewardCents = Math.max(
+        0,
+        Number((reward as { reward_cents?: number | string }).reward_cents) || 0
+      );
+    }
+  }
+  const totalCents = Math.max(0, subtotalCents - rewardCents);
+
   // Explicit opt-in only (GDPR): add them to the mailing list.
   if (input.marketingOptIn) {
     await supabase
@@ -273,6 +285,7 @@ export async function createOrder(
     notes: input.notes?.trim().slice(0, 500) || null,
     status: "new",
     total_cents: totalCents,
+    loyalty_reward_cents: rewardCents,
     payment_status: "unpaid",
     payment_method: null,
     order_items: priced.map((line) => ({

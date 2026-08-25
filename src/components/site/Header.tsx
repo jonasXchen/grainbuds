@@ -86,8 +86,10 @@ export default function Header({
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <LanguageSwitcher />
-          {!isStaff && <LoyaltyButton />}
+          <div className="hidden md:block">
+            <LanguageSwitcher />
+          </div>
+          <LoyaltyButton />
           <button
             type="button"
             onClick={openCart}
@@ -177,6 +179,17 @@ export default function Header({
               >
                 {t.nav.orderPickup}
               </Link>
+              <div className="mt-3 flex items-center justify-between gap-4 rounded-2xl border border-ink/8 bg-matcha/10 px-4 py-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-matcha-deep">
+                    {t.nav.language}
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink/45">
+                    {t.nav.languageHint}
+                  </p>
+                </div>
+                <LanguageSwitcher />
+              </div>
               {isStaff && (
                 <StaffNavControls
                   customerView={customerView}

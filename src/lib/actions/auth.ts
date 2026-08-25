@@ -7,6 +7,9 @@ import { isAdminEmail } from "@/lib/admin-emails";
 import { sendAuthCode } from "@/lib/auth-email";
 
 export type AuthResult = { ok: true } | { ok: false; error: string };
+export type AdminActivationResult =
+  | { ok: true; isAdmin: boolean }
+  | { ok: false; isAdmin: false; error: string };
 
 export async function requestCustomerCode(emailInput: string): Promise<AuthResult> {
   const result = await sendAuthCode(emailInput);
@@ -51,6 +54,9 @@ export async function verifyAdminCode(
 
   const email = emailInput.trim().toLowerCase();
   const token = tokenInput.trim();
+  if (!/^\d{6}$/.test(token)) {
+    return { ok: false, error: "Please enter the complete six-digit code." };
+  }
   if (!isAdminEmail(email)) {
     return { ok: false, error: "This email is not configured for admin access." };
   }
@@ -89,6 +95,51 @@ export async function verifyAdminCode(
   }
 
   return { ok: true };
+}
+
+/**
+ * Promote an already verified customer-session login when its email is in the
+ * server-only admin allowlist. This lets the shared storefront login become
+ * the admin entry point without exposing the allowlist to the browser.
+ */
+export async function activateCurrentAdmin(): Promise<AdminActivationResult> {
+  if (!hasSupabaseEnv()) {
+    return { ok: false, isAdmin: false, error: "Supabase is not configured." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || !isAdminEmail(user.email)) {
+    return { ok: true, isAdmin: false };
+  }
+
+  const adminClient = createAdminClient();
+  if (!adminClient) {
+    return {
+      ok: false,
+      isAdmin: false,
+      error: "SUPABASE_SECRET_KEY is required to activate admin access.",
+    };
+  }
+
+  const { error } = await adminClient.from("grainbuds_staff").upsert(
+    {
+      user_id: user.id,
+      email: user.email?.toLowerCase() ?? "",
+    },
+    { onConflict: "user_id" }
+  );
+  if (error) {
+    return {
+      ok: false,
+      isAdmin: false,
+      error: "Could not activate admin access.",
+    };
+  }
+
+  return { ok: true, isAdmin: true };
 }
 
 export async function logout() {

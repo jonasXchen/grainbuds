@@ -149,6 +149,12 @@ export default async function OrderConfirmationPage({
                 </li>
               ))}
             </ul>
+            {Boolean(order.loyalty_reward_cents) && (
+              <div className="mt-4 flex items-center justify-between rounded-2xl bg-matcha/10 px-4 py-3 text-sm font-medium text-matcha-deep">
+                <span>{t.order.loyaltyReward}</span>
+                <span>−{formatPrice(order.loyalty_reward_cents ?? 0, locale)}</span>
+              </div>
+            )}
             <div className="mt-5 flex justify-between border-t border-ink/10 pt-4">
               <span className="text-sm text-ink/60">{t.order.total}</span>
               <span className="font-display text-xl text-ink">

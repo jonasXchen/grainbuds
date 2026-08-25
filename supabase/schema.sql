@@ -32,6 +32,7 @@ create table grainbuds_products (
   image_url text,
   is_active boolean not null default true,
   is_featured boolean not null default false,
+  loyalty_eligible boolean not null default false,
   sort_order int not null default 0,
   -- Inventory: null = not tracked (made to order); 0 = sold out.
   stock int check (stock >= 0),
@@ -59,6 +60,8 @@ create table grainbuds_orders (
   status text not null default 'new'
     check (status in ('new', 'in_progress', 'ready', 'completed', 'cancelled')),
   total_cents int not null default 0 check (total_cents >= 0),
+  loyalty_reward_cents int not null default 0 check (loyalty_reward_cents >= 0),
+  loyalty_reward_product_id uuid references grainbuds_products(id) on delete set null,
   -- Payment happens in store; staff record it here.
   payment_status text not null default 'unpaid'
     check (payment_status in ('unpaid', 'paid', 'refunded')),
@@ -81,6 +84,7 @@ create table grainbuds_order_items (
   product_name text not null,
   unit_price_cents int not null check (unit_price_cents >= 0),
   quantity int not null check (quantity > 0 and quantity <= 20),
+  loyalty_eligible boolean not null default false,
   notes text
 );
 
@@ -110,8 +114,8 @@ create table grainbuds_loyalty_ledger (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   order_id uuid references grainbuds_orders(id) on delete set null,
-  delta smallint not null check (delta <> 0 and delta between -10 and 10),
-  kind text not null check (kind in ('order_paid', 'order_refunded', 'staff_adjustment', 'redemption')),
+  delta smallint not null check (delta <> 0 and delta between -1000 and 1000),
+  kind text not null check (kind in ('order_paid', 'order_refunded', 'staff_adjustment', 'redemption', 'reward_released')),
   note text check (note is null or char_length(note) <= 240),
   created_at timestamptz not null default now()
 );
@@ -130,6 +134,10 @@ create unique index grainbuds_loyalty_one_paid_stamp_per_order
   on grainbuds_loyalty_ledger (order_id) where kind = 'order_paid';
 create unique index grainbuds_loyalty_one_refund_per_order
   on grainbuds_loyalty_ledger (order_id) where kind = 'order_refunded';
+create unique index grainbuds_loyalty_one_redemption_per_order
+  on grainbuds_loyalty_ledger (order_id) where kind = 'redemption';
+create unique index grainbuds_loyalty_one_release_per_order
+  on grainbuds_loyalty_ledger (order_id) where kind = 'reward_released';
 
 -- Staff-managed application settings. Values are JSON so additional settings
 -- can be added without another schema change. Never expose this table to anon.
@@ -246,6 +254,12 @@ create policy "customers read own loyalty ledger" on grainbuds_loyalty_ledger
   for select to authenticated using (user_id = auth.uid());
 create policy "staff read loyalty ledger" on grainbuds_loyalty_ledger
   for select to authenticated using (public.grainbuds_is_staff());
+create policy "staff adjust loyalty ledger" on grainbuds_loyalty_ledger
+  for insert to authenticated with check (
+    public.grainbuds_is_staff()
+    and kind = 'staff_adjustment'
+    and delta between -1000 and 1000
+  );
 
 create or replace function public.grainbuds_my_loyalty_summary()
 returns jsonb
@@ -304,28 +318,88 @@ revoke all on function public.grainbuds_take_auth_email_slot(text, int, int)
 grant execute on function public.grainbuds_take_auth_email_slot(text, int, int)
   to service_role;
 
+create or replace function public.grainbuds_redeem_order_reward(p_order_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid;
+  v_balance int;
+  v_drink_count int;
+  v_product_id uuid;
+  v_reward_cents int;
+begin
+  if auth.uid() is null then return jsonb_build_object('reward_cents', 0); end if;
+  select customer_user_id into v_user_id
+  from public.grainbuds_orders
+  where id = p_order_id and status = 'new' for update;
+  if v_user_id is null or v_user_id <> auth.uid() then
+    return jsonb_build_object('reward_cents', 0);
+  end if;
+  insert into public.grainbuds_loyalty_accounts (user_id)
+    values (v_user_id) on conflict (user_id) do nothing;
+  perform 1 from public.grainbuds_loyalty_accounts where user_id = v_user_id for update;
+  select coalesce(sum(delta), 0)::int into v_balance
+    from public.grainbuds_loyalty_ledger where user_id = v_user_id;
+  select coalesce(sum(quantity), 0)::int into v_drink_count
+    from public.grainbuds_order_items where order_id = p_order_id and loyalty_eligible;
+  if v_balance + v_drink_count < 11 then return jsonb_build_object('reward_cents', 0); end if;
+  select product_id, unit_price_cents into v_product_id, v_reward_cents
+    from public.grainbuds_order_items
+    where order_id = p_order_id and loyalty_eligible
+    order by unit_price_cents, id limit 1;
+  if v_product_id is null then return jsonb_build_object('reward_cents', 0); end if;
+  update public.grainbuds_orders
+    set loyalty_reward_cents = v_reward_cents,
+        loyalty_reward_product_id = v_product_id,
+        total_cents = greatest(0, total_cents - v_reward_cents)
+    where id = p_order_id and loyalty_reward_cents = 0;
+  if not found then
+    select loyalty_reward_cents into v_reward_cents from public.grainbuds_orders where id = p_order_id;
+    return jsonb_build_object('reward_cents', coalesce(v_reward_cents, 0));
+  end if;
+  insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind, note)
+    values (v_user_id, p_order_id, -10, 'redemption', 'Automatic free drink')
+    on conflict (order_id) where kind = 'redemption' do nothing;
+  return jsonb_build_object('reward_cents', v_reward_cents, 'product_id', v_product_id);
+end;
+$$;
+
+revoke all on function public.grainbuds_redeem_order_reward(uuid) from public;
+grant execute on function public.grainbuds_redeem_order_reward(uuid) to authenticated;
+
 create or replace function public.grainbuds_award_loyalty_stamp()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare v_earned int;
 begin
   if new.customer_user_id is null then return new; end if;
   if new.payment_status = 'paid' and old.payment_status is distinct from 'paid' then
-    insert into public.grainbuds_loyalty_accounts (user_id)
-      values (new.customer_user_id) on conflict (user_id) do nothing;
-    insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind)
-      values (new.customer_user_id, new.id, 1, 'order_paid')
-      on conflict (order_id) where kind = 'order_paid' do nothing;
+    select greatest(0, coalesce(sum(quantity), 0)::int - case when new.loyalty_reward_cents > 0 then 1 else 0 end)
+      into v_earned from public.grainbuds_order_items
+      where order_id = new.id and loyalty_eligible;
+    if v_earned > 0 then
+      insert into public.grainbuds_loyalty_accounts (user_id)
+        values (new.customer_user_id) on conflict (user_id) do nothing;
+      insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind)
+        values (new.customer_user_id, new.id, v_earned, 'order_paid')
+        on conflict (order_id) where kind = 'order_paid' do nothing;
+    end if;
   elsif old.payment_status = 'paid' and new.payment_status = 'refunded' then
     insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind)
-      select new.customer_user_id, new.id, -1, 'order_refunded'
-      where exists (
-        select 1 from public.grainbuds_loyalty_ledger
-        where order_id = new.id and kind = 'order_paid'
-      )
+      select new.customer_user_id, new.id, -delta, 'order_refunded'
+      from public.grainbuds_loyalty_ledger where order_id = new.id and kind = 'order_paid'
       on conflict (order_id) where kind = 'order_refunded' do nothing;
+    if new.loyalty_reward_cents > 0 then
+      insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind, note)
+        values (new.customer_user_id, new.id, 10, 'reward_released', 'Refunded order')
+        on conflict (order_id) where kind = 'reward_released' do nothing;
+    end if;
   end if;
   return new;
 end;
@@ -334,6 +408,28 @@ $$;
 create trigger order_loyalty_stamp
   after update of payment_status on grainbuds_orders
   for each row execute function public.grainbuds_award_loyalty_stamp();
+
+create or replace function public.grainbuds_release_cancelled_reward()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status = 'cancelled' and old.status is distinct from 'cancelled'
+     and new.payment_status <> 'paid' and new.customer_user_id is not null
+     and new.loyalty_reward_cents > 0 then
+    insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind, note)
+      values (new.customer_user_id, new.id, 10, 'reward_released', 'Cancelled order')
+      on conflict (order_id) where kind = 'reward_released' do nothing;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger order_loyalty_reward_release
+  after update of status on grainbuds_orders
+  for each row execute function public.grainbuds_release_cancelled_reward();
 
 -- Customers may join the mailing list; only staff can read or manage it.
 create policy "public join grainbuds_subscribers" on grainbuds_subscribers
@@ -405,6 +501,27 @@ revoke all on function public.grainbuds_get_instagram_gallery() from public;
 grant execute on function public.grainbuds_get_instagram_gallery() to anon, authenticated;
 
 -- ============ Inventory guard ============
+-- Snapshot whether an order item belongs to a participating drink category so
+-- later category edits cannot rewrite loyalty history.
+create or replace function public.grainbuds_set_item_loyalty_eligibility()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.loyalty_eligible := exists (
+    select 1 from public.grainbuds_products p
+    where p.id = new.product_id and p.loyalty_eligible
+  );
+  return new;
+end;
+$$;
+
+create trigger order_item_loyalty_eligibility
+  before insert or update of product_id on grainbuds_order_items
+  for each row execute function public.grainbuds_set_item_loyalty_eligibility();
+
 -- Decrements stock when an order item is placed. Runs with owner
 -- privileges so anonymous checkouts can decrement stock, and refuses
 -- the sale if not enough is left — no overselling, even with two
@@ -460,6 +577,7 @@ as $$
     'notes', o.notes,
     'status', o.status,
     'total_cents', o.total_cents,
+    'loyalty_reward_cents', o.loyalty_reward_cents,
     'created_at', o.created_at,
     'order_items', coalesce((
       select jsonb_agg(jsonb_build_object(
@@ -564,6 +682,7 @@ begin
     'notes', o.notes,
     'status', o.status,
     'total_cents', o.total_cents,
+    'loyalty_reward_cents', o.loyalty_reward_cents,
     'created_at', o.created_at,
     'order_items', coalesce((
       select jsonb_agg(jsonb_build_object(

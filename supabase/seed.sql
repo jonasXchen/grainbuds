@@ -85,3 +85,13 @@ on conflict (slug) do update set
   image_url = coalesce(grainbuds_products.image_url, excluded.image_url),
   is_featured = excluded.is_featured,
   sort_order = excluded.sort_order;
+
+-- Default stamp-card selection for the bundled menu. Admin can customize
+-- individual products afterwards; re-running the seed restores these defaults.
+update grainbuds_products p
+set loyalty_eligible = c.slug in (
+  'specialty-matcha', 'matcha-refresher', 'hojicha', 'smoothies',
+  'fruit-tea', 'fruit-cloud', 'tapioca-boba'
+)
+from grainbuds_categories c
+where c.id = p.category_id;

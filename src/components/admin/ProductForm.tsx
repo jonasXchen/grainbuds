@@ -251,6 +251,20 @@ export default function ProductForm({
             </span>
           </span>
         </label>
+        <label className="flex items-center gap-2.5 text-sm text-ink">
+          <input
+            type="checkbox"
+            name="loyalty_eligible"
+            defaultChecked={product?.loyalty_eligible ?? false}
+            className="h-4.5 w-4.5 accent-matcha-deep"
+          />
+          <span>
+            <span className="font-medium">Stempelkarte / Stamp card</span>
+            <span className="block text-xs text-ink/50">
+              Sammelt einen Stempel und kann als 11. Produkt gratis sein.
+            </span>
+          </span>
+        </label>
       </div>
 
       {state?.error && (

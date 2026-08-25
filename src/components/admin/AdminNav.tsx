@@ -144,18 +144,21 @@ export default function AdminNav({
           />
         </Link>
 
-        {/* Mobile-only sign out, so the link row below stays uncluttered */}
-        <form action={logout} className="md:hidden">
-          <button
-            type="submit"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-cream/55 transition-colors hover:bg-cream/10 hover:text-cream"
-            aria-label={copy.signOut}
-          >
-            <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="1.7">
-              <path d="M14 5 H6 V19 H14 M10.5 12 H20 M20 12 L16.5 8.5 M20 12 L16.5 15.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </form>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
+          <form action={logout}>
+            <button
+              type="submit"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-cream/55 transition-colors hover:bg-cream/10 hover:text-cream"
+              aria-label={copy.signOut}
+              title={copy.signOut}
+            >
+              <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M14 5 H6 V19 H14 M10.5 12 H20 M20 12 L16.5 8.5 M20 12 L16.5 15.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </form>
+        </div>
       </div>
 
       <nav className="-mx-4 flex flex-row gap-1 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:mt-8 md:flex-1 md:flex-col md:overflow-visible md:px-0 md:pb-0">
@@ -191,21 +194,21 @@ export default function AdminNav({
         })}
       </nav>
 
-      <div className="flex justify-end border-t border-cream/10 pt-3 md:mb-3 md:justify-start md:border-0 md:px-2 md:pt-0">
+      <div className="mt-auto hidden items-center justify-between border-t border-cream/10 px-2 pt-4 md:flex">
         <LanguageSwitcher />
+        <form action={logout}>
+          <button
+            type="submit"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-cream/55 transition-colors hover:bg-cream/10 hover:text-cream"
+            aria-label={copy.signOut}
+            title={copy.signOut}
+          >
+            <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="1.7">
+              <path d="M14 5 H6 V19 H14 M10.5 12 H20 M20 12 L16.5 8.5 M20 12 L16.5 15.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </form>
       </div>
-
-      <form action={logout} className="hidden md:mt-auto md:block">
-        <button
-          type="submit"
-          className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm text-cream/55 transition-colors hover:bg-cream/10 hover:text-cream"
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7">
-            <path d="M14 5 H6 V19 H14 M10.5 12 H20 M20 12 L16.5 8.5 M20 12 L16.5 15.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {copy.signOut}
-        </button>
-      </form>
     </aside>
   );
 }

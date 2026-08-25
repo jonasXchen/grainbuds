@@ -21,6 +21,7 @@ export type Product = {
   image_url: string | null;
   is_active: boolean;
   is_featured: boolean;
+  loyalty_eligible?: boolean;
   sort_order: number;
   /** null/undefined = not tracked (always available); 0 = sold out. */
   stock?: number | null;
@@ -47,6 +48,7 @@ export type OrderItem = {
   unit_price_cents: number;
   quantity: number;
   notes: string | null;
+  loyalty_eligible?: boolean;
 };
 
 export type Order = {
@@ -62,6 +64,8 @@ export type Order = {
   notes: string | null;
   status: OrderStatus;
   total_cents: number;
+  loyalty_reward_cents?: number;
+  loyalty_reward_product_id?: string | null;
   payment_status?: "unpaid" | "paid" | "refunded";
   payment_method?: "cash" | "card" | null;
   paid_at?: string | null;

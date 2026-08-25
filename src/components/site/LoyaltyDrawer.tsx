@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useLoyalty } from "@/lib/loyalty-context";
 import { useT } from "@/lib/i18n/context";
-import { requestCustomerCode } from "@/lib/actions/auth";
+import { activateCurrentAdmin, requestCustomerCode } from "@/lib/actions/auth";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-4 py-3 text-sm text-ink placeholder:text-ink/35 outline-none transition focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
@@ -13,6 +14,7 @@ const inputClass =
 export default function LoyaltyDrawer() {
   const { enabled, user, loading, stamps, isOpen, close, refresh, signOut } = useLoyalty();
   const t = useT();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
@@ -54,6 +56,17 @@ export default function LoyaltyDrawer() {
     if (error || !data.user) {
       setBusy(false);
       setMessage(error?.message ?? t.loyalty.invalidCode);
+      return;
+    }
+    const activation = await activateCurrentAdmin();
+    if (!activation.ok) {
+      setBusy(false);
+      setMessage(activation.error);
+      return;
+    }
+    if (activation.isAdmin) {
+      router.push("/admin");
+      router.refresh();
       return;
     }
     const { error: enrollmentError } = await supabase
@@ -191,8 +204,11 @@ export default function LoyaltyDrawer() {
                       inputMode="numeric"
                       autoComplete="one-time-code"
                       required
+                      minLength={6}
+                      maxLength={6}
+                      pattern="[0-9]{6}"
                       value={code}
-                      onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 8))}
+                      onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
                       placeholder="123456"
                       className={`${inputClass} text-center text-xl tracking-[0.35em]`}
                     />

@@ -35,6 +35,9 @@ drop function if exists public.grainbuds_popular_product_names(int);
 drop function if exists public.grainbuds_my_loyalty_summary();
 drop function if exists public.grainbuds_award_loyalty_stamp();
 drop function if exists public.grainbuds_take_auth_email_slot(text, int, int);
+drop function if exists public.grainbuds_redeem_order_reward(uuid);
+drop function if exists public.grainbuds_release_cancelled_reward();
+drop function if exists public.grainbuds_set_item_loyalty_eligibility();
 drop function if exists public.grainbuds_is_staff() cascade;
 
 -- Storage policies (the bucket itself is kept; schema.sql re-creates
