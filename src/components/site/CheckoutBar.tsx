@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { useLocale, useT } from "@/lib/i18n/context";
@@ -12,9 +13,31 @@ export default function CheckoutBar() {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useT();
-  const hiddenRoute =
-    pathname === "/checkout" || pathname.startsWith("/order/");
-  const isVisible = totalItems > 0 && !hiddenRoute;
+  const [shopVisible, setShopVisible] = useState(false);
+  const [observedPathname, setObservedPathname] = useState(pathname);
+
+  // Reset before painting during client-side navigation, preventing a stale
+  // checkout bar from flashing outside the shop section.
+  if (pathname !== observedPathname) {
+    setObservedPathname(pathname);
+    setShopVisible(false);
+  }
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const shop = document.getElementById("shop");
+    if (!shop) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShopVisible(entry.isIntersecting),
+      { threshold: 0.01 }
+    );
+    observer.observe(shop);
+    return () => observer.disconnect();
+  }, [pathname]);
+
+  const isVisible = totalItems > 0 && pathname === "/" && shopVisible;
 
   return (
     <AnimatePresence>
