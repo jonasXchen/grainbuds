@@ -215,43 +215,37 @@ function GrainbudStamp({ filled, index }: { filled: boolean; index: number }) {
   return (
     <div
       aria-hidden="true"
-      className={`flex aspect-square items-center justify-center rounded-full transition-all ${
+      className={`relative flex aspect-square items-center justify-center rounded-full transition-all ${
         filled
-          ? `bg-matcha/10 text-matcha ${rotations[index % rotations.length]}`
-          : "border border-dashed border-cream/20 text-cream/15"
+          ? `bg-matcha/[0.07] text-matcha ${rotations[index % rotations.length]}`
+          : "text-cream/15"
       }`}
     >
-      {filled ? (
-        <svg
-          viewBox="0 0 48 48"
-          className="h-[92%] w-[92%] drop-shadow-[0_1px_0_rgba(157,179,75,0.2)]"
-          fill="none"
-        >
-          <circle cx="24" cy="24" r="21" stroke="currentColor" strokeWidth="2.2" strokeDasharray="2.2 1.1" />
-          <circle cx="24" cy="24" r="17.2" stroke="currentColor" strokeWidth="1" opacity=".7" />
-          <path
-            d="M25.5 14.5c1.2-4 4.2-6.1 8.1-6.2-.2 3.9-2.5 6.7-6.6 7.6M23 14.6c-1.2-3.2-3.8-4.9-7-4.9.3 3.3 2.2 5.5 5.6 6.2"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <text
-            x="24"
-            y="34"
-            textAnchor="middle"
-            fill="currentColor"
-            fontFamily="Georgia, serif"
-            fontSize="25"
-            fontStyle="italic"
-            fontWeight="700"
-          >
-            g
-          </text>
-        </svg>
-      ) : (
-        <span className="font-display text-sm">g</span>
-      )}
+      <span
+        className={`absolute inset-[5%] rounded-full border-2 ${
+          filled ? "border-current" : "border-dashed border-current"
+        }`}
+      />
+      <span
+        className={`absolute inset-[12%] rounded-full border ${
+          filled ? "border-current/70" : "border-current/45"
+        }`}
+      />
+      <span className="absolute left-1/2 top-[18%] h-1 w-1 -translate-x-1/2 rounded-full bg-current opacity-80" />
+      <span className="absolute bottom-[18%] left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-current opacity-80" />
+      <span
+        className="absolute left-[19%] right-[19%] top-1/2 h-[27%] -translate-y-1/2 bg-current"
+        style={{
+          WebkitMaskImage: "url('/brand/grainbuds-logo.png')",
+          maskImage: "url('/brand/grainbuds-logo.png')",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+        }}
+      />
     </div>
   );
 }
