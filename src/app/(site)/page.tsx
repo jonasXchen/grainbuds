@@ -10,6 +10,7 @@ import Parallax from "@/components/site/Parallax";
 import HomeProductSearch from "@/components/site/HomeProductSearch";
 import OrderingContextBanner from "@/components/site/OrderingContextBanner";
 import SectionNavigator from "@/components/site/SectionNavigator";
+import HeroShopBlur from "@/components/site/HeroShopBlur";
 
 export default async function HomePage() {
   const [products, categories, { t }, instagram] = await Promise.all([
@@ -27,7 +28,8 @@ export default async function HomePage() {
       <Hero />
 
       {/* Featured products */}
-      <section id="shop" data-section-theme="light" className="scroll-mt-16 bg-matcha/10 px-5 py-28 sm:px-8">
+      <section id="shop" data-section-theme="light" className="relative scroll-mt-16 bg-matcha/10 px-5 py-28 sm:px-8">
+        <HeroShopBlur />
         <div className="mx-auto max-w-6xl">
           <OrderingContextBanner />
           <Reveal className="mx-auto max-w-2xl text-center">
