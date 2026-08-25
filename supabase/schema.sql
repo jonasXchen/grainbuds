@@ -36,6 +36,8 @@ create table grainbuds_products (
   sort_order int not null default 0,
   -- Inventory: null = not tracked (made to order); 0 = sold out.
   stock int check (stock >= 0),
+  option_groups jsonb not null default '[]'::jsonb
+    check (jsonb_typeof(option_groups) = 'array'),
   created_at timestamptz not null default now()
 );
 
@@ -85,6 +87,8 @@ create table grainbuds_order_items (
   unit_price_cents int not null check (unit_price_cents >= 0),
   quantity int not null check (quantity > 0 and quantity <= 20),
   loyalty_eligible boolean not null default false,
+  selected_options jsonb not null default '[]'::jsonb
+    check (jsonb_typeof(selected_options) = 'array'),
   notes text
 );
 
@@ -584,7 +588,8 @@ as $$
         'id', i.id,
         'product_name', i.product_name,
         'unit_price_cents', i.unit_price_cents,
-        'quantity', i.quantity
+        'quantity', i.quantity,
+        'selected_options', i.selected_options
       ))
       from grainbuds_order_items i where i.order_id = o.id
     ), '[]'::jsonb)
@@ -689,7 +694,8 @@ begin
         'id', i.id,
         'product_name', i.product_name,
         'unit_price_cents', i.unit_price_cents,
-        'quantity', i.quantity
+        'quantity', i.quantity,
+        'selected_options', i.selected_options
       ))
       from grainbuds_order_items i where i.order_id = o.id
     ), '[]'::jsonb)

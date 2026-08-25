@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { useT } from "@/lib/i18n/context";
 import { isSoldOut, type Product } from "@/lib/types";
+import ProductOptionsModal from "./ProductOptionsModal";
 
 export default function AddToCartButton({
   product,
@@ -19,6 +20,7 @@ export default function AddToCartButton({
 }) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
   const t = useT();
   const soldOut = isSoldOut(product);
 
@@ -39,10 +41,15 @@ export default function AddToCartButton({
   }
 
   return (
+    <>
     <motion.button
       type="button"
       whileTap={{ scale: 0.94 }}
       onClick={() => {
+        if (product.option_groups?.length) {
+          setCustomizing(true);
+          return;
+        }
         addItem(product, quantity);
         setAdded(true);
         setTimeout(() => setAdded(false), 1400);
@@ -83,5 +90,13 @@ export default function AddToCartButton({
         )}
       </AnimatePresence>
     </motion.button>
+    {customizing && (
+      <ProductOptionsModal
+        product={product}
+        quantity={quantity}
+        onClose={() => setCustomizing(false)}
+      />
+    )}
+    </>
   );
 }

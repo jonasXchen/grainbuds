@@ -26,7 +26,10 @@ type NotificationOrder = Pick<
   | "payment_method"
 > & {
   order_items?: Array<
-    Pick<OrderItem, "product_name" | "unit_price_cents" | "quantity">
+    Pick<
+      OrderItem,
+      "product_name" | "unit_price_cents" | "quantity" | "selected_options"
+    >
   >;
 };
 
@@ -91,12 +94,15 @@ function formatPrice(cents: number): string {
 
 function orderDetails(order: NotificationOrder): string {
   const items = (order.order_items ?? [])
-    .map(
-      (item) =>
-        `${item.quantity} × ${item.product_name} — ${formatPrice(
+    .map((item) => {
+      const options = (item.selected_options ?? [])
+        .map((option) => option.option_name || option.option_name_de)
+        .filter(Boolean)
+        .join(", ");
+      return `${item.quantity} × ${item.product_name}${options ? ` (${options})` : ""} — ${formatPrice(
           item.unit_price_cents * item.quantity
-        )}`
-    )
+        )}`;
+    })
     .join("\n");
 
   return [

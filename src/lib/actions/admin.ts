@@ -86,6 +86,61 @@ async function uploadImage(
   return data.publicUrl;
 }
 
+function parseProductOptionGroups(raw: FormDataEntryValue | null) {
+  let input: unknown;
+  try {
+    input = JSON.parse(String(raw ?? "[]"));
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(input) || input.length > 12) return null;
+  const ids = new Set<string>();
+  const groups = [];
+  for (const value of input) {
+    if (!value || typeof value !== "object") return null;
+    const group = value as Record<string, unknown>;
+    const id = String(group.id ?? "");
+    const name = String(group.name ?? "").trim().slice(0, 80);
+    const nameDe = String(group.name_de ?? "").trim().slice(0, 80);
+    if (!/^[0-9a-f-]{36}$/i.test(id) || ids.has(id) || (!name && !nameDe)) return null;
+    ids.add(id);
+    if (!Array.isArray(group.options) || group.options.length === 0 || group.options.length > 30) return null;
+    const options = [];
+    for (const optionValue of group.options) {
+      if (!optionValue || typeof optionValue !== "object") return null;
+      const option = optionValue as Record<string, unknown>;
+      const optionId = String(option.id ?? "");
+      const optionName = String(option.name ?? "").trim().slice(0, 80);
+      const optionNameDe = String(option.name_de ?? "").trim().slice(0, 80);
+      const priceDeltaCents = Number(option.price_delta_cents);
+      if (
+        !/^[0-9a-f-]{36}$/i.test(optionId) ||
+        ids.has(optionId) ||
+        (!optionName && !optionNameDe) ||
+        !Number.isInteger(priceDeltaCents) ||
+        priceDeltaCents < 0 ||
+        priceDeltaCents > 10_000
+      ) return null;
+      ids.add(optionId);
+      options.push({
+        id: optionId,
+        name: optionName,
+        name_de: optionNameDe,
+        price_delta_cents: priceDeltaCents,
+      });
+    }
+    groups.push({
+      id,
+      name,
+      name_de: nameDe,
+      required: Boolean(group.required),
+      allow_multiple: Boolean(group.allow_multiple),
+      options,
+    });
+  }
+  return groups;
+}
+
 export async function saveProduct(
   _prev: ActionState,
   formData: FormData
@@ -109,9 +164,13 @@ export async function saveProduct(
   const loyaltyEligible = formData.get("loyalty_eligible") === "on";
   const imageFile = formData.get("image") as File | null;
   const removeImage = formData.get("remove_image") === "on";
+  const optionGroups = parseProductOptionGroups(formData.get("option_groups_json"));
 
   if (!fallbackName) {
     return { error: "Please give the product a German or English name." };
+  }
+  if (!optionGroups) {
+    return { error: "Please complete every option group and option name." };
   }
   const price = Number.parseFloat(priceRaw);
   if (!Number.isFinite(price) || price < 0) {
@@ -147,6 +206,7 @@ export async function saveProduct(
     is_featured: isFeatured,
     loyalty_eligible: loyaltyEligible,
     stock,
+    option_groups: optionGroups,
   };
   if (imageUrl !== undefined) row.image_url = imageUrl;
 

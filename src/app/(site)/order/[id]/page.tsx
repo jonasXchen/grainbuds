@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getT } from "@/lib/i18n/server";
-import { formatPrice, type Order, type OrderStatus } from "@/lib/types";
+import {
+  formatPrice,
+  localizedSelectedOption,
+  type Order,
+  type OrderStatus,
+} from "@/lib/types";
 import Reveal from "@/components/site/Reveal";
 import OrderEditForm from "@/components/site/OrderEditForm";
 import OrderStatusRefresh from "@/components/site/OrderStatusRefresh";
@@ -142,6 +147,11 @@ export default async function OrderConfirmationPage({
                 <li key={item.id} className="flex justify-between text-sm">
                   <span className="text-ink/75">
                     {item.quantity} × {item.product_name}
+                    {item.selected_options && item.selected_options.length > 0 && (
+                      <span className="mt-0.5 block text-xs text-ink/45">
+                        {item.selected_options.map((option) => localizedSelectedOption(option, locale)).join(" · ")}
+                      </span>
+                    )}
                   </span>
                   <span className="text-ink/60">
                     {formatPrice(item.unit_price_cents * item.quantity, locale)}

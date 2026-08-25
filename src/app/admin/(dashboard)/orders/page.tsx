@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice, type Order } from "@/lib/types";
+import { formatPrice, localizedSelectedOption, type Locale, type Order } from "@/lib/types";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import { getLocale } from "@/lib/i18n/server";
 import OrderStatusBatchProvider from "@/components/admin/OrderStatusBatchProvider";
@@ -43,8 +43,8 @@ export default async function AdminOrdersPage() {
           error: copy.batchError,
         }}
       >
-        <OrderSection title={copy.open} orders={open} emptyText={copy.noOpen} copy={copy} />
-        <OrderSection title={copy.done} orders={closed} emptyText={copy.noDone} copy={copy} />
+        <OrderSection title={copy.open} orders={open} emptyText={copy.noOpen} copy={copy} locale={locale} />
+        <OrderSection title={copy.done} orders={closed} emptyText={copy.noDone} copy={copy} locale={locale} />
       </OrderStatusBatchProvider>
     </div>
   );
@@ -55,11 +55,13 @@ function OrderSection({
   orders,
   emptyText,
   copy,
+  locale,
 }: {
   title: string;
   orders: Order[];
   emptyText: string;
   copy: { table: string; dineIn: string; pickup: string; qr: string; note: string; reward: string; deleteOrder: string; deletingOrder: string; deleteConfirmTitle: string; deleteConfirm: string; deleteCancel: string; deleteConfirmAction: string; deleteError: string };
+  locale: Locale;
 }) {
   return (
     <section className="mt-10">
@@ -127,6 +129,11 @@ function OrderSection({
                   <li key={item.id} className="flex justify-between text-sm">
                     <span className="text-ink/75">
                       {item.quantity} × {item.product_name}
+                      {item.selected_options && item.selected_options.length > 0 && (
+                        <span className="mt-0.5 block text-xs text-ink/45">
+                          {item.selected_options.map((option) => localizedSelectedOption(option, locale)).join(" · ")}
+                        </span>
+                      )}
                     </span>
                     <span className="text-ink/50">
                       {formatPrice(item.unit_price_cents * item.quantity)}

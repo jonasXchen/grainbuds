@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Product } from "@/lib/types";
 import {
@@ -13,6 +14,7 @@ import { useAdminMode } from "@/lib/admin-mode-context";
 import { useCart } from "@/lib/cart-context";
 import ProductImage from "./ProductImage";
 import AdminCardControls from "./AdminCardControls";
+import ProductOptionsModal from "./ProductOptionsModal";
 
 export default function ProductCard({
   product,
@@ -24,20 +26,28 @@ export default function ProductCard({
   const locale = useLocale();
   const t = useT();
   const adminMode = useAdminMode();
-  const { addItem, lines, setQuantity } = useCart();
+  const { addItem, decrementProduct, lines } = useCart();
+  const [customizing, setCustomizing] = useState(false);
   const soldOut = isSoldOut(product);
-  const cartQuantity =
-    lines.find((line) => line.product.id === product.id)?.quantity ?? 0;
+  const cartQuantity = lines
+    .filter((line) => line.product.id === product.id)
+    .reduce((sum, line) => sum + line.quantity, 0);
   const atStockLimit =
     product.stock != null && cartQuantity >= product.stock;
   const canAdd = !soldOut && !atStockLimit;
   const productName = localizedName(product, locale);
 
   const addProduct = () => {
-    if (canAdd) addItem(product, 1, { openCart: false });
+    if (!canAdd) return;
+    if (product.option_groups?.length) {
+      setCustomizing(true);
+    } else {
+      addItem(product, 1, { openCart: false });
+    }
   };
 
   return (
+    <>
     <motion.article
       id={`product-${product.id}`}
       initial={{ opacity: 0, y: 28 }}
@@ -114,7 +124,7 @@ export default function ProductCard({
             <div className="flex h-9 items-center rounded-full bg-matcha-deep px-1 text-cream">
               <button
                 type="button"
-                onClick={() => setQuantity(product.id, cartQuantity - 1)}
+                onClick={() => decrementProduct(product.id)}
                 aria-label={t.product.decrease}
                 className="grid h-7 w-7 place-items-center rounded-full text-base transition-colors hover:bg-cream/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60"
               >
@@ -163,5 +173,13 @@ export default function ProductCard({
         {adminMode && <AdminCardControls product={product} />}
       </div>
     </motion.article>
+    {customizing && (
+      <ProductOptionsModal
+        product={product}
+        openCart={false}
+        onClose={() => setCustomizing(false)}
+      />
+    )}
+    </>
   );
 }

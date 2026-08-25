@@ -8,7 +8,13 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { CartLine, Product } from "./types";
+import {
+  cartLineId,
+  cartLineUnitPrice,
+  type CartLine,
+  type Product,
+  type SelectedProductOption,
+} from "./types";
 
 export type OrderingContext =
   | { source: "qr_table"; tableNumber: number; campaign: string | null }
@@ -22,10 +28,11 @@ type CartContextValue = {
   addItem: (
     product: Product,
     quantity?: number,
-    options?: { openCart?: boolean }
+    options?: { openCart?: boolean; selectedOptions?: SelectedProductOption[] }
   ) => void;
-  removeItem: (productId: string) => void;
-  setQuantity: (productId: string, quantity: number) => void;
+  removeItem: (lineId: string) => void;
+  setQuantity: (lineId: string, quantity: number) => void;
+  decrementProduct: (productId: string) => void;
   clearCart: () => void;
   orderingContext: OrderingContext | null;
   clearOrderingContext: () => void;
@@ -50,8 +57,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // server and client render the same initial HTML.
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (raw) setLines(JSON.parse(raw));
+      if (raw) {
+        const stored = JSON.parse(raw) as Array<Partial<CartLine> & Pick<CartLine, "product" | "quantity">>;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLines(stored.map((line) => {
+          const selectedOptions = Array.isArray(line.selected_options)
+            ? line.selected_options
+            : [];
+          return {
+            id: line.id ?? cartLineId(line.product.id, selectedOptions),
+            product: line.product,
+            quantity: line.quantity,
+            selected_options: selectedOptions,
+          };
+        }));
+      }
 
       const params = new URLSearchParams(window.location.search);
       const orderMode = params.get("order");
@@ -104,54 +124,78 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     (
       product: Product,
       quantity = 1,
-      options?: { openCart?: boolean }
+      options?: { openCart?: boolean; selectedOptions?: SelectedProductOption[] }
     ) => {
       setLines((prev) => {
-        const existing = prev.find((line) => line.product.id === product.id);
+        const selectedOptions = options?.selectedOptions ?? [];
+        const id = cartLineId(product.id, selectedOptions);
+        const existing = prev.find((line) => line.id === id);
+        const productQuantity = prev
+          .filter((line) => line.product.id === product.id)
+          .reduce((sum, line) => sum + line.quantity, 0);
+        const available = product.stock == null
+          ? quantity
+          : Math.max(0, Math.min(quantity, product.stock - productQuantity));
+        if (available <= 0) return prev;
         if (existing) {
           return prev.map((line) =>
-            line.product.id === product.id
+            line.id === id
               ? {
                   ...line,
-                  quantity:
-                    product.stock == null
-                      ? line.quantity + quantity
-                      : Math.min(product.stock, line.quantity + quantity),
+                  quantity: line.quantity + available,
                 }
               : line
           );
         }
-        const nextQuantity =
-          product.stock == null ? quantity : Math.min(product.stock, quantity);
-        return nextQuantity > 0
-          ? [...prev, { product, quantity: nextQuantity }]
-          : prev;
+        return [...prev, {
+          id,
+          product,
+          quantity: available,
+          selected_options: selectedOptions,
+        }];
       });
       if (options?.openCart !== false) setIsOpen(true);
     },
     []
   );
 
-  const removeItem = useCallback((productId: string) => {
-    setLines((prev) => prev.filter((line) => line.product.id !== productId));
+  const removeItem = useCallback((lineId: string) => {
+    setLines((prev) => prev.filter((line) => line.id !== lineId));
   }, []);
 
-  const setQuantity = useCallback((productId: string, quantity: number) => {
+  const setQuantity = useCallback((lineId: string, quantity: number) => {
     setLines((prev) =>
       quantity <= 0
-        ? prev.filter((line) => line.product.id !== productId)
+        ? prev.filter((line) => line.id !== lineId)
         : prev.map((line) =>
-            line.product.id === productId
+            line.id === lineId
               ? {
                   ...line,
                   quantity:
                     line.product.stock == null
                       ? quantity
-                      : Math.min(line.product.stock, quantity),
+                      : Math.min(
+                          quantity,
+                          line.product.stock - prev
+                            .filter((other) => other.product.id === line.product.id && other.id !== line.id)
+                            .reduce((sum, other) => sum + other.quantity, 0)
+                        ),
                 }
               : line
           )
     );
+  }, []);
+
+  const decrementProduct = useCallback((productId: string) => {
+    setLines((current) => {
+      const target = [...current].reverse().find((line) => line.product.id === productId);
+      if (!target) return current;
+      return target.quantity <= 1
+        ? current.filter((line) => line.id !== target.id)
+        : current.map((line) => line.id === target.id
+            ? { ...line, quantity: line.quantity - 1 }
+            : line);
+    });
   }, []);
 
   const clearCart = useCallback(() => setLines([]), []);
@@ -169,7 +213,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const totalCents = useMemo(
     () =>
       lines.reduce(
-        (sum, line) => sum + line.product.price_cents * line.quantity,
+        (sum, line) => sum + cartLineUnitPrice(line) * line.quantity,
         0
       ),
     [lines]
@@ -188,6 +232,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addItem,
       removeItem,
       setQuantity,
+      decrementProduct,
       clearCart,
       orderingContext,
       clearOrderingContext,
@@ -202,6 +247,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addItem,
       removeItem,
       setQuantity,
+      decrementProduct,
       clearCart,
       orderingContext,
       clearOrderingContext,

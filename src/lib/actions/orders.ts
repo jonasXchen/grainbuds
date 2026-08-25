@@ -4,13 +4,19 @@ import { revalidatePath } from "next/cache";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getProductBySlug } from "@/lib/data";
 import { sendOrderNotification } from "@/lib/order-notifications";
-import { localizedName, type FulfillmentType, type Order } from "@/lib/types";
+import {
+  localizedName,
+  type FulfillmentType,
+  type Order,
+  type SelectedProductOption,
+} from "@/lib/types";
 import { isLoyaltyEligible } from "@/lib/loyalty";
 
 export type CheckoutLine = {
   productId: string;
   slug: string;
   quantity: number;
+  selectedOptionIds?: string[];
 };
 
 export type CheckoutInput = {
@@ -138,10 +144,55 @@ export async function createOrder(
             : `Only ${product.stock} × “${productName}” left — please lower the quantity.`,
       };
     }
-    priced.push({ product, quantity });
+    const requestedOptionIds = line.selectedOptionIds ?? [];
+    if (
+      requestedOptionIds.length > 100 ||
+      new Set(requestedOptionIds).size !== requestedOptionIds.length
+    ) {
+      return { ok: false, error: "One product customization is invalid." };
+    }
+    const selectedOptions: SelectedProductOption[] = [];
+    const recognizedIds = new Set<string>();
+    for (const group of product.option_groups ?? []) {
+      const selected = group.options.filter((option) =>
+        requestedOptionIds.includes(option.id)
+      );
+      if (group.required && selected.length === 0) {
+        return {
+          ok: false,
+          error: `Please choose an option for “${localizedName(group, "en")}”.`,
+        };
+      }
+      if (!group.allow_multiple && selected.length > 1) {
+        return { ok: false, error: "One product customization is invalid." };
+      }
+      for (const option of selected) {
+        recognizedIds.add(option.id);
+        selectedOptions.push({
+          group_id: group.id,
+          group_name: group.name,
+          group_name_de: group.name_de,
+          option_id: option.id,
+          option_name: option.name,
+          option_name_de: option.name_de,
+          price_delta_cents: option.price_delta_cents,
+        });
+      }
+    }
+    if (recognizedIds.size !== requestedOptionIds.length) {
+      return {
+        ok: false,
+        error: "A selected product option is no longer available.",
+      };
+    }
+    const unitPriceCents = product.price_cents + selectedOptions.reduce(
+      (sum, option) => sum + option.price_delta_cents,
+      0
+    );
+    priced.push({ product, quantity, selectedOptions, unitPriceCents });
   }
   const subtotalCents = priced.reduce(
-    (sum, line) => sum + line.product.price_cents * line.quantity,
+    (sum, line) => sum + line.unitPriceCents * line.quantity,
     0
   );
   const fulfillmentType: FulfillmentType =
@@ -215,8 +266,9 @@ export async function createOrder(
       order_id: orderId,
       product_id: line.product.id,
       product_name: localizedName(line.product, "en"),
-      unit_price_cents: line.product.price_cents,
+      unit_price_cents: line.unitPriceCents,
       quantity: line.quantity,
+      selected_options: line.selectedOptions,
     }))
   );
 
@@ -288,8 +340,9 @@ export async function createOrder(
     payment_method: null,
     order_items: priced.map((line) => ({
       product_name: localizedName(line.product, "en"),
-      unit_price_cents: line.product.price_cents,
+      unit_price_cents: line.unitPriceCents,
       quantity: line.quantity,
+      selected_options: line.selectedOptions,
     })),
   });
 

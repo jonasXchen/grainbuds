@@ -6,6 +6,7 @@ import { useActionState, useState } from "react";
 import { motion } from "framer-motion";
 import { saveProduct, type ActionState } from "@/lib/actions/admin";
 import { localizedName, type Category, type Product } from "@/lib/types";
+import ProductOptionsEditor from "@/components/admin/ProductOptionsEditor";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-white px-5 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-300 focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
@@ -181,6 +182,8 @@ export default function ProductForm({
         </div>
       </div>
 
+      <ProductOptionsEditor initialGroups={product?.option_groups ?? []} />
+
       <div>
         <span className="mb-2 block text-sm font-medium text-ink">Photo</span>
         <div className="flex items-start gap-5">
@@ -259,9 +262,13 @@ export default function ProductForm({
             className="h-4.5 w-4.5 accent-matcha-deep"
           />
           <span>
-            <span className="font-medium">Stempelkarte / Stamp card</span>
+            <span className="font-medium">
+              {editingLanguage === "de" ? "Stempelkarte" : "Stamp card"}
+            </span>
             <span className="block text-xs text-ink/50">
-              Sammelt einen Stempel und kann als 11. Produkt gratis sein.
+              {editingLanguage === "de"
+                ? "Sammelt einen Stempel und kann als 11. Produkt gratis sein."
+                : "Earns a stamp and can be the free 11th product."}
             </span>
           </span>
         </label>

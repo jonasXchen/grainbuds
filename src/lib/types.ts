@@ -25,8 +25,35 @@ export type Product = {
   sort_order: number;
   /** null/undefined = not tracked (always available); 0 = sold out. */
   stock?: number | null;
+  option_groups?: ProductOptionGroup[];
   created_at?: string;
   category?: Category | null;
+};
+
+export type ProductOptionChoice = {
+  id: string;
+  name: string;
+  name_de?: string;
+  price_delta_cents: number;
+};
+
+export type ProductOptionGroup = {
+  id: string;
+  name: string;
+  name_de?: string;
+  required: boolean;
+  allow_multiple: boolean;
+  options: ProductOptionChoice[];
+};
+
+export type SelectedProductOption = {
+  group_id: string;
+  group_name: string;
+  group_name_de?: string;
+  option_id: string;
+  option_name: string;
+  option_name_de?: string;
+  price_delta_cents: number;
 };
 
 export function isSoldOut(product: Product): boolean {
@@ -49,6 +76,7 @@ export type OrderItem = {
   quantity: number;
   notes: string | null;
   loyalty_eligible?: boolean;
+  selected_options?: SelectedProductOption[];
 };
 
 export type Order = {
@@ -83,9 +111,26 @@ export type Subscriber = {
 };
 
 export type CartLine = {
+  id: string;
   product: Product;
   quantity: number;
+  selected_options: SelectedProductOption[];
 };
+
+export function cartLineUnitPrice(line: Pick<CartLine, "product" | "selected_options">): number {
+  return line.product.price_cents + line.selected_options.reduce(
+    (sum, option) => sum + option.price_delta_cents,
+    0
+  );
+}
+
+export function cartLineId(
+  productId: string,
+  selectedOptions: Pick<SelectedProductOption, "option_id">[]
+): string {
+  const optionIds = selectedOptions.map((option) => option.option_id).sort();
+  return optionIds.length ? `${productId}:${optionIds.join(",")}` : productId;
+}
 
 export function formatPrice(cents: number, locale: Locale = "en"): string {
   return (cents / 100).toLocaleString(locale === "de" ? "de-DE" : "en-IE", {
@@ -110,5 +155,14 @@ export function localizedDescription(
 ): string {
   const english = product.description?.trim();
   const german = product.description_de?.trim();
+  return locale === "de" ? german || english || "" : english || german || "";
+}
+
+export function localizedSelectedOption(
+  option: Pick<SelectedProductOption, "option_name" | "option_name_de">,
+  locale: Locale
+): string {
+  const english = option.option_name?.trim();
+  const german = option.option_name_de?.trim();
   return locale === "de" ? german || english || "" : english || german || "";
 }

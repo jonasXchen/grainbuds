@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
-import { formatPrice, localizedName } from "@/lib/types";
+import {
+  cartLineUnitPrice,
+  formatPrice,
+  localizedName,
+  localizedSelectedOption,
+} from "@/lib/types";
 import { useLocale, useT } from "@/lib/i18n/context";
 import ProductImage from "./ProductImage";
 
@@ -84,7 +89,7 @@ export default function CartDrawer() {
                   <AnimatePresence initial={false}>
                     {lines.map((line) => (
                       <motion.li
-                        key={line.product.id}
+                        key={line.id}
                         layout
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -105,7 +110,7 @@ export default function CartDrawer() {
                             </p>
                             <button
                               type="button"
-                              onClick={() => removeItem(line.product.id)}
+                              onClick={() => removeItem(line.id)}
                               className="text-ink/40 transition-colors hover:text-ink"
                               aria-label={`${t.cart.remove}: ${localizedName(line.product, locale)}`}
                             >
@@ -119,12 +124,19 @@ export default function CartDrawer() {
                               </svg>
                             </button>
                           </div>
+                          {line.selected_options.length > 0 && (
+                            <p className="mt-1 text-xs leading-relaxed text-ink/50">
+                              {line.selected_options
+                                .map((option) => localizedSelectedOption(option, locale))
+                                .join(" · ")}
+                            </p>
+                          )}
                           <div className="mt-auto flex items-center justify-between">
                             <div className="flex items-center gap-1 rounded-full border border-ink/15 px-1">
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setQuantity(line.product.id, line.quantity - 1)
+                                  setQuantity(line.id, line.quantity - 1)
                                 }
                                 className="flex h-7 w-7 items-center justify-center text-ink/60 hover:text-ink"
                                 aria-label={t.product.decrease}
@@ -137,7 +149,7 @@ export default function CartDrawer() {
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setQuantity(line.product.id, line.quantity + 1)
+                                  setQuantity(line.id, line.quantity + 1)
                                 }
                                 className="flex h-7 w-7 items-center justify-center text-ink/60 hover:text-ink"
                                 aria-label={t.product.increase}
@@ -147,7 +159,7 @@ export default function CartDrawer() {
                             </div>
                             <span className="text-sm font-medium text-ink">
                               {formatPrice(
-                                line.product.price_cents * line.quantity,
+                                cartLineUnitPrice(line) * line.quantity,
                                 locale
                               )}
                             </span>

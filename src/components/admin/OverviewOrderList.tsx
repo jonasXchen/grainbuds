@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Locale, Order } from "@/lib/types";
-import { formatPrice } from "@/lib/types";
+import { formatPrice, localizedSelectedOption } from "@/lib/types";
 import OrderStatusBatchProvider from "@/components/admin/OrderStatusBatchProvider";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
@@ -131,6 +131,11 @@ export default function OverviewOrderList({
                         <li key={item.id} className="flex justify-between gap-4 text-sm">
                           <span className="text-ink/75">
                             {item.quantity} × {item.product_name}
+                            {item.selected_options && item.selected_options.length > 0 && (
+                              <span className="mt-0.5 block text-xs text-ink/45">
+                                {item.selected_options.map((option) => localizedSelectedOption(option, locale)).join(" · ")}
+                              </span>
+                            )}
                           </span>
                           <span className="shrink-0 text-ink/50">
                             {formatPrice(item.unit_price_cents * item.quantity, locale)}

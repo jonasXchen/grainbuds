@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
-import { formatPrice, localizedName } from "@/lib/types";
+import {
+  cartLineUnitPrice,
+  formatPrice,
+  localizedName,
+  localizedSelectedOption,
+} from "@/lib/types";
 import { useLocale, useT } from "@/lib/i18n/context";
 import {
   createOrder,
@@ -49,9 +54,9 @@ export default function CheckoutPage() {
   const rewardLine =
     user && stamps + loyaltyDrinkCount > LOYALTY_REWARD_STAMPS
       ? loyaltyDrinkLines
-          .sort((a, b) => a.product.price_cents - b.product.price_cents)[0]
+          .sort((a, b) => cartLineUnitPrice(a) - cartLineUnitPrice(b))[0]
       : undefined;
-  const rewardCents = rewardLine?.product.price_cents ?? 0;
+  const rewardCents = rewardLine ? cartLineUnitPrice(rewardLine) : 0;
   const checkoutTotalCents = Math.max(0, totalCents - rewardCents);
 
   useEffect(() => {
@@ -60,6 +65,7 @@ export default function CheckoutPage() {
       productId: line.product.id,
       slug: line.product.slug,
       quantity: line.quantity,
+      selectedOptionIds: line.selected_options.map((option) => option.option_id),
     }));
     getCheckoutEstimate(checkoutLines)
       .then((estimate) => {
@@ -104,6 +110,7 @@ export default function CheckoutPage() {
           productId: line.product.id,
           slug: line.product.slug,
           quantity: line.quantity,
+          selectedOptionIds: line.selected_options.map((option) => option.option_id),
         })),
       });
 
@@ -366,7 +373,7 @@ export default function CheckoutPage() {
             </h2>
             <ul className="mt-5 space-y-4">
               {lines.map((line) => (
-                <li key={line.product.id} className="flex items-center gap-4">
+                <li key={line.id} className="flex items-center gap-4">
                   <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl">
                     <ProductImage product={line.product} className="h-full w-full" />
                   </div>
@@ -375,10 +382,17 @@ export default function CheckoutPage() {
                       {localizedName(line.product, locale)}
                     </p>
                     <p className="text-xs text-ink/50">× {line.quantity}</p>
+                    {line.selected_options.length > 0 && (
+                      <p className="mt-1 text-xs leading-relaxed text-ink/45">
+                        {line.selected_options
+                          .map((option) => localizedSelectedOption(option, locale))
+                          .join(" · ")}
+                      </p>
+                    )}
                   </div>
                   <span className="text-sm text-ink/70">
                     {formatPrice(
-                      line.product.price_cents * line.quantity,
+                      cartLineUnitPrice(line) * line.quantity,
                       locale
                     )}
                   </span>
