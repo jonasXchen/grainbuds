@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { createClient } from "@/lib/supabase/client";
 import { useLoyalty } from "@/lib/loyalty-context";
 import { useT } from "@/lib/i18n/context";
-import { activateCurrentAdmin, requestCustomerCode } from "@/lib/actions/auth";
+import { requestCustomerCode, verifyCustomerCode } from "@/lib/actions/auth";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-4 py-3 text-sm text-ink placeholder:text-ink/35 outline-none transition focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
@@ -47,38 +46,18 @@ export default function LoyaltyDrawer() {
     event.preventDefault();
     setBusy(true);
     setMessage(null);
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: code.trim(),
-      type: "email",
-    });
-    if (error || !data.user) {
+    const result = await verifyCustomerCode(email, code);
+    if (!result.ok) {
       setBusy(false);
-      setMessage(error?.message ?? t.loyalty.invalidCode);
+      setMessage(result.error || t.loyalty.invalidCode);
       return;
-    }
-    const activation = await activateCurrentAdmin();
-    if (!activation.ok) {
-      setBusy(false);
-      setMessage(activation.error);
-      return;
-    }
-    if (activation.isAdmin) {
-      router.push("/admin");
-      router.refresh();
-      return;
-    }
-    const { error: enrollmentError } = await supabase
-      .from("grainbuds_loyalty_accounts")
-      .insert({ user_id: data.user.id });
-    if (enrollmentError && enrollmentError.code !== "23505") {
-      setMessage(t.loyalty.setupNeeded);
     }
     await refresh();
     setBusy(false);
     setCodeSent(false);
     setCode("");
+    if (result.isAdmin) close();
+    router.refresh();
   }
 
   const rewardCount = Math.floor(stamps / 10);

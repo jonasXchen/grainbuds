@@ -105,6 +105,7 @@ export default function StaffNavControls({
         disabled={isPending}
         aria-expanded={isOpen}
         aria-controls="staff-nav-menu"
+        aria-label={`${toggleLabel}. ${status}`}
         className="flex items-center gap-2 rounded-full border border-ink/10 px-3 py-2 text-xs font-medium text-ink/65 transition-colors hover:border-matcha-deep/40 hover:text-ink disabled:opacity-50"
       >
         <span
@@ -112,7 +113,7 @@ export default function StaffNavControls({
             customerView ? "bg-sand-deep" : "bg-matcha-deep"
           }`}
         />
-        {customerView ? t.staff.preview : t.staff.staff}
+        {customerView ? t.staff.staff : t.staff.preview}
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           aria-hidden="true"
