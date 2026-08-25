@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useLoyalty } from "@/lib/loyalty-context";
 import { useT } from "@/lib/i18n/context";
+import { requestCustomerCode } from "@/lib/actions/auth";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-4 py-3 text-sm text-ink placeholder:text-ink/35 outline-none transition focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
@@ -30,14 +31,10 @@ export default function LoyaltyDrawer() {
     event.preventDefault();
     setBusy(true);
     setMessage(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: true },
-    });
+    const result = await requestCustomerCode(email);
     setBusy(false);
-    if (error) {
-      setMessage(error.message);
+    if (!result.ok) {
+      setMessage(t.loyalty.sendFailed);
       return;
     }
     setCodeSent(true);

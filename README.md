@@ -55,10 +55,12 @@ order. The admin panel needs Supabase (next section).
 
 For an existing database, run
 [`supabase/migrations/20260825_customer_loyalty.sql`](supabase/migrations/20260825_customer_loyalty.sql)
-once in the SQL Editor. Then in Supabase **Authentication → Email Templates →
-Magic Link**, include `{{ .Token }}` in the message so customers and admins receive the
-one-time code shown by the site. Configure custom SMTP before production;
-Supabase's built-in mail service is intended only for limited testing.
+and
+[`supabase/migrations/20260825_resend_auth_rate_limit.sql`](supabase/migrations/20260825_resend_auth_rate_limit.sql)
+once each in the SQL Editor. Login codes are generated securely against the
+Supabase identity but delivered directly through Resend; Supabase's email
+mailer and email template are not used. Set `RESEND_API_KEY` and a verified
+`AUTH_FROM_EMAIL` or `ORDER_FROM_EMAIL` sender before testing.
 
 Customer login is optional and guest checkout continues to work. A signed-in
 order earns one stamp only when staff marks it **Paid**; changing it to
@@ -171,6 +173,6 @@ supabase/
   browser code.
 - **Email sending** uses [Resend](https://resend.com) (free tier: 3,000
   emails/month). Verify the sending domain, set `RESEND_API_KEY` and
-  `ORDER_FROM_EMAIL`, then configure recipients in Admin → Settings. Without a
+  `ORDER_FROM_EMAIL` (and optionally `AUTH_FROM_EMAIL`), then configure recipients in Admin → Settings. Without a
   key, order operations still succeed but notification delivery is skipped.
 - **Brand palette**: sand `#C7A880`, matcha `#9DB34B`, ink `#121A25`, cream `#EAE3DA`.

@@ -75,12 +75,6 @@ export default function Footer() {
                 {t.footer.hoursLocation}
               </Link>
               <Link
-                href="/admin"
-                className="w-fit text-cream/40 transition-colors hover:text-matcha"
-              >
-                {t.footer.staffLogin}
-              </Link>
-              <Link
                 href="/privacy"
                 className="w-fit text-cream/40 transition-colors hover:text-matcha"
               >

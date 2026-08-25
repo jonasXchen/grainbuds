@@ -4,8 +4,21 @@ import { redirect } from "next/navigation";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/admin-emails";
+import { sendAuthCode } from "@/lib/auth-email";
 
 export type AuthResult = { ok: true } | { ok: false; error: string };
+
+export async function requestCustomerCode(emailInput: string): Promise<AuthResult> {
+  const result = await sendAuthCode(emailInput);
+  if (result.ok) return result;
+  return {
+    ok: false,
+    error:
+      result.error === "not_configured"
+        ? "Email login is not configured."
+        : "Could not send the email code. Please try again.",
+  };
+}
 
 export async function requestAdminCode(emailInput: string): Promise<AuthResult> {
   if (!hasSupabaseEnv()) {
@@ -21,12 +34,8 @@ export async function requestAdminCode(emailInput: string): Promise<AuthResult> 
     return { ok: false, error: "This email is not configured for admin access." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true },
-  });
-  if (error) {
+  const result = await sendAuthCode(email);
+  if (!result.ok) {
     return { ok: false, error: "Could not send the email code. Please try again." };
   }
   return { ok: true };

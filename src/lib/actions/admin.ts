@@ -30,9 +30,8 @@ async function requireAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user || !isAdminEmail(user.email)) redirect("/admin/login");
-  // A session alone isn't enough — the account must be on the
-  // grainbuds_staff allowlist (RLS would block the writes anyway;
-  // this gives a clean redirect instead of silent failures).
+  // A session alone isn't enough: the verified email must be configured and
+  // its mirrored grainbuds_staff row must still pass database RLS.
   const { data: isStaff } = await supabase.rpc("grainbuds_is_staff");
   if (isStaff !== true) redirect("/admin");
   return supabase;

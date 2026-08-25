@@ -3,7 +3,8 @@
  *
  * Newer Supabase projects issue a "publishable" key (sb_publishable_...);
  * older ones issue a legacy "anon" JWT. Either works — set whichever your
- * project has. The secret key (sb_secret_...) is never used by this site.
+ * project has. The secret key (sb_secret_...) is read only by server-only
+ * modules and must never be added to this public environment helper.
  *
  * Accesses must stay as literal `process.env.NEXT_PUBLIC_*` expressions so
  * Next.js can inline them into the client bundle.

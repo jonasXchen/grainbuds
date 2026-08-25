@@ -3,9 +3,8 @@ import { createClient, hasSupabaseEnv } from "./supabase/server";
 import { isAdminEmail } from "./admin-emails";
 
 /**
- * True only when the current session belongs to an account on the
- * grainbuds_staff allowlist — being any authenticated user of the
- * Supabase project is not enough.
+ * True only when the verified email is in ORDER_ADMIN_EMAILS and the account
+ * has the mirrored grainbuds_staff row used by database RLS.
  */
 export async function getIsStaff(): Promise<boolean> {
   if (!hasSupabaseEnv()) return false;
