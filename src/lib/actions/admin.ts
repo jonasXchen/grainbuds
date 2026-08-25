@@ -20,6 +20,10 @@ export type SettingsActionState =
   | { ok: true; message: string }
   | { ok: false; error: string }
   | null;
+export type StampBalanceActionState =
+  | { ok: true; stamps: number }
+  | { ok: false; error: string }
+  | null;
 
 async function requireAdmin() {
   if (!hasSupabaseEnv()) {
@@ -291,25 +295,36 @@ export async function deleteCategory(formData: FormData) {
   }
 }
 
-export async function setLoyaltyStampBalance(formData: FormData) {
+export async function setLoyaltyStampBalance(
+  _previousState: StampBalanceActionState,
+  formData: FormData
+): Promise<StampBalanceActionState> {
   const supabase = await requireAdmin();
   const userId = String(formData.get("user_id") ?? "");
   const target = Number(formData.get("stamps"));
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
-    return;
+    return { ok: false, error: "Invalid customer account." };
   }
-  if (!Number.isInteger(target) || target < 0 || target > 1000) return;
+  if (!Number.isInteger(target) || target < 0 || target > 1000) {
+    return { ok: false, error: "Enter a whole number between 0 and 1000." };
+  }
 
-  const { data } = await supabase
+  const { data, error: balanceError } = await supabase
     .from("grainbuds_loyalty_ledger")
     .select("delta")
     .eq("user_id", userId);
+  if (balanceError) {
+    return { ok: false, error: "Could not read the current balance." };
+  }
   const balance = (data ?? []).reduce(
     (sum, entry) => sum + Number(entry.delta),
     0
   );
   const delta = target - balance;
-  if (delta === 0 || delta < -1000 || delta > 1000) return;
+  if (delta === 0) return { ok: true, stamps: target };
+  if (delta < -1000 || delta > 1000) {
+    return { ok: false, error: "That adjustment is too large." };
+  }
 
   const { error } = await supabase.from("grainbuds_loyalty_ledger").insert({
     user_id: userId,
@@ -322,9 +337,10 @@ export async function setLoyaltyStampBalance(formData: FormData) {
       code: error.code,
       message: error.message,
     });
-    return;
+    return { ok: false, error: "Could not save the stamp balance." };
   }
   revalidatePath("/admin/customers");
+  return { ok: true, stamps: target };
 }
 
 export async function updateOrderPayment(formData: FormData) {

@@ -4,8 +4,8 @@ import CampaignForm from "@/components/admin/CampaignForm";
 import CopyEmailsButton from "@/components/admin/CopyEmailsButton";
 import SubscriberRow from "@/components/admin/SubscriberRow";
 import { getLocale } from "@/lib/i18n/server";
-import { setLoyaltyStampBalance } from "@/lib/actions/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
+import StampBalanceEditor from "@/components/admin/StampBalanceEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +23,8 @@ export default async function CustomersPage() {
   const supabase = await createClient();
   const locale = await getLocale();
   const copy = locale === "de"
-    ? { title: "Kunden", description: "Online-Kunden, Getränkestempel und Mailingliste. Marketing-E-Mails gehen nur an Personen mit ausdrücklicher Einwilligung.", update: "Neuigkeiten senden", updateHint: "Neue Produkte, saisonale Menüs oder geänderte Öffnungszeiten – eine E-Mail an die gesamte Liste.", mailing: "Mailingliste", noSubscribers: "Noch keine Anmeldungen. Kunden können beim Checkout zustimmen.", loyaltyMembers: "Stempelkarten", noMembers: "Noch keine registrierten Stempelkarten.", everyone: "Alle Besteller", noOrders: "Noch keine Bestellungen.", subscribed: "Abonniert", order: "Bestellung", orders: "Bestellungen", stamps: "Stempel", saveStamps: "Änderungen speichern", privacy: "Datenschutzhinweis: Diese Daten dienen der Bestellabwicklung. Nur ausdrücklich angemeldete Adressen dürfen Marketing erhalten." }
-    : { title: "Customers", description: "Online customers, drink stamps, and your mailing list. Marketing emails only go to people who opted in.", update: "Send an update", updateHint: "New products, seasonal menus, or changed hours—one email to the whole list.", mailing: "Mailing list", noSubscribers: "Nobody has opted in yet. Customers can join at checkout.", loyaltyMembers: "Stamp cards", noMembers: "No registered stamp cards yet.", everyone: "Everyone who ordered", noOrders: "No orders yet.", subscribed: "Subscribed", order: "order", orders: "orders", stamps: "stamps", saveStamps: "Save changes", privacy: "Privacy note: this data exists to fulfil orders. Only explicitly opted-in addresses may receive marketing." };
+    ? { title: "Kunden", description: "Online-Kunden, Getränkestempel und Mailingliste. Marketing-E-Mails gehen nur an Personen mit ausdrücklicher Einwilligung.", update: "Neuigkeiten senden", updateHint: "Neue Produkte, saisonale Menüs oder geänderte Öffnungszeiten – eine E-Mail an die gesamte Liste.", mailing: "Mailingliste", noSubscribers: "Noch keine Anmeldungen. Kunden können beim Checkout zustimmen.", loyaltyMembers: "Stempelkarten", noMembers: "Noch keine registrierten Stempelkarten.", everyone: "Alle Besteller", noOrders: "Noch keine Bestellungen.", subscribed: "Abonniert", order: "Bestellung", orders: "Bestellungen", stamps: "Stempel", saveStamps: "Änderungen speichern", savingStamps: "Speichert…", savedStamps: "Gespeichert", stampError: "Speichern fehlgeschlagen", privacy: "Datenschutzhinweis: Diese Daten dienen der Bestellabwicklung. Nur ausdrücklich angemeldete Adressen dürfen Marketing erhalten." }
+    : { title: "Customers", description: "Online customers, drink stamps, and your mailing list. Marketing emails only go to people who opted in.", update: "Send an update", updateHint: "New products, seasonal menus, or changed hours—one email to the whole list.", mailing: "Mailing list", noSubscribers: "Nobody has opted in yet. Customers can join at checkout.", loyaltyMembers: "Stamp cards", noMembers: "No registered stamp cards yet.", everyone: "Everyone who ordered", noOrders: "No orders yet.", subscribed: "Subscribed", order: "order", orders: "orders", stamps: "stamps", saveStamps: "Save changes", savingStamps: "Saving…", savedStamps: "Saved", stampError: "Could not save", privacy: "Privacy note: this data exists to fulfil orders. Only explicitly opted-in addresses may receive marketing." };
 
   const [ordersRes, subsRes, loyaltyRes, accountsRes] = await Promise.all([
     supabase
@@ -135,10 +135,16 @@ export default async function CustomersPage() {
             {loyaltyMembers.map((member) => (
               <li key={member.userId} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
                 <p className="min-w-0 truncate text-sm font-medium text-ink">{member.email}</p>
-                <StampControls
+                <StampBalanceEditor
                   userId={member.userId}
                   stamps={member.stamps}
-                  labels={{ stamps: copy.stamps, save: copy.saveStamps }}
+                  labels={{
+                    stamps: copy.stamps,
+                    save: copy.saveStamps,
+                    saving: copy.savingStamps,
+                    saved: copy.savedStamps,
+                    error: copy.stampError,
+                  }}
                 />
               </li>
             ))}
@@ -217,38 +223,5 @@ export default async function CustomersPage() {
         {copy.privacy}
       </p>
     </div>
-  );
-}
-
-function StampControls({
-  userId,
-  stamps,
-  labels,
-}: {
-  userId: string;
-  stamps: number;
-  labels: { stamps: string; save: string };
-}) {
-  return (
-    <form action={setLoyaltyStampBalance} className="flex items-center gap-2 rounded-2xl border border-matcha/30 bg-matcha/10 p-1.5 pl-3">
-      <input type="hidden" name="user_id" value={userId} />
-      <label className="flex items-center gap-2 text-xs font-semibold text-matcha-deep">
-        <input
-          type="number"
-          name="stamps"
-          min="0"
-          max="1000"
-          step="1"
-          required
-          defaultValue={stamps}
-          aria-label={labels.stamps}
-          className="w-16 rounded-xl border border-ink/10 bg-cream-light px-2 py-1.5 text-center text-sm font-semibold tabular-nums text-ink outline-none focus:border-matcha-deep"
-        />
-        <span>{labels.stamps}</span>
-      </label>
-      <button type="submit" className="rounded-xl bg-matcha px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-matcha-deep hover:text-cream">
-        {labels.save}
-      </button>
-    </form>
   );
 }

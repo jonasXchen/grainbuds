@@ -122,16 +122,11 @@ export default function LoyaltyDrawer() {
                   </div>
                   <div className="mt-8 grid grid-cols-5 gap-3" aria-label={`${progress} / 10`}>
                     {Array.from({ length: 10 }, (_, index) => (
-                      <div
+                      <GrainbudStamp
                         key={index}
-                        className={`flex aspect-square items-center justify-center rounded-full border ${
-                          index < visualProgress
-                            ? "border-matcha bg-matcha text-ink"
-                            : "border-cream/25 text-cream/25"
-                        }`}
-                      >
-                        <span className="text-lg" aria-hidden="true">●</span>
-                      </div>
+                        filled={index < visualProgress}
+                        index={index}
+                      />
                     ))}
                   </div>
                   <p className="mt-6 text-sm text-cream/70">
@@ -211,5 +206,52 @@ export default function LoyaltyDrawer() {
         </>
       )}
     </AnimatePresence>
+  );
+}
+
+function GrainbudStamp({ filled, index }: { filled: boolean; index: number }) {
+  const rotations = ["-rotate-3", "rotate-2", "-rotate-1", "rotate-3", "rotate-1"];
+
+  return (
+    <div
+      aria-hidden="true"
+      className={`flex aspect-square items-center justify-center rounded-full transition-all ${
+        filled
+          ? `bg-matcha/10 text-matcha ${rotations[index % rotations.length]}`
+          : "border border-dashed border-cream/20 text-cream/15"
+      }`}
+    >
+      {filled ? (
+        <svg
+          viewBox="0 0 48 48"
+          className="h-[92%] w-[92%] drop-shadow-[0_1px_0_rgba(157,179,75,0.2)]"
+          fill="none"
+        >
+          <circle cx="24" cy="24" r="21" stroke="currentColor" strokeWidth="2.2" strokeDasharray="2.2 1.1" />
+          <circle cx="24" cy="24" r="17.2" stroke="currentColor" strokeWidth="1" opacity=".7" />
+          <path
+            d="M25.5 14.5c1.2-4 4.2-6.1 8.1-6.2-.2 3.9-2.5 6.7-6.6 7.6M23 14.6c-1.2-3.2-3.8-4.9-7-4.9.3 3.3 2.2 5.5 5.6 6.2"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <text
+            x="24"
+            y="34"
+            textAnchor="middle"
+            fill="currentColor"
+            fontFamily="Georgia, serif"
+            fontSize="25"
+            fontStyle="italic"
+            fontWeight="700"
+          >
+            g
+          </text>
+        </svg>
+      ) : (
+        <span className="font-display text-sm">g</span>
+      )}
+    </div>
   );
 }
