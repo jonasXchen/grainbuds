@@ -63,6 +63,8 @@ and
 [`supabase/migrations/20260825_product_loyalty_eligibility.sql`](supabase/migrations/20260825_product_loyalty_eligibility.sql)
 and
 [`supabase/migrations/20260825_loyalty_balance_editor.sql`](supabase/migrations/20260825_loyalty_balance_editor.sql)
+and
+[`supabase/migrations/20260825_staff_preview_checkout.sql`](supabase/migrations/20260825_staff_preview_checkout.sql)
 once each in the SQL Editor. Login codes are generated securely against the
 Supabase identity but delivered directly through Resend; Supabase's email
 mailer and email template are not used. Set `RESEND_API_KEY` and a verified

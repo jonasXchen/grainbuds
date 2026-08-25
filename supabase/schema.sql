@@ -229,6 +229,7 @@ create policy "staff write grainbuds_categories" on grainbuds_categories
 create policy "public create grainbuds_orders" on grainbuds_orders
   for insert with check (
     (auth.uid() is null and customer_user_id is null)
+    or (public.grainbuds_is_staff() and customer_user_id is null)
     or customer_user_id = auth.uid()
   );
 create policy "public create order items" on grainbuds_order_items
