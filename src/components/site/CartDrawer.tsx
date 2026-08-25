@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import {
@@ -8,17 +9,24 @@ import {
   formatPrice,
   localizedName,
   localizedSelectedOption,
+  type CartLine,
 } from "@/lib/types";
 import { useLocale, useT } from "@/lib/i18n/context";
 import ProductImage from "./ProductImage";
+import ProductOptionsModal from "./ProductOptionsModal";
 
 export default function CartDrawer() {
   const { lines, isOpen, closeCart, setQuantity, removeItem, totalCents } =
     useCart();
   const locale = useLocale();
   const t = useT();
+  const [customizingLine, setCustomizingLine] = useState<{
+    line: CartLine;
+    mode: "add" | "edit";
+  } | null>(null);
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <>
@@ -125,11 +133,22 @@ export default function CartDrawer() {
                             </button>
                           </div>
                           {line.selected_options.length > 0 && (
-                            <p className="mt-1 text-xs leading-relaxed text-ink/50">
-                              {line.selected_options
-                                .map((option) => localizedSelectedOption(option, locale))
-                                .join(" · ")}
-                            </p>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <p className="text-xs leading-relaxed text-ink/50">
+                                {line.selected_options
+                                  .map((option) => localizedSelectedOption(option, locale))
+                                  .join(" · ")}
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setCustomizingLine({ line, mode: "edit" })
+                                }
+                                className="text-[11px] font-semibold text-matcha-deep underline decoration-matcha-deep/35 underline-offset-2 hover:text-ink"
+                              >
+                                {locale === "de" ? "Ändern" : "Change"}
+                              </button>
+                            </div>
                           )}
                           <div className="mt-auto flex items-center justify-between">
                             <div className="flex items-center gap-1 rounded-full border border-ink/15 px-1">
@@ -148,9 +167,13 @@ export default function CartDrawer() {
                               </span>
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setQuantity(line.id, line.quantity + 1)
-                                }
+                                onClick={() => {
+                                  if ((line.product.option_groups?.length ?? 0) > 0) {
+                                    setCustomizingLine({ line, mode: "add" });
+                                    return;
+                                  }
+                                  setQuantity(line.id, line.quantity + 1);
+                                }}
                                 className="flex h-7 w-7 items-center justify-center text-ink/60 hover:text-ink"
                                 aria-label={t.product.increase}
                               >
@@ -194,5 +217,18 @@ export default function CartDrawer() {
         </>
       )}
     </AnimatePresence>
+    {customizingLine && (
+      <ProductOptionsModal
+        product={customizingLine.line.product}
+        quantity={customizingLine.mode === "add" ? 1 : customizingLine.line.quantity}
+        openCart={false}
+        initialSelectedOptions={customizingLine.line.selected_options}
+        editingLineId={
+          customizingLine.mode === "edit" ? customizingLine.line.id : undefined
+        }
+        onClose={() => setCustomizingLine(null)}
+      />
+    )}
+    </>
   );
 }

@@ -15,17 +15,26 @@ export default function ProductOptionsModal({
   product,
   quantity = 1,
   openCart = true,
+  initialSelectedOptions = [],
+  editingLineId,
   onClose,
 }: {
   product: Product;
   quantity?: number;
   openCart?: boolean;
+  initialSelectedOptions?: SelectedProductOption[];
+  editingLineId?: string;
   onClose: () => void;
 }) {
   const locale = useLocale();
-  const { addItem } = useCart();
+  const { addItem, replaceLineOptions } = useCart();
   const groups = useMemo(() => product.option_groups ?? [], [product.option_groups]);
-  const [selection, setSelection] = useState<Record<string, string[]>>({});
+  const [selection, setSelection] = useState<Record<string, string[]>>(() =>
+    initialSelectedOptions.reduce<Record<string, string[]>>((result, option) => {
+      result[option.group_id] = [...(result[option.group_id] ?? []), option.option_id];
+      return result;
+    }, {})
+  );
   const [showErrors, setShowErrors] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -89,7 +98,11 @@ export default function ProductOptionsModal({
       setShowErrors(true);
       return;
     }
-    addItem(product, quantity, { openCart, selectedOptions });
+    if (editingLineId) {
+      replaceLineOptions(editingLineId, selectedOptions);
+    } else {
+      addItem(product, quantity, { openCart, selectedOptions });
+    }
     onClose();
   }
 
@@ -201,7 +214,11 @@ export default function ProductOptionsModal({
           onClick={addConfiguredProduct}
           className="mt-7 flex w-full items-center justify-between rounded-full bg-ink px-6 py-4 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep"
         >
-          <span>{locale === "de" ? "Zur Bestellung hinzufügen" : "Add to order"}</span>
+          <span>
+            {editingLineId
+              ? locale === "de" ? "Auswahl aktualisieren" : "Update selection"
+              : locale === "de" ? "Zur Bestellung hinzufügen" : "Add to order"}
+          </span>
           <span>{formatPrice(unitPrice * quantity, locale)}</span>
         </button>
       </div>

@@ -29,6 +29,7 @@ export default function CheckoutPage() {
     lines,
     totalCents,
     clearCart,
+    openCart,
     orderingContext,
     clearOrderingContext,
   } = useCart();
@@ -368,9 +369,18 @@ export default function CheckoutPage() {
             transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="h-fit rounded-3xl bg-cream-light p-6 sm:p-7 lg:col-start-2 lg:row-span-2 lg:row-start-1"
           >
-            <h2 className="font-display text-xl text-ink">
-              {t.checkout.summary}
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-xl text-ink">
+                {t.checkout.summary}
+              </h2>
+              <button
+                type="button"
+                onClick={openCart}
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3.5 py-2 text-xs font-medium text-ink/60 transition-colors hover:border-ink/30 hover:bg-cream hover:text-ink"
+              >
+                {locale === "de" ? "Bearbeiten" : "Edit"}
+              </button>
+            </div>
             <ul className="mt-5 space-y-4">
               {lines.map((line) => (
                 <li key={line.id} className="flex items-center gap-4">

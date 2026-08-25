@@ -32,6 +32,10 @@ type CartContextValue = {
   ) => void;
   removeItem: (lineId: string) => void;
   setQuantity: (lineId: string, quantity: number) => void;
+  replaceLineOptions: (
+    lineId: string,
+    selectedOptions: SelectedProductOption[]
+  ) => void;
   decrementProduct: (productId: string) => void;
   clearCart: () => void;
   orderingContext: OrderingContext | null;
@@ -198,6 +202,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const replaceLineOptions = useCallback(
+    (lineId: string, selectedOptions: SelectedProductOption[]) => {
+      setLines((current) => {
+        const source = current.find((line) => line.id === lineId);
+        if (!source) return current;
+        const nextId = cartLineId(source.product.id, selectedOptions);
+        if (nextId === lineId) {
+          return current.map((line) => line.id === lineId
+            ? { ...line, selected_options: selectedOptions }
+            : line);
+        }
+        const existing = current.find((line) => line.id === nextId);
+        if (existing) {
+          return current
+            .filter((line) => line.id !== lineId)
+            .map((line) => line.id === nextId
+              ? { ...line, quantity: line.quantity + source.quantity }
+              : line);
+        }
+        return current.map((line) => line.id === lineId
+          ? { ...line, id: nextId, selected_options: selectedOptions }
+          : line);
+      });
+    },
+    []
+  );
+
   const clearCart = useCallback(() => setLines([]), []);
   const clearOrderingContext = useCallback(() => {
     setOrderingContext(null);
@@ -232,6 +263,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addItem,
       removeItem,
       setQuantity,
+      replaceLineOptions,
       decrementProduct,
       clearCart,
       orderingContext,
@@ -247,6 +279,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addItem,
       removeItem,
       setQuantity,
+      replaceLineOptions,
       decrementProduct,
       clearCart,
       orderingContext,
