@@ -3,6 +3,7 @@ import { formatPrice, type Order } from "@/lib/types";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import PaymentSelect from "@/components/admin/PaymentSelect";
 import { getLocale } from "@/lib/i18n/server";
+import OrderStatusBatchProvider from "@/components/admin/OrderStatusBatchProvider";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +11,8 @@ export default async function AdminOrdersPage() {
   const supabase = await createClient();
   const locale = await getLocale();
   const copy = locale === "de"
-    ? { title: "Bestellungen", description: "Neueste zuerst. Aktualisieren Sie den Status während der Bearbeitung; bezahlt wird im Café.", open: "Offen", done: "Erledigt", noOpen: "Zurzeit keine offenen Bestellungen.", noDone: "Noch keine abgeschlossenen Bestellungen.", table: "Tisch", dineIn: "Vor Ort", pickup: "Abholung", qr: "QR", note: "Hinweis", reward: "11. Getränk gratis" }
-    : { title: "Orders", description: "Newest first. Change the status as you work through them; customers pay at the café.", open: "Open", done: "Done", noOpen: "No open orders right now—enjoy the quiet.", noDone: "Nothing completed yet.", table: "Table", dineIn: "Dine in", pickup: "Pickup", qr: "QR", note: "Note", reward: "11th drink free" };
+    ? { title: "Bestellungen", description: "Status für mehrere Bestellungen auswählen und anschließend gemeinsam speichern; bezahlt wird im Café.", open: "Offen", done: "Erledigt", noOpen: "Zurzeit keine offenen Bestellungen.", noDone: "Noch keine abgeschlossenen Bestellungen.", table: "Tisch", dineIn: "Vor Ort", pickup: "Abholung", qr: "QR", note: "Hinweis", reward: "11. Getränk gratis", batchHint: "Statusänderungen werden gesammelt.", batchChangedOne: "Bestellung geändert", batchChangedMany: "Bestellungen geändert", batchSave: "Änderungen speichern", batchSaving: "Speichert…", batchSaved: "Änderungen gespeichert", batchError: "Einige Änderungen konnten nicht gespeichert werden." }
+    : { title: "Orders", description: "Choose statuses for multiple orders, then save them together; customers pay at the café.", open: "Open", done: "Done", noOpen: "No open orders right now—enjoy the quiet.", noDone: "Nothing completed yet.", table: "Table", dineIn: "Dine in", pickup: "Pickup", qr: "QR", note: "Note", reward: "11th drink free", batchHint: "Status changes are staged.", batchChangedOne: "order changed", batchChangedMany: "orders changed", batchSave: "Save changes", batchSaving: "Saving…", batchSaved: "Changes saved", batchError: "Some changes could not be saved." };
   const { data } = await supabase
     .from("grainbuds_orders")
     .select("*, order_items:grainbuds_order_items(*)")
@@ -33,8 +34,21 @@ export default async function AdminOrdersPage() {
         {copy.description}
       </p>
 
-      <OrderSection title={copy.open} orders={open} emptyText={copy.noOpen} copy={copy} />
-      <OrderSection title={copy.done} orders={closed} emptyText={copy.noDone} copy={copy} />
+      <OrderStatusBatchProvider
+        initialStatuses={Object.fromEntries(orders.map((order) => [order.id, order.status]))}
+        labels={{
+          hint: copy.batchHint,
+          changedOne: copy.batchChangedOne,
+          changedMany: copy.batchChangedMany,
+          save: copy.batchSave,
+          saving: copy.batchSaving,
+          saved: copy.batchSaved,
+          error: copy.batchError,
+        }}
+      >
+        <OrderSection title={copy.open} orders={open} emptyText={copy.noOpen} copy={copy} />
+        <OrderSection title={copy.done} orders={closed} emptyText={copy.noDone} copy={copy} />
+      </OrderStatusBatchProvider>
     </div>
   );
 }

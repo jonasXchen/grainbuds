@@ -158,6 +158,7 @@ export const dictionaries = {
       consent:
         "Email me about new drinks and product launches. You can unsubscribe anytime.",
       placing: "Placing your order…",
+      openingStatus: "Order received. Opening your order status…",
       placeOrder: "Place order",
       queueTitle: "Live preparation queue",
       queuePosition: "Your queue number",
@@ -375,6 +376,7 @@ export const dictionaries = {
       consent:
         "Informieren Sie mich per E-Mail über neue Getränke und Produkte. Jederzeit abbestellbar.",
       placing: "Bestellung wird aufgegeben…",
+      openingStatus: "Bestellung erhalten. Ihr Bestellstatus wird geöffnet…",
       placeOrder: "Bestellung aufgeben",
       queueTitle: "Aktuelle Warteschlange",
       queuePosition: "Ihre Wartenummer",

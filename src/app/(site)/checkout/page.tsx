@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   } = useCart();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [queueEstimate, setQueueEstimate] = useState<QueueEstimate | null>(null);
   const [isPending, startTransition] = useTransition();
   const [selectedFulfillmentType, setSelectedFulfillmentType] = useState<
@@ -110,12 +111,33 @@ export default function CheckoutPage() {
         setError(result.error);
         return;
       }
+      setOrderSubmitted(true);
       clearCart();
       clearOrderingContext();
       router.push(
         result.demo ? "/order/demo" : `/order/${result.orderId}`
       );
     });
+  }
+
+  if (orderSubmitted) {
+    return (
+      <div
+        className="flex min-h-dvh flex-col items-center justify-center gap-5 px-5 text-center"
+        role="status"
+        aria-live="polite"
+      >
+        <motion.span
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
+          className="h-12 w-12 rounded-full border-2 border-matcha/25 border-t-matcha-deep"
+          aria-hidden="true"
+        />
+        <p className="font-display text-2xl text-ink">
+          {t.checkout.openingStatus}
+        </p>
+      </div>
+    );
   }
 
   if (lines.length === 0) {

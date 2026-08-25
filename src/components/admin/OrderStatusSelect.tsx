@@ -1,9 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
-import { updateOrderStatus } from "@/lib/actions/admin";
 import type { OrderStatus } from "@/lib/types";
 import { useLocale } from "@/lib/i18n/context";
+import { useOrderStatusBatch } from "@/components/admin/OrderStatusBatchProvider";
 
 const colors: Record<OrderStatus, string> = {
   new: "bg-sand/30 text-sand-deep border-sand/50",
@@ -20,8 +19,9 @@ export default function OrderStatusSelect({
   orderId: string;
   status: OrderStatus;
 }) {
-  const [isPending, startTransition] = useTransition();
   const locale = useLocale();
+  const batch = useOrderStatusBatch();
+  const currentStatus = batch.statusFor(orderId, status);
   const options: { value: OrderStatus; label: string }[] = locale === "de"
     ? [
         { value: "new", label: "Neu" },
@@ -40,18 +40,11 @@ export default function OrderStatusSelect({
 
   return (
     <select
-      value={status}
-      disabled={isPending}
-      onChange={(event) => {
-        const form = new FormData();
-        form.set("id", orderId);
-        form.set("status", event.target.value);
-        startTransition(async () => {
-          await updateOrderStatus(form);
-          window.dispatchEvent(new Event("grainbuds:orders-changed"));
-        });
-      }}
-      className={`min-h-9 cursor-pointer rounded-full border px-3.5 py-2 text-xs font-medium outline-none transition-colors disabled:opacity-50 ${colors[status]}`}
+      value={currentStatus}
+      onChange={(event) => batch.setStatus(orderId, event.target.value as OrderStatus)}
+      className={`min-h-9 cursor-pointer rounded-full border px-3.5 py-2 text-xs font-medium outline-none transition-colors ${colors[currentStatus]} ${
+        currentStatus !== status ? "ring-2 ring-sand-deep/30 ring-offset-1" : ""
+      }`}
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>

@@ -5,7 +5,6 @@ import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getProductBySlug } from "@/lib/data";
 import { sendOrderNotification } from "@/lib/order-notifications";
 import { localizedName, type FulfillmentType, type Order } from "@/lib/types";
-import { isAdminEmail } from "@/lib/admin-emails";
 import { isLoyaltyEligible } from "@/lib/loyalty";
 
 export type CheckoutLine = {
@@ -175,11 +174,10 @@ export async function createOrder(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  let customerUserId: string | null = null;
-  if (user) {
-    const { data: isStaff } = await supabase.rpc("grainbuds_is_staff");
-    if (!isAdminEmail(user.email) || isStaff !== true) customerUserId = user.id;
-  }
+  // Admins use the same storefront identity and loyalty card as customers.
+  // Any authenticated storefront order therefore belongs to that user; admin
+  // permissions affect management tools, not whether a purchase earns stamps.
+  const customerUserId = user?.id ?? null;
   const orderId = crypto.randomUUID();
   const { error } = await supabase
     .from("grainbuds_orders")

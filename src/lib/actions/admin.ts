@@ -24,6 +24,9 @@ export type StampBalanceActionState =
   | { ok: true; stamps: number }
   | { ok: false; error: string }
   | null;
+export type BatchOrderStatusResult =
+  | { ok: true; updated: number }
+  | { ok: false; error: string };
 
 async function requireAdmin() {
   if (!hasSupabaseEnv()) {
@@ -382,10 +385,10 @@ export async function updateOrderPayment(formData: FormData) {
   revalidatePath(`/order/${id}`);
 }
 
-export async function updateOrderStatus(formData: FormData) {
+export async function updateOrderStatuses(
+  changes: { id: string; status: OrderStatus }[]
+): Promise<BatchOrderStatusResult> {
   const supabase = await requireAdmin();
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "") as OrderStatus;
   const allowed: OrderStatus[] = [
     "new",
     "in_progress",
@@ -393,30 +396,69 @@ export async function updateOrderStatus(formData: FormData) {
     "completed",
     "cancelled",
   ];
-  if (id && allowed.includes(status)) {
-    const { data: existing } = await supabase
-      .from("grainbuds_orders")
-      .select("*, order_items:grainbuds_order_items(*)")
-      .eq("id", id)
-      .maybeSingle();
-    if (!existing || existing.status === status) return;
-
-    const { error } = await supabase
-      .from("grainbuds_orders")
-      .update({ status })
-      .eq("id", id);
-    if (error) return;
-
-    if (status === "new" || status === "cancelled") {
-      await sendOrderNotification(
-        "status_updated",
-        { ...(existing as Order), status },
-        { previousStatus: existing.status as OrderStatus }
-      );
+  const unique = new Map<string, OrderStatus>();
+  for (const change of changes.slice(0, 100)) {
+    if (
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(change.id) &&
+      allowed.includes(change.status)
+    ) {
+      unique.set(change.id, change.status);
     }
-    revalidatePath("/admin/orders");
-    revalidatePath(`/order/${id}`);
   }
+  if (unique.size === 0) return { ok: true, updated: 0 };
+
+  const ids = [...unique.keys()];
+  const { data, error: readError } = await supabase
+    .from("grainbuds_orders")
+    .select("*, order_items:grainbuds_order_items(*)")
+    .in("id", ids);
+  if (readError) {
+    return { ok: false, error: "Could not load the selected orders." };
+  }
+
+  const existing = (data ?? []) as Order[];
+  const pending = existing.filter(
+    (order) => unique.get(order.id) && unique.get(order.id) !== order.status
+  );
+  const results = await Promise.all(
+    pending.map(async (order) => {
+      const status = unique.get(order.id)!;
+      const { error } = await supabase
+        .from("grainbuds_orders")
+        .update({ status })
+        .eq("id", order.id);
+      return { order, status, error };
+    })
+  );
+  const failed = results.filter((result) => result.error);
+  const saved = results.filter((result) => !result.error);
+
+  await Promise.all(
+    saved
+      .filter(({ status }) => status === "new" || status === "cancelled")
+      .map(({ order, status }) =>
+        sendOrderNotification(
+          "status_updated",
+          { ...order, status },
+          { previousStatus: order.status }
+        )
+      )
+  );
+
+  if (saved.length > 0) {
+    revalidatePath("/admin/orders");
+    for (const { order } of saved) revalidatePath(`/order/${order.id}`);
+  }
+  if (failed.length > 0) {
+    console.error("Could not update all order statuses", {
+      failedOrderIds: failed.map(({ order }) => order.id),
+    });
+    return {
+      ok: false,
+      error: `${failed.length} order status ${failed.length === 1 ? "was" : "were"} not saved.`,
+    };
+  }
+  return { ok: true, updated: saved.length };
 }
 
 export async function saveOrderNotificationEmails(
