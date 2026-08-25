@@ -27,7 +27,7 @@ export default async function HomePage() {
       <Hero />
 
       {/* Featured products */}
-      <section id="shop" className="scroll-mt-16 bg-matcha/10 px-5 py-28 sm:px-8">
+      <section id="shop" data-section-theme="light" className="scroll-mt-16 bg-matcha/10 px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <OrderingContextBanner />
           <Reveal className="mx-auto max-w-2xl text-center">
@@ -46,7 +46,7 @@ export default async function HomePage() {
       </section>
 
       {/* Gallery */}
-      <section id="gallery" className="scroll-mt-16 overflow-hidden px-5 py-28 sm:px-8">
+      <section id="gallery" data-section-theme="light" className="scroll-mt-16 overflow-hidden px-5 py-28 sm:px-8">
         <div className="mx-auto max-w-6xl">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-matcha-deep">
@@ -108,7 +108,7 @@ export default async function HomePage() {
       </section>
 
       {/* Visit */}
-      <section id="visit" className="relative scroll-mt-16 overflow-hidden bg-cream-light px-5 py-28 sm:px-8">
+      <section id="visit" data-section-theme="light" className="relative scroll-mt-16 overflow-hidden bg-cream-light px-5 py-28 sm:px-8">
         <Parallax
           speed={0.35}
           className="pointer-events-none absolute -left-24 bottom-0 hidden lg:block"

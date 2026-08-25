@@ -7,8 +7,8 @@ import SmoothScroll from "@/components/site/SmoothScroll";
 import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/site/CartDrawer";
-import StaffBar from "@/components/site/StaffBar";
 import CookieNotice from "@/components/site/CookieNotice";
+import CheckoutBar from "@/components/site/CheckoutBar";
 
 export default async function SiteLayout({
   children,
@@ -25,13 +25,13 @@ export default async function SiteLayout({
       <AdminModeProvider isAdmin={adminMode}>
         <CartProvider>
           <SmoothScroll>
-            <Header />
+            <Header isStaff={isStaff} customerView={!adminMode} />
             <main className="flex-1">{children}</main>
             <Footer />
           </SmoothScroll>
           <CartDrawer />
+          <CheckoutBar />
         </CartProvider>
-        {isStaff && <StaffBar customerView={!adminMode} />}
         <CookieNotice />
       </AdminModeProvider>
     </LocaleProvider>

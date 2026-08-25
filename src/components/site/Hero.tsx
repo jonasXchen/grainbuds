@@ -18,6 +18,7 @@ export default function Hero() {
   return (
     <section
       id="top"
+      data-section-theme="dark"
       ref={ref}
       className="relative flex min-h-dvh flex-col justify-center overflow-hidden bg-ink px-5 pt-24 sm:px-8"
     >
@@ -54,7 +55,10 @@ export default function Hero() {
 
           <h1 className="mt-5 font-display text-5xl leading-[0.95] tracking-tight text-cream sm:text-6xl lg:text-7xl xl:text-8xl">
             {headline.map((word, i) => (
-              <span key={i} className="inline-block overflow-hidden pb-2 pr-4">
+              <span
+                key={i}
+                className="inline-block overflow-hidden pb-[0.22em] pr-4"
+              >
                 <motion.span
                   className={`inline-block ${i >= 2 ? "text-matcha" : ""}`}
                   initial={{ y: "110%" }}

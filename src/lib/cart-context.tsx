@@ -19,7 +19,11 @@ type CartContextValue = {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addItem: (product: Product, quantity?: number) => void;
+  addItem: (
+    product: Product,
+    quantity?: number,
+    options?: { openCart?: boolean }
+  ) => void;
   removeItem: (productId: string) => void;
   setQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -96,20 +100,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lines, hydrated]);
 
-  const addItem = useCallback((product: Product, quantity = 1) => {
-    setLines((prev) => {
-      const existing = prev.find((line) => line.product.id === product.id);
-      if (existing) {
-        return prev.map((line) =>
-          line.product.id === product.id
-            ? { ...line, quantity: line.quantity + quantity }
-            : line
-        );
-      }
-      return [...prev, { product, quantity }];
-    });
-    setIsOpen(true);
-  }, []);
+  const addItem = useCallback(
+    (
+      product: Product,
+      quantity = 1,
+      options?: { openCart?: boolean }
+    ) => {
+      setLines((prev) => {
+        const existing = prev.find((line) => line.product.id === product.id);
+        if (existing) {
+          return prev.map((line) =>
+            line.product.id === product.id
+              ? {
+                  ...line,
+                  quantity:
+                    product.stock == null
+                      ? line.quantity + quantity
+                      : Math.min(product.stock, line.quantity + quantity),
+                }
+              : line
+          );
+        }
+        const nextQuantity =
+          product.stock == null ? quantity : Math.min(product.stock, quantity);
+        return nextQuantity > 0
+          ? [...prev, { product, quantity: nextQuantity }]
+          : prev;
+      });
+      if (options?.openCart !== false) setIsOpen(true);
+    },
+    []
+  );
 
   const removeItem = useCallback((productId: string) => {
     setLines((prev) => prev.filter((line) => line.product.id !== productId));
@@ -120,7 +141,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       quantity <= 0
         ? prev.filter((line) => line.product.id !== productId)
         : prev.map((line) =>
-            line.product.id === productId ? { ...line, quantity } : line
+            line.product.id === productId
+              ? {
+                  ...line,
+                  quantity:
+                    line.product.stock == null
+                      ? quantity
+                      : Math.min(line.product.stock, quantity),
+                }
+              : line
           )
     );
   }, []);

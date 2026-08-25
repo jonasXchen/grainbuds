@@ -6,8 +6,13 @@
   --ink: #121a25;
   --cream: #eae3da;
   --cream-light: #f4f0ea;
-  --matcha-deep: #6d7f2e;
-  --sand-deep: #a9885d;
+  --matcha-deep: #56651f;
+  --sand-deep: #7f6039;
+  --matcha-wash: #e2decc;
+  --matcha-soft: #dfe5c3;
+  --matcha-pale: #e4e9cf;
+  --sand-soft: #ecdcc3;
+  --ink-soft: #d8dde2;
 }
 
 @theme inline {
@@ -15,6 +20,7 @@
   --color-sand-deep: var(--sand-deep);
   --color-matcha: var(--matcha);
   --color-matcha-deep: var(--matcha-deep);
+  --color-matcha-wash: var(--matcha-wash);
   --color-ink: var(--ink);
   --color-cream: var(--cream);
   --color-cream-light: var(--cream-light);

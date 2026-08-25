@@ -10,7 +10,7 @@ export default function Footer() {
   const t = useT();
 
   return (
-    <footer className="bg-ink px-5 text-cream sm:px-8">
+    <footer data-section-theme="dark" className="bg-ink px-5 text-cream sm:px-8">
       <div className="mx-auto max-w-6xl py-16">
         <div className="grid gap-12 md:grid-cols-3">
           <div>

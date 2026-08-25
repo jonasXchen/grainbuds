@@ -5,7 +5,7 @@ import { getLocale } from "@/lib/i18n/server";
 export const dynamic = "force-dynamic";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const BAR = "#6d7f2e"; // matcha-deep — 3.9:1 on the cream-light surface
+const BAR = "#56651f"; // matcha-deep — 5.65:1 on the cream-light surface
 
 type OrderRow = { id: string; status: string; total_cents: number; created_at: string };
 type ItemRow = {

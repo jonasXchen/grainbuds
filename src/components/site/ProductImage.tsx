@@ -2,10 +2,10 @@
 import type { Product } from "@/lib/types";
 
 const palettes = [
-  { bg: "#dfe5c3", fg: "#6d7f2e" }, // matcha
-  { bg: "#ecdcc3", fg: "#a9885d" }, // sand
-  { bg: "#d8dde2", fg: "#121a25" }, // ink
-  { bg: "#e4e9cf", fg: "#9db34b" }, // light matcha
+  { bg: "var(--matcha-soft)", fg: "var(--matcha-deep)" },
+  { bg: "var(--sand-soft)", fg: "var(--sand-deep)" },
+  { bg: "var(--ink-soft)", fg: "var(--ink)" },
+  { bg: "var(--matcha-pale)", fg: "var(--matcha)" },
 ];
 
 function hashString(value: string): number {

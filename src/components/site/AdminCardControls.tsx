@@ -18,6 +18,7 @@ export default function AdminCardControls({ product }: { product: Product }) {
 
   return (
     <div
+      onClick={(event) => event.stopPropagation()}
       className={`mt-3 flex flex-wrap items-center gap-2 rounded-2xl bg-ink/90 p-2 text-cream backdrop-blur ${
         isPending ? "opacity-60" : ""
       }`}

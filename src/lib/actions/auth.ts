@@ -38,3 +38,12 @@ export async function logout() {
   }
   redirect("/admin/login");
 }
+
+/** Sign out from the public-site staff menu and stay on the storefront. */
+export async function logoutToHome() {
+  if (hasSupabaseEnv()) {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  }
+  redirect("/");
+}

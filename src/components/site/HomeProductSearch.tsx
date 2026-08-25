@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Category, Product } from "@/lib/types";
 import { localizedName } from "@/lib/types";
@@ -19,8 +19,21 @@ export default function HomeProductSearch({
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const scrollAfterCollapse = useRef(false);
   const locale = useLocale();
   const t = useT();
+
+  useEffect(() => {
+    if (expanded || !scrollAfterCollapse.current) return;
+    scrollAfterCollapse.current = false;
+
+    requestAnimationFrame(() => {
+      document.getElementById("shop")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [expanded]);
 
   const usedCategories = useMemo(
     () =>
@@ -47,7 +60,7 @@ export default function HomeProductSearch({
 
   return (
     <>
-      <div className="sticky top-[71px] z-30 -mx-5 mt-8 bg-[#e2decc]/90 px-5 py-4 backdrop-blur-md sm:top-[81px] sm:mx-0 sm:px-4">
+      <div className="sticky top-[71px] z-30 -mx-5 mt-8 bg-matcha-wash/90 px-5 py-4 backdrop-blur-md sm:top-[81px] sm:mx-0 sm:px-4">
         <div className="mx-auto max-w-2xl">
           <ShopSearchForm value={query} onChange={setQuery} />
         </div>
@@ -131,7 +144,13 @@ export default function HomeProductSearch({
         <button
           type="button"
           onClick={() => {
-            setExpanded((current) => !current);
+            if (expanded) {
+              scrollAfterCollapse.current = true;
+              setQuery("");
+              setExpanded(false);
+            } else {
+              setExpanded(true);
+            }
             setActiveCategory(null);
           }}
           aria-expanded={expanded}

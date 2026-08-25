@@ -8,13 +8,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { useT } from "@/lib/i18n/context";
 import LanguageSwitcher from "./LanguageSwitcher";
+import StaffNavControls from "./StaffNavControls";
 
 function subscribeToScroll(callback: () => void) {
   window.addEventListener("scroll", callback, { passive: true });
   return () => window.removeEventListener("scroll", callback);
 }
 
-export default function Header() {
+export default function Header({
+  isStaff = false,
+  customerView = false,
+}: {
+  isStaff?: boolean;
+  customerView?: boolean;
+}) {
   const scrolled = useSyncExternalStore(
     subscribeToScroll,
     () => window.scrollY > 24,
@@ -72,6 +79,9 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          {isStaff && (
+            <StaffNavControls customerView={customerView} variant="desktop" />
+          )}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -165,6 +175,13 @@ export default function Header() {
               >
                 {t.nav.orderPickup}
               </Link>
+              {isStaff && (
+                <StaffNavControls
+                  customerView={customerView}
+                  variant="mobile"
+                  onNavigate={() => setMenuOpen(false)}
+                />
+              )}
             </div>
           </motion.nav>
         )}

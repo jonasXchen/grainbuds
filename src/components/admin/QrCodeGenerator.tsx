@@ -330,7 +330,7 @@ export default function QrCodeGenerator({
 
       context.textAlign = "center";
       context.textBaseline = "alphabetic";
-      context.fillStyle = "#6d7f2e";
+      context.fillStyle = "#56651f";
       context.font = `600 24px ${bodyFont}`;
       drawCenteredSpacedText(context, copy.eyebrow.toUpperCase(), centerX, 250, 5);
 
