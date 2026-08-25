@@ -3,16 +3,21 @@ import { createClient } from "@/lib/supabase/server";
 import ProductForm from "@/components/admin/ProductForm";
 import CategoryManager from "@/components/admin/CategoryManager";
 import { getLocale } from "@/lib/i18n/server";
+import { buildReusableProductOptionGroups } from "@/lib/product-options";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewProductPage() {
   const supabase = await createClient();
   const locale = await getLocale();
-  const { data: categories } = await supabase
-    .from("grainbuds_categories")
-    .select("*")
-    .order("sort_order");
+  const [{ data: categories }, { data: products }] = await Promise.all([
+    supabase.from("grainbuds_categories").select("*").order("sort_order"),
+    supabase
+      .from("grainbuds_products")
+      .select("id, name, name_de, option_groups")
+      .order("sort_order"),
+  ]);
+  const reusableOptionGroups = buildReusableProductOptionGroups(products ?? []);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -31,7 +36,10 @@ export default async function NewProductPage() {
           : "Fill in the details below—it appears in the shop as soon as you save."}
       </p>
       <div className="mt-8">
-        <ProductForm categories={categories ?? []} />
+        <ProductForm
+          categories={categories ?? []}
+          reusableOptionGroups={reusableOptionGroups}
+        />
       </div>
       <div id="categories" className="mt-16 max-w-2xl scroll-mt-8 sm:mt-20">
         <CategoryManager categories={categories ?? []} />

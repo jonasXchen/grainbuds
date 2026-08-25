@@ -46,6 +46,13 @@ export type ProductOptionGroup = {
   options: ProductOptionChoice[];
 };
 
+export type ReusableProductOptionGroup = {
+  key: string;
+  source_name: string;
+  source_name_de?: string;
+  group: ProductOptionGroup;
+};
+
 export type SelectedProductOption = {
   group_id: string;
   group_name: string;

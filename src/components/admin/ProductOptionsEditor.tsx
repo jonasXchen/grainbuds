@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { ProductOptionGroup } from "@/lib/types";
+import {
+  localizedName,
+  type Locale,
+  type ProductOptionGroup,
+  type ReusableProductOptionGroup,
+} from "@/lib/types";
 
 const compactInput =
   "w-full rounded-xl border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-ink/35 outline-none transition focus:border-matcha-deep focus:ring-2 focus:ring-matcha/20";
@@ -12,10 +17,15 @@ function newId() {
 
 export default function ProductOptionsEditor({
   initialGroups = [],
+  reusableGroups = [],
+  language,
 }: {
   initialGroups?: ProductOptionGroup[];
+  reusableGroups?: ReusableProductOptionGroup[];
+  language: Locale;
 }) {
   const [groups, setGroups] = useState<ProductOptionGroup[]>(initialGroups);
+  const [selectedPreset, setSelectedPreset] = useState("");
 
   function addGroup() {
     setGroups((current) => [
@@ -40,6 +50,23 @@ export default function ProductOptionsEditor({
     );
   }
 
+  function reuseGroup() {
+    const preset = reusableGroups.find((item) => item.key === selectedPreset);
+    if (!preset) return;
+    setGroups((current) => [
+      ...current,
+      {
+        ...preset.group,
+        id: newId(),
+        options: preset.group.options.map((option) => ({
+          ...option,
+          id: newId(),
+        })),
+      },
+    ]);
+    setSelectedPreset("");
+  }
+
   return (
     <section className="rounded-3xl border border-ink/10 bg-cream-light p-5 sm:p-6">
       <input type="hidden" name="option_groups_json" value={JSON.stringify(groups)} />
@@ -58,6 +85,46 @@ export default function ProductOptionsEditor({
           + Gruppe hinzufügen
         </button>
       </div>
+
+      {reusableGroups.length > 0 && (
+        <div className="mt-5 rounded-2xl border border-matcha/30 bg-matcha/10 p-4">
+          <label htmlFor="reusable-option-group" className="block text-xs font-semibold uppercase tracking-[0.14em] text-matcha-deep">
+            {language === "de" ? "Vorhandene Gruppe wiederverwenden" : "Reuse an existing group"}
+          </label>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <select
+              id="reusable-option-group"
+              value={selectedPreset}
+              onChange={(event) => setSelectedPreset(event.target.value)}
+              className={`${compactInput} flex-1`}
+            >
+              <option value="">
+                {language === "de" ? "Gruppe auswählen…" : "Choose a group…"}
+              </option>
+              {reusableGroups.map((preset) => (
+                <option key={preset.key} value={preset.key}>
+                  {localizedName(preset.group, language)} · {language === "de"
+                    ? preset.source_name_de || preset.source_name
+                    : preset.source_name || preset.source_name_de}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={reuseGroup}
+              disabled={!selectedPreset}
+              className="rounded-full bg-ink px-5 py-2.5 text-xs font-medium text-cream transition-colors hover:bg-matcha-deep disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              {language === "de" ? "Gruppe übernehmen" : "Apply group"}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-ink/45">
+            {language === "de"
+              ? "Die Gruppe wird kopiert und kann für dieses Produkt unabhängig angepasst werden."
+              : "The group is copied and can be adjusted independently for this product."}
+          </p>
+        </div>
+      )}
 
       {groups.length === 0 ? (
         <p className="mt-5 rounded-2xl border border-dashed border-ink/15 px-4 py-5 text-center text-sm text-ink/45">

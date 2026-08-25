@@ -6,6 +6,7 @@ import CategoryManager from "@/components/admin/CategoryManager";
 import { safeReturnPath } from "@/lib/return-path";
 import { getLocale } from "@/lib/i18n/server";
 import { localizedName } from "@/lib/types";
+import { buildReusableProductOptionGroups } from "@/lib/product-options";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,17 @@ export default async function EditProductPage({
   );
   const supabase = await createClient();
   const locale = await getLocale();
-  const [{ data: product }, { data: categories }] = await Promise.all([
+  const [{ data: product }, { data: categories }, { data: products }] = await Promise.all([
     supabase.from("grainbuds_products").select("*").eq("id", id).maybeSingle(),
     supabase.from("grainbuds_categories").select("*").order("sort_order"),
+    supabase
+      .from("grainbuds_products")
+      .select("id, name, name_de, option_groups")
+      .order("sort_order"),
   ]);
 
   if (!product) notFound();
+  const reusableOptionGroups = buildReusableProductOptionGroups(products ?? [], id);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -46,6 +52,7 @@ export default async function EditProductPage({
           product={product}
           categories={categories ?? []}
           returnTo={returnTo}
+          reusableOptionGroups={reusableOptionGroups}
         />
       </div>
       <div id="categories" className="mt-16 max-w-2xl scroll-mt-8 sm:mt-20">

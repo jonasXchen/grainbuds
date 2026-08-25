@@ -5,7 +5,12 @@
 import { useActionState, useState } from "react";
 import { motion } from "framer-motion";
 import { saveProduct, type ActionState } from "@/lib/actions/admin";
-import { localizedName, type Category, type Product } from "@/lib/types";
+import {
+  localizedName,
+  type Category,
+  type Product,
+  type ReusableProductOptionGroup,
+} from "@/lib/types";
 import ProductOptionsEditor from "@/components/admin/ProductOptionsEditor";
 
 const inputClass =
@@ -15,10 +20,12 @@ export default function ProductForm({
   product,
   categories,
   returnTo,
+  reusableOptionGroups = [],
 }: {
   product?: Product;
   categories: Category[];
   returnTo?: string;
+  reusableOptionGroups?: ReusableProductOptionGroup[];
 }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
     saveProduct,
@@ -182,7 +189,11 @@ export default function ProductForm({
         </div>
       </div>
 
-      <ProductOptionsEditor initialGroups={product?.option_groups ?? []} />
+      <ProductOptionsEditor
+        initialGroups={product?.option_groups ?? []}
+        reusableGroups={reusableOptionGroups}
+        language={editingLanguage}
+      />
 
       <div>
         <span className="mb-2 block text-sm font-medium text-ink">Photo</span>
