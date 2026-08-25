@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   createContext,
   useContext,
   useMemo,
@@ -14,8 +15,11 @@ import type { OrderStatus } from "@/lib/types";
 type StatusMap = Record<string, OrderStatus>;
 
 type OrderStatusBatchContextValue = {
-  statusFor: (orderId: string, fallback: OrderStatus) => OrderStatus;
-  setStatus: (orderId: string, status: OrderStatus) => void;
+  stageStatus: (
+    orderId: string,
+    status: OrderStatus,
+    savedStatus: OrderStatus
+  ) => void;
 };
 
 const OrderStatusBatchContext = createContext<OrderStatusBatchContextValue | null>(null);
@@ -29,43 +33,44 @@ export function useOrderStatusBatch() {
 }
 
 export default function OrderStatusBatchProvider({
-  initialStatuses,
   labels,
   children,
 }: {
-  initialStatuses: StatusMap;
   labels: {
-    hint: string;
     changedOne: string;
     changedMany: string;
     save: string;
     saving: string;
-    saved: string;
     error: string;
   };
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [savedStatuses, setSavedStatuses] = useState(initialStatuses);
-  const [draftStatuses, setDraftStatuses] = useState(initialStatuses);
-  const [feedback, setFeedback] = useState<"saved" | "error" | null>(null);
+  const [draftChanges, setDraftChanges] = useState<StatusMap>({});
+  const [feedback, setFeedback] = useState<"error" | null>(null);
   const [isPending, startTransition] = useTransition();
   const changes = useMemo(
-    () =>
-      Object.entries(draftStatuses)
-        .filter(([id, status]) => savedStatuses[id] !== status)
-        .map(([id, status]) => ({ id, status })),
-    [draftStatuses, savedStatuses]
+    () => Object.entries(draftChanges).map(([id, status]) => ({ id, status })),
+    [draftChanges]
+  );
+  const stageStatus = useCallback(
+    (orderId: string, status: OrderStatus, savedStatus: OrderStatus) => {
+      setDraftChanges((current) => {
+        const next = { ...current };
+        if (status === savedStatus) {
+          delete next[orderId];
+        } else {
+          next[orderId] = status;
+        }
+        return next;
+      });
+      setFeedback(null);
+    },
+    []
   );
   const context = useMemo<OrderStatusBatchContextValue>(
-    () => ({
-      statusFor: (orderId, fallback) => draftStatuses[orderId] ?? fallback,
-      setStatus: (orderId, status) => {
-        setDraftStatuses((current) => ({ ...current, [orderId]: status }));
-        setFeedback(null);
-      },
-    }),
-    [draftStatuses]
+    () => ({ stageStatus }),
+    [stageStatus]
   );
 
   function saveChanges() {
@@ -77,8 +82,8 @@ export default function OrderStatusBatchProvider({
         setFeedback("error");
         return;
       }
-      setSavedStatuses(draftStatuses);
-      setFeedback("saved");
+      setDraftChanges({});
+      setFeedback(null);
       window.dispatchEvent(new Event("grainbuds:orders-changed"));
       router.refresh();
     });
@@ -86,39 +91,28 @@ export default function OrderStatusBatchProvider({
 
   return (
     <OrderStatusBatchContext.Provider value={context}>
-      <div className="sticky top-3 z-20 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-cream-light/95 p-3 pl-4 shadow-[0_12px_35px_-24px_rgba(18,26,37,0.55)] backdrop-blur-md">
-        <div>
-          <p className="text-sm font-medium text-ink">
-            {changes.length > 0
-              ? `${changes.length} ${changes.length === 1 ? labels.changedOne : labels.changedMany}`
-              : labels.hint}
-          </p>
-          <p
-            aria-live="polite"
-            className={`mt-0.5 min-h-4 text-xs font-medium ${
-              feedback === "saved"
-                ? "text-matcha-deep"
-                : feedback === "error"
-                  ? "text-red-600"
-                  : "text-ink/45"
-            }`}
+      {changes.length > 0 && (
+        <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-cream-light/95 p-3 pl-5 shadow-[0_18px_55px_-22px_rgba(18,26,37,0.65)] backdrop-blur-md md:left-[16rem]">
+          <div className="text-left">
+            <p className="text-sm font-medium leading-none text-ink">
+              {changes.length} {changes.length === 1 ? labels.changedOne : labels.changedMany}
+            </p>
+            {feedback === "error" && (
+              <p aria-live="polite" className="mt-1.5 text-xs font-medium text-red-600">
+                {labels.error}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={saveChanges}
+            disabled={isPending}
+            className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep disabled:cursor-not-allowed disabled:opacity-35"
           >
-            {feedback === "saved"
-              ? `✓ ${labels.saved}`
-              : feedback === "error"
-                ? labels.error
-                : " "}
-          </p>
+            {isPending ? labels.saving : labels.save}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={saveChanges}
-          disabled={isPending || changes.length === 0}
-          className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep disabled:cursor-not-allowed disabled:opacity-35"
-        >
-          {isPending ? labels.saving : labels.save}
-        </button>
-      </div>
+      )}
       {children}
     </OrderStatusBatchContext.Provider>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useId, useTransition } from "react";
 import { motion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/types";
@@ -14,6 +14,7 @@ export default function LanguageSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const layoutId = `lang-pill-${useId()}`;
 
   function setLocale(next: Locale) {
     if (next === locale) return;
@@ -23,7 +24,7 @@ export default function LanguageSwitcher() {
 
   return (
     <div
-      className={`relative flex items-center rounded-full border border-ink/15 bg-cream-light p-1 text-xs font-semibold ${
+      className={`relative flex items-center rounded-full border border-ink/20 bg-cream-light p-1 text-xs font-semibold shadow-sm ${
         isPending ? "opacity-60" : ""
       }`}
       role="group"
@@ -35,13 +36,13 @@ export default function LanguageSwitcher() {
           type="button"
           onClick={() => setLocale(lang)}
           className={`relative rounded-full px-2 py-1.5 uppercase tracking-wide transition-colors duration-300 sm:px-2.5 ${
-            locale === lang ? "text-cream" : "text-ink/50 hover:text-ink"
+            locale === lang ? "text-cream" : "text-ink/55 hover:text-ink"
           }`}
           aria-pressed={locale === lang}
         >
           {locale === lang && (
             <motion.span
-              layoutId="lang-pill"
+              layoutId={layoutId}
               className="absolute inset-0 rounded-full bg-ink"
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
             />

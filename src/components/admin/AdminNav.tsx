@@ -132,7 +132,7 @@ export default function AdminNav({
   }, [pathname]);
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-2 border-b border-cream/10 bg-ink px-4 py-3 text-cream md:sticky md:top-0 md:h-dvh md:w-60 md:gap-0 md:border-b-0 md:border-r md:px-4 md:py-6">
+    <aside className="flex w-full shrink-0 flex-col gap-4 border-b border-cream/10 bg-ink px-4 py-3 text-cream md:sticky md:top-0 md:h-dvh md:w-60 md:gap-0 md:border-b-0 md:border-r md:px-4 md:py-6">
       <div className="flex items-center justify-between md:block">
         <Link href="/" className="block px-2" aria-label={copy.home}>
           <Image
@@ -173,7 +173,7 @@ export default function AdminNav({
               href={link.href}
               className={`flex shrink-0 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-300 ${
                 isActive
-                  ? "bg-matcha text-ink"
+                  ? "bg-cream-light text-ink shadow-sm"
                   : "text-cream/65 hover:bg-cream/10 hover:text-cream"
               }`}
             >

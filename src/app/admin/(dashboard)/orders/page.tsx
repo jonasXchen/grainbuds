@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, type Order } from "@/lib/types";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
-import PaymentSelect from "@/components/admin/PaymentSelect";
 import { getLocale } from "@/lib/i18n/server";
 import OrderStatusBatchProvider from "@/components/admin/OrderStatusBatchProvider";
+import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +11,8 @@ export default async function AdminOrdersPage() {
   const supabase = await createClient();
   const locale = await getLocale();
   const copy = locale === "de"
-    ? { title: "Bestellungen", description: "Status für mehrere Bestellungen auswählen und anschließend gemeinsam speichern; bezahlt wird im Café.", open: "Offen", done: "Erledigt", noOpen: "Zurzeit keine offenen Bestellungen.", noDone: "Noch keine abgeschlossenen Bestellungen.", table: "Tisch", dineIn: "Vor Ort", pickup: "Abholung", qr: "QR", note: "Hinweis", reward: "11. Getränk gratis", batchHint: "Statusänderungen werden gesammelt.", batchChangedOne: "Bestellung geändert", batchChangedMany: "Bestellungen geändert", batchSave: "Änderungen speichern", batchSaving: "Speichert…", batchSaved: "Änderungen gespeichert", batchError: "Einige Änderungen konnten nicht gespeichert werden." }
-    : { title: "Orders", description: "Choose statuses for multiple orders, then save them together; customers pay at the café.", open: "Open", done: "Done", noOpen: "No open orders right now—enjoy the quiet.", noDone: "Nothing completed yet.", table: "Table", dineIn: "Dine in", pickup: "Pickup", qr: "QR", note: "Note", reward: "11th drink free", batchHint: "Status changes are staged.", batchChangedOne: "order changed", batchChangedMany: "orders changed", batchSave: "Save changes", batchSaving: "Saving…", batchSaved: "Changes saved", batchError: "Some changes could not be saved." };
+    ? { title: "Bestellungen", description: "Status für mehrere Bestellungen auswählen und anschließend gemeinsam speichern. Abgeschlossen wird automatisch bezahlt, storniert automatisch erstattet.", open: "Offen", done: "Erledigt", noOpen: "Zurzeit keine offenen Bestellungen.", noDone: "Noch keine abgeschlossenen Bestellungen.", table: "Tisch", dineIn: "Vor Ort", pickup: "Abholung", qr: "QR", note: "Hinweis", reward: "11. Getränk gratis", batchChangedOne: "Bestellung geändert", batchChangedMany: "Bestellungen geändert", batchSave: "Änderungen speichern", batchSaving: "Speichert…", batchError: "Einige Änderungen konnten nicht gespeichert werden.", deleteOrder: "Bestellung löschen", deletingOrder: "Wird gelöscht…", deleteConfirmTitle: "Bestellung wirklich löschen?", deleteConfirm: "Diese Bestellung wird dauerhaft entfernt. Zugehörige Artikel und Treuepunkte werden sicher ausgeglichen.", deleteCancel: "Behalten", deleteConfirmAction: "Endgültig löschen", deleteError: "Die Bestellung konnte nicht gelöscht werden." }
+    : { title: "Orders", description: "Choose statuses for multiple orders, then save them together. Completed becomes paid automatically; cancelled becomes refunded.", open: "Open", done: "Done", noOpen: "No open orders right now—enjoy the quiet.", noDone: "Nothing completed yet.", table: "Table", dineIn: "Dine in", pickup: "Pickup", qr: "QR", note: "Note", reward: "11th drink free", batchChangedOne: "order changed", batchChangedMany: "orders changed", batchSave: "Save changes", batchSaving: "Saving…", batchError: "Some changes could not be saved.", deleteOrder: "Delete order", deletingOrder: "Deleting…", deleteConfirmTitle: "Delete this order?", deleteConfirm: "This order will be removed permanently. Its items and loyalty balance will be reconciled safely.", deleteCancel: "Keep order", deleteConfirmAction: "Delete permanently", deleteError: "The order could not be deleted." };
   const { data } = await supabase
     .from("grainbuds_orders")
     .select("*, order_items:grainbuds_order_items(*)")
@@ -35,14 +35,11 @@ export default async function AdminOrdersPage() {
       </p>
 
       <OrderStatusBatchProvider
-        initialStatuses={Object.fromEntries(orders.map((order) => [order.id, order.status]))}
         labels={{
-          hint: copy.batchHint,
           changedOne: copy.batchChangedOne,
           changedMany: copy.batchChangedMany,
           save: copy.batchSave,
           saving: copy.batchSaving,
-          saved: copy.batchSaved,
           error: copy.batchError,
         }}
       >
@@ -62,7 +59,7 @@ function OrderSection({
   title: string;
   orders: Order[];
   emptyText: string;
-  copy: { table: string; dineIn: string; pickup: string; qr: string; note: string; reward: string };
+  copy: { table: string; dineIn: string; pickup: string; qr: string; note: string; reward: string; deleteOrder: string; deletingOrder: string; deleteConfirmTitle: string; deleteConfirm: string; deleteCancel: string; deleteConfirmAction: string; deleteError: string };
 }) {
   return (
     <section className="mt-10">
@@ -103,12 +100,25 @@ function OrderSection({
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="font-display text-xl text-ink">
+                <div className="flex w-full flex-nowrap items-center gap-2 sm:w-auto sm:gap-3">
+                  <span className="shrink-0 font-display text-xl text-ink">
                     {formatPrice(order.total_cents)}
                   </span>
-                  <PaymentSelect order={order} />
-                  <OrderStatusSelect orderId={order.id} status={order.status} />
+                  <div className="ml-auto flex items-center gap-1.5 sm:ml-0">
+                    <OrderStatusSelect orderId={order.id} status={order.status} />
+                    <DeleteOrderButton
+                      orderId={order.id}
+                      labels={{
+                        delete: copy.deleteOrder,
+                        deleting: copy.deletingOrder,
+                        confirmTitle: copy.deleteConfirmTitle,
+                        confirm: copy.deleteConfirm,
+                        cancel: copy.deleteCancel,
+                        confirmDelete: copy.deleteConfirmAction,
+                        error: copy.deleteError,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 

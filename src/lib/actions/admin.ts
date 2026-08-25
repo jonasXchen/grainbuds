@@ -27,6 +27,9 @@ export type StampBalanceActionState =
 export type BatchOrderStatusResult =
   | { ok: true; updated: number }
   | { ok: false; error: string };
+export type DeleteOrderResult =
+  | { ok: true }
+  | { ok: false; error: string };
 
 async function requireAdmin() {
   if (!hasSupabaseEnv()) {
@@ -423,11 +426,28 @@ export async function updateOrderStatuses(
   const results = await Promise.all(
     pending.map(async (order) => {
       const status = unique.get(order.id)!;
+      const payment = status === "completed"
+        ? {
+            payment_status: "paid" as const,
+            payment_method: order.payment_method ?? null,
+            paid_at: order.paid_at ?? new Date().toISOString(),
+          }
+        : status === "cancelled"
+          ? {
+              payment_status: "refunded" as const,
+              payment_method: null,
+              paid_at: null,
+            }
+          : {
+              payment_status: order.payment_status ?? ("unpaid" as const),
+              payment_method: order.payment_method ?? null,
+              paid_at: order.paid_at ?? null,
+            };
       const { error } = await supabase
         .from("grainbuds_orders")
-        .update({ status })
+        .update({ status, ...payment })
         .eq("id", order.id);
-      return { order, status, error };
+      return { order, status, payment, error };
     })
   );
   const failed = results.filter((result) => result.error);
@@ -436,16 +456,17 @@ export async function updateOrderStatuses(
   await Promise.all(
     saved
       .filter(({ status }) => status === "new" || status === "cancelled")
-      .map(({ order, status }) =>
+      .map(({ order, status, payment }) =>
         sendOrderNotification(
           "status_updated",
-          { ...order, status },
+          { ...order, status, ...payment },
           { previousStatus: order.status }
         )
       )
   );
 
   if (saved.length > 0) {
+    revalidatePath("/admin");
     revalidatePath("/admin/orders");
     for (const { order } of saved) revalidatePath(`/order/${order.id}`);
   }
@@ -459,6 +480,66 @@ export async function updateOrderStatuses(
     };
   }
   return { ok: true, updated: saved.length };
+}
+
+export async function deleteOrder(orderId: string): Promise<DeleteOrderResult> {
+  const supabase = await requireAdmin();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
+    return { ok: false, error: "Invalid order." };
+  }
+
+  const { data, error: readError } = await supabase
+    .from("grainbuds_orders")
+    .select("id, status, payment_status, loyalty_reward_cents")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (readError || !data) {
+    return { ok: false, error: "Could not find this order." };
+  }
+
+  // Keep loyalty history correct before the order disappears. The existing
+  // database triggers reverse earned stamps for paid orders and release a
+  // reserved reward for unpaid cancellations.
+  if (data.payment_status === "paid") {
+    const { error } = await supabase
+      .from("grainbuds_orders")
+      .update({ payment_status: "refunded", payment_method: null, paid_at: null })
+      .eq("id", orderId);
+    if (error) {
+      return { ok: false, error: "Could not reconcile this order's stamps." };
+    }
+  } else if (
+    Number(data.loyalty_reward_cents) > 0 &&
+    data.status !== "cancelled"
+  ) {
+    const { error } = await supabase
+      .from("grainbuds_orders")
+      .update({ status: "cancelled" })
+      .eq("id", orderId);
+    if (error) {
+      return { ok: false, error: "Could not release this order's reward." };
+    }
+  }
+
+  const { error } = await supabase
+    .from("grainbuds_orders")
+    .delete()
+    .eq("id", orderId);
+  if (error) {
+    console.error("Could not delete order", {
+      orderId,
+      code: error.code,
+      message: error.message,
+    });
+    return { ok: false, error: "Could not delete this order." };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/analytics");
+  revalidatePath("/admin/customers");
+  revalidatePath(`/order/${orderId}`);
+  return { ok: true };
 }
 
 export async function saveOrderNotificationEmails(

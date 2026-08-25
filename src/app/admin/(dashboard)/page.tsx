@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice, type Order } from "@/lib/types";
+import type { Order } from "@/lib/types";
 import { getLocale } from "@/lib/i18n/server";
+import OverviewOrderList from "@/components/admin/OverviewOrderList";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,24 @@ export default async function AdminOverviewPage() {
         viewOrders: "Bestellungen ansehen",
         latest: "Neueste Bestellungen",
         empty: "Noch keine Bestellungen. Online-Bestellungen erscheinen hier.",
-        statuses: { new: "Neu", in_progress: "In Bearbeitung", ready: "Bereit", completed: "Abgeschlossen", cancelled: "Storniert" },
+        batchChangedOne: "Bestellung geändert",
+        batchChangedMany: "Bestellungen geändert",
+        batchSave: "Änderungen speichern",
+        batchSaving: "Speichert…",
+        batchError: "Einige Änderungen konnten nicht gespeichert werden.",
+        deleteOrder: "Bestellung löschen",
+        deletingOrder: "Wird gelöscht…",
+        deleteConfirmTitle: "Bestellung wirklich löschen?",
+        deleteConfirm: "Diese Bestellung wird dauerhaft entfernt. Zugehörige Artikel und Treuepunkte werden sicher ausgeglichen.",
+        deleteCancel: "Behalten",
+        deleteConfirmAction: "Endgültig löschen",
+        deleteError: "Die Bestellung konnte nicht gelöscht werden.",
+        table: "Tisch",
+        dineIn: "Vor Ort",
+        pickup: "Abholung",
+        qr: "QR",
+        note: "Hinweis",
+        reward: "11. Getränk gratis",
       }
     : {
         title: "Overview",
@@ -31,7 +49,24 @@ export default async function AdminOverviewPage() {
         viewOrders: "View orders",
         latest: "Latest orders",
         empty: "No orders yet. When customers order online, they’ll show up here.",
-        statuses: { new: "New", in_progress: "In progress", ready: "Ready", completed: "Completed", cancelled: "Cancelled" },
+        batchChangedOne: "order changed",
+        batchChangedMany: "orders changed",
+        batchSave: "Save changes",
+        batchSaving: "Saving…",
+        batchError: "Some changes could not be saved.",
+        deleteOrder: "Delete order",
+        deletingOrder: "Deleting…",
+        deleteConfirmTitle: "Delete this order?",
+        deleteConfirm: "This order will be removed permanently. Its items and loyalty balance will be reconciled safely.",
+        deleteCancel: "Keep order",
+        deleteConfirmAction: "Delete permanently",
+        deleteError: "The order could not be deleted.",
+        table: "Table",
+        dineIn: "Dine in",
+        pickup: "Pickup",
+        qr: "QR",
+        note: "Note",
+        reward: "11th drink free",
       };
 
   const [{ count: productCount }, { count: activeCount }, ordersRes] =
@@ -43,7 +78,7 @@ export default async function AdminOverviewPage() {
         .eq("is_active", true),
       supabase
         .from("grainbuds_orders")
-        .select("*")
+        .select("*, order_items:grainbuds_order_items(*)")
         .order("created_at", { ascending: false })
         .limit(8),
     ]);
@@ -66,7 +101,7 @@ export default async function AdminOverviewPage() {
         {copy.description}
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:mt-8 sm:grid-cols-3">
         {stats.map((stat) => (
           <div
             key={stat.label}
@@ -102,33 +137,7 @@ export default async function AdminOverviewPage() {
             {copy.empty}
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-ink/8 overflow-hidden rounded-3xl bg-cream-light">
-            {orders.map((order) => (
-              <li key={order.id}>
-                <Link
-                  href="/admin/orders"
-                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-6 py-4 transition-colors hover:bg-matcha/10"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-ink">
-                      {order.customer_name}
-                    </p>
-                    <p className="text-xs text-ink/50">
-                      {new Date(order.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-ink/70">
-                      {formatPrice(order.total_cents)}
-                    </span>
-                    <span className="rounded-full bg-ink/8 px-3 py-1 text-xs font-medium text-ink/70">
-                      {copy.statuses[order.status as keyof typeof copy.statuses] ?? order.status}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <OverviewOrderList orders={orders} locale={locale} labels={copy} />
         )}
       </div>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { OrderStatus } from "@/lib/types";
 import { useLocale } from "@/lib/i18n/context";
 import { useOrderStatusBatch } from "@/components/admin/OrderStatusBatchProvider";
@@ -19,9 +20,19 @@ export default function OrderStatusSelect({
   orderId: string;
   status: OrderStatus;
 }) {
+  return <OrderStatusControl key={status} orderId={orderId} status={status} />;
+}
+
+function OrderStatusControl({
+  orderId,
+  status,
+}: {
+  orderId: string;
+  status: OrderStatus;
+}) {
   const locale = useLocale();
   const batch = useOrderStatusBatch();
-  const currentStatus = batch.statusFor(orderId, status);
+  const [currentStatus, setCurrentStatus] = useState(status);
   const options: { value: OrderStatus; label: string }[] = locale === "de"
     ? [
         { value: "new", label: "Neu" },
@@ -41,8 +52,15 @@ export default function OrderStatusSelect({
   return (
     <select
       value={currentStatus}
-      onChange={(event) => batch.setStatus(orderId, event.target.value as OrderStatus)}
-      className={`min-h-9 cursor-pointer rounded-full border px-3.5 py-2 text-xs font-medium outline-none transition-colors ${colors[currentStatus]} ${
+      title={locale === "de"
+        ? "Abgeschlossen wird bezahlt; storniert wird erstattet."
+        : "Completed becomes paid; cancelled becomes refunded."}
+      onChange={(event) => {
+        const nextStatus = event.target.value as OrderStatus;
+        setCurrentStatus(nextStatus);
+        batch.stageStatus(orderId, nextStatus, status);
+      }}
+      className={`min-h-9 w-36 max-w-full cursor-pointer rounded-full border px-3 py-2 text-xs font-medium outline-none transition-colors sm:w-auto sm:px-3.5 ${colors[currentStatus]} ${
         currentStatus !== status ? "ring-2 ring-sand-deep/30 ring-offset-1" : ""
       }`}
     >
