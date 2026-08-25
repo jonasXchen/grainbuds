@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context";
 import { useT } from "@/lib/i18n/context";
 import LanguageSwitcher from "./LanguageSwitcher";
 import StaffNavControls from "./StaffNavControls";
+import LoyaltyButton from "./LoyaltyButton";
 
 function subscribeToScroll(callback: () => void) {
   window.addEventListener("scroll", callback, { passive: true });
@@ -86,6 +87,7 @@ export default function Header({
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
+          {!isStaff && <LoyaltyButton />}
           <button
             type="button"
             onClick={openCart}

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient, hasSupabaseEnv } from "./supabase/server";
+import { isAdminEmail } from "./admin-emails";
 
 /**
  * True only when the current session belongs to an account on the
@@ -12,7 +13,7 @@ export async function getIsStaff(): Promise<boolean> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return false;
+  if (!user || !isAdminEmail(user.email)) return false;
   const { data } = await supabase.rpc("grainbuds_is_staff");
   return data === true;
 }

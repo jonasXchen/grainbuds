@@ -1,18 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseKey, supabaseUrl } from "@/lib/supabase/env";
+import { isAdminEmail } from "@/lib/admin-emails";
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only the admin area needs auth handling.
-  if (!pathname.startsWith("/admin")) {
-    return NextResponse.next();
-  }
-
-  // No Supabase configured yet — let the login page render its setup notice.
+  // No Supabase configured yet — public pages remain in demo mode and the
+  // admin login page renders its setup notice.
   if (!supabaseUrl || !supabaseKey) {
-    if (pathname === "/admin/login") return NextResponse.next();
+    if (!pathname.startsWith("/admin") || pathname === "/admin/login") {
+      return NextResponse.next();
+    }
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin/login";
     return NextResponse.redirect(redirectUrl);
@@ -41,13 +40,19 @@ export default async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && pathname !== "/admin/login") {
+  let isStaff = false;
+  if (user && isAdminEmail(user.email) && pathname.startsWith("/admin")) {
+    const { data } = await supabase.rpc("grainbuds_is_staff");
+    isStaff = data === true;
+  }
+
+  if ((!user || !isStaff) && pathname.startsWith("/admin") && pathname !== "/admin/login") {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin/login";
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && pathname === "/admin/login") {
+  if (user && isStaff && pathname === "/admin/login") {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin";
     return NextResponse.redirect(redirectUrl);
@@ -57,5 +62,9 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // Refresh the Supabase cookie on public pages too so customer OTP sessions
+  // remain signed in. Static assets never need auth work.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|mp4)$).*)",
+  ],
 };

@@ -13,6 +13,7 @@ import {
   type QueueEstimate,
 } from "@/lib/actions/orders";
 import ProductImage from "@/components/site/ProductImage";
+import { useLoyalty } from "@/lib/loyalty-context";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-5 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-300 focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
@@ -36,6 +37,7 @@ export default function CheckoutPage() {
   );
   const locale = useLocale();
   const t = useT();
+  const { user } = useLoyalty();
 
   useEffect(() => {
     let active = true;
@@ -258,7 +260,17 @@ export default function CheckoutPage() {
                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-ink">
                   {t.checkout.email}
                 </label>
-                <input id="email" name="email" type="email" required maxLength={200} className={inputClass} placeholder="you@example.com" />
+                <input
+                  key={user?.email ?? "guest"}
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  maxLength={200}
+                  defaultValue={user?.email ?? ""}
+                  className={inputClass}
+                  placeholder="you@example.com"
+                />
               </div>
             </div>
             <div>

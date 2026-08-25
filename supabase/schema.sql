@@ -5,7 +5,8 @@
 --
 -- Covers: product catalog + inventory, grainbuds_orders + payment history,
 -- customer data + mailing list, image storage, and all security rules.
--- Staff logins are managed in Supabase Auth (see README), not here.
+-- Staff logins use Supabase email OTP. The server mirrors verified addresses
+-- from ORDER_ADMIN_EMAILS into grainbuds_staff (see README).
 -- ============================================================
 
 -- ============ Catalog ============
@@ -43,6 +44,7 @@ create index grainbuds_products_category_idx on grainbuds_products (category_id)
 
 create table grainbuds_orders (
   id uuid primary key default gen_random_uuid(),
+  customer_user_id uuid references auth.users(id) on delete set null,
   customer_name text not null,
   customer_email text not null,
   customer_phone text,
@@ -70,6 +72,7 @@ create table grainbuds_orders (
 create index grainbuds_orders_created_idx on grainbuds_orders (created_at desc);
 create index grainbuds_orders_status_idx on grainbuds_orders (status);
 create index grainbuds_orders_email_idx on grainbuds_orders (lower(customer_email));
+create index grainbuds_orders_customer_user_idx on grainbuds_orders (customer_user_id, created_at desc);
 
 create table grainbuds_order_items (
   id uuid primary key default gen_random_uuid(),
@@ -95,6 +98,30 @@ create table grainbuds_subscribers (
   source text not null default 'checkout',
   created_at timestamptz not null default now()
 );
+
+-- Optional loyalty membership is independent from marketing consent. Ledger
+-- entries are immutable audit events; customers can read only their own.
+create table grainbuds_loyalty_accounts (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  enrolled_at timestamptz not null default now()
+);
+
+create table grainbuds_loyalty_ledger (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  order_id uuid references grainbuds_orders(id) on delete set null,
+  delta smallint not null check (delta <> 0 and delta between -10 and 10),
+  kind text not null check (kind in ('order_paid', 'order_refunded', 'staff_adjustment', 'redemption')),
+  note text check (note is null or char_length(note) <= 240),
+  created_at timestamptz not null default now()
+);
+
+create index grainbuds_loyalty_ledger_user_idx
+  on grainbuds_loyalty_ledger (user_id, created_at desc);
+create unique index grainbuds_loyalty_one_paid_stamp_per_order
+  on grainbuds_loyalty_ledger (order_id) where kind = 'order_paid';
+create unique index grainbuds_loyalty_one_refund_per_order
+  on grainbuds_loyalty_ledger (order_id) where kind = 'order_refunded';
 
 -- Staff-managed application settings. Values are JSON so additional settings
 -- can be added without another schema change. Never expose this table to anon.
@@ -123,8 +150,8 @@ create index grainbuds_qr_scans_campaign_idx
 -- Grainbuds — only accounts listed here count as staff. This keeps other
 -- apps' users in the same project away from grainbuds_* tables entirely.
 --
--- There are deliberately NO write policies on this table: rows can only be
--- added or removed in the SQL Editor (see README), never through the API.
+-- There are deliberately NO client write policies on this table. The trusted
+-- server syncs verified ORDER_ADMIN_EMAILS via its secret client.
 
 create table grainbuds_staff (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -162,6 +189,8 @@ alter table grainbuds_order_items enable row level security;
 alter table grainbuds_subscribers enable row level security;
 alter table grainbuds_settings enable row level security;
 alter table grainbuds_qr_scans enable row level security;
+alter table grainbuds_loyalty_accounts enable row level security;
+alter table grainbuds_loyalty_ledger enable row level security;
 
 -- Anyone can browse grainbuds_categories and live grainbuds_products.
 create policy "public read grainbuds_categories" on grainbuds_categories
@@ -181,7 +210,10 @@ create policy "staff write grainbuds_categories" on grainbuds_categories
 -- directly — the confirmation page uses grainbuds_order_confirmation() below,
 -- which requires knowing the exact unguessable order id.
 create policy "public create grainbuds_orders" on grainbuds_orders
-  for insert with check (true);
+  for insert with check (
+    (auth.uid() is null and customer_user_id is null)
+    or customer_user_id = auth.uid()
+  );
 create policy "public create order items" on grainbuds_order_items
   for insert with check (true);
 
@@ -194,6 +226,69 @@ create policy "staff delete grainbuds_orders" on grainbuds_orders
   for delete to authenticated using (public.grainbuds_is_staff());
 create policy "staff read order items" on grainbuds_order_items
   for select to authenticated using (public.grainbuds_is_staff());
+
+create policy "customers read own loyalty account" on grainbuds_loyalty_accounts
+  for select to authenticated using (user_id = auth.uid());
+create policy "customers create own loyalty account" on grainbuds_loyalty_accounts
+  for insert to authenticated with check (user_id = auth.uid());
+create policy "staff read loyalty accounts" on grainbuds_loyalty_accounts
+  for select to authenticated using (public.grainbuds_is_staff());
+create policy "customers read own loyalty ledger" on grainbuds_loyalty_ledger
+  for select to authenticated using (user_id = auth.uid());
+create policy "staff read loyalty ledger" on grainbuds_loyalty_ledger
+  for select to authenticated using (public.grainbuds_is_staff());
+
+create or replace function public.grainbuds_my_loyalty_summary()
+returns jsonb
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select jsonb_build_object(
+    'stamps', coalesce(sum(delta), 0),
+    'paid_orders', count(*) filter (where kind = 'order_paid'),
+    'enrolled', exists (
+      select 1 from public.grainbuds_loyalty_accounts where user_id = auth.uid()
+    )
+  )
+  from public.grainbuds_loyalty_ledger
+  where user_id = auth.uid();
+$$;
+
+revoke all on function public.grainbuds_my_loyalty_summary() from public;
+grant execute on function public.grainbuds_my_loyalty_summary() to authenticated;
+
+create or replace function public.grainbuds_award_loyalty_stamp()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.customer_user_id is null then return new; end if;
+  if new.payment_status = 'paid' and old.payment_status is distinct from 'paid' then
+    insert into public.grainbuds_loyalty_accounts (user_id)
+      values (new.customer_user_id) on conflict (user_id) do nothing;
+    insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind)
+      values (new.customer_user_id, new.id, 1, 'order_paid')
+      on conflict (order_id) where kind = 'order_paid' do nothing;
+  elsif old.payment_status = 'paid' and new.payment_status = 'refunded' then
+    insert into public.grainbuds_loyalty_ledger (user_id, order_id, delta, kind)
+      select new.customer_user_id, new.id, -1, 'order_refunded'
+      where exists (
+        select 1 from public.grainbuds_loyalty_ledger
+        where order_id = new.id and kind = 'order_paid'
+      )
+      on conflict (order_id) where kind = 'order_refunded' do nothing;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger order_loyalty_stamp
+  after update of payment_status on grainbuds_orders
+  for each row execute function public.grainbuds_award_loyalty_stamp();
 
 -- Customers may join the mailing list; only staff can read or manage it.
 create policy "public join grainbuds_subscribers" on grainbuds_subscribers

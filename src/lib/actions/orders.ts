@@ -5,6 +5,7 @@ import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { getProductBySlug } from "@/lib/data";
 import { sendOrderNotification } from "@/lib/order-notifications";
 import { localizedName, type FulfillmentType, type Order } from "@/lib/types";
+import { isAdminEmail } from "@/lib/admin-emails";
 
 export type CheckoutLine = {
   productId: string;
@@ -180,11 +181,20 @@ export async function createOrder(
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let customerUserId: string | null = null;
+  if (user) {
+    const { data: isStaff } = await supabase.rpc("grainbuds_is_staff");
+    if (!isAdminEmail(user.email) || isStaff !== true) customerUserId = user.id;
+  }
   const orderId = crypto.randomUUID();
   const { error } = await supabase
     .from("grainbuds_orders")
     .insert({
       id: orderId,
+      customer_user_id: customerUserId,
       customer_name: input.customerName.trim().slice(0, 120),
       customer_email: input.customerEmail.trim().slice(0, 200),
       customer_phone: input.customerPhone?.trim().slice(0, 40) || null,

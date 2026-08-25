@@ -1,6 +1,8 @@
 import { CartProvider } from "@/lib/cart-context";
 import { LocaleProvider } from "@/lib/i18n/context";
 import { AdminModeProvider } from "@/lib/admin-mode-context";
+import { LoyaltyProvider } from "@/lib/loyalty-context";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getLocale } from "@/lib/i18n/server";
 import { getViewMode } from "@/lib/staff";
 import SmoothScroll from "@/components/site/SmoothScroll";
@@ -9,6 +11,7 @@ import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/site/CartDrawer";
 import CookieNotice from "@/components/site/CookieNotice";
 import CheckoutBar from "@/components/site/CheckoutBar";
+import LoyaltyDrawer from "@/components/site/LoyaltyDrawer";
 
 export default async function SiteLayout({
   children,
@@ -23,15 +26,18 @@ export default async function SiteLayout({
   return (
     <LocaleProvider locale={locale}>
       <AdminModeProvider isAdmin={adminMode}>
-        <CartProvider>
-          <SmoothScroll>
-            <Header isStaff={isStaff} customerView={!adminMode} />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </SmoothScroll>
-          <CartDrawer />
-          <CheckoutBar />
-        </CartProvider>
+        <LoyaltyProvider enabled={hasSupabaseEnv()}>
+          <CartProvider>
+            <SmoothScroll>
+              <Header isStaff={isStaff} customerView={!adminMode} />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </SmoothScroll>
+            <CartDrawer />
+            <CheckoutBar />
+            <LoyaltyDrawer />
+          </CartProvider>
+        </LoyaltyProvider>
         <CookieNotice />
       </AdminModeProvider>
     </LocaleProvider>

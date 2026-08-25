@@ -12,12 +12,15 @@
 -- ============================================================
 
 -- Tables (cascade removes their policies, triggers, and indexes)
+drop table if exists grainbuds_loyalty_ledger cascade;
+drop table if exists grainbuds_loyalty_accounts cascade;
 drop table if exists grainbuds_order_items cascade;
 drop table if exists grainbuds_orders cascade;
 drop table if exists grainbuds_products cascade;
 drop table if exists grainbuds_categories cascade;
 drop table if exists grainbuds_subscribers cascade;
 drop table if exists grainbuds_settings cascade;
+drop table if exists grainbuds_qr_scans cascade;
 drop table if exists grainbuds_staff cascade;
 
 -- Functions
@@ -25,6 +28,11 @@ drop function if exists public.grainbuds_handle_order_item_stock() cascade;
 drop function if exists public.grainbuds_order_confirmation(uuid);
 drop function if exists public.grainbuds_queue_snapshot();
 drop function if exists public.grainbuds_update_order_details(uuid, text, text, text, text, text);
+drop function if exists public.grainbuds_qr_campaign_stats();
+drop function if exists public.grainbuds_get_instagram_gallery();
+drop function if exists public.grainbuds_popular_product_names(int);
+drop function if exists public.grainbuds_my_loyalty_summary();
+drop function if exists public.grainbuds_award_loyalty_stamp();
 drop function if exists public.grainbuds_is_staff() cascade;
 
 -- Storage policies (the bucket itself is kept; schema.sql re-creates

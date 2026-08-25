@@ -16,9 +16,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // The proxy guarantees a session; this checks the account is actually on
-  // the Grainbuds staff allowlist (other apps' users in the same Supabase
-  // project are not).
+  // The proxy guarantees a session; this also confirms that the verified
+  // email is in ORDER_ADMIN_EMAILS and its database staff record is active.
   const [isStaff, locale] = await Promise.all([getIsStaff(), getLocale()]);
 
   if (!isStaff) {
@@ -32,12 +31,12 @@ export default async function AdminLayout({
           </svg>
         </span>
         <h1 className="font-display text-3xl">
-          {locale === "de" ? "Nicht in der Mitarbeiterliste" : "Not on the staff list"}
+          {locale === "de" ? "Kein Adminzugriff" : "No admin access"}
         </h1>
         <p className="max-w-sm text-sm leading-relaxed text-cream/60">
           {locale === "de"
-            ? "Dieses Konto ist angemeldet, aber nicht als Grainbuds-Mitarbeiter registriert. Bitten Sie den Inhaber, es hinzuzufügen."
-            : "This account is signed in, but it isn’t registered as Grainbuds staff. Ask the owner to add it."}
+            ? "Diese E-Mail-Adresse ist nicht in ORDER_ADMIN_EMAILS für Grainbuds freigeschaltet."
+            : "This email address is not enabled for Grainbuds in ORDER_ADMIN_EMAILS."}
         </p>
         <form action={logout}>
           <button

@@ -10,6 +10,7 @@ import {
 } from "@/lib/instagram-gallery";
 import { safeReturnPath } from "@/lib/return-path";
 import type { Order, OrderStatus } from "@/lib/types";
+import { isAdminEmail } from "@/lib/admin-emails";
 
 export type ActionState =
   | { error: string; message?: never }
@@ -28,7 +29,7 @@ async function requireAdmin() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/admin/login");
+  if (!user || !isAdminEmail(user.email)) redirect("/admin/login");
   // A session alone isn't enough — the account must be on the
   // grainbuds_staff allowlist (RLS would block the writes anyway;
   // this gives a clean redirect instead of silent failures).

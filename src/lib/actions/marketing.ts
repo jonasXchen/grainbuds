@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/admin-emails";
 
 export type CampaignState =
   | { ok: true; message: string }
@@ -15,7 +16,7 @@ async function requireAdmin() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/admin/login");
+  if (!user || !isAdminEmail(user.email)) redirect("/admin/login");
   const { data: isStaff } = await supabase.rpc("grainbuds_is_staff");
   if (isStaff !== true) redirect("/admin");
   return supabase;

@@ -36,22 +36,12 @@ order. The admin panel needs Supabase (next section).
    the old site). Everything can be edited later in the admin panel, and
    re-running it refreshes names/prices without duplicating.
 
-4. **Create the owner's login**: dashboard → **Authentication → Users →
-   Add user → Create new user**. Enter the owner's email and a password, and tick
-   **Auto confirm user**. Then register that account as Grainbuds staff —
-   back in the SQL Editor, run (with the right email):
-
-   ```sql
-   insert into grainbuds_staff (user_id, email)
-   select id, email from auth.users where email = 'owner@grainbuds.cafe'
-   on conflict (user_id) do nothing;
-   ```
-
-   Both steps are required: a Supabase login alone is *not* enough — only
-   accounts in `grainbuds_staff` can manage the café. This keeps users of any
-   other app sharing the same Supabase project away from `grainbuds_*` tables.
-   To revoke access later, delete the row (`delete from grainbuds_staff where
-   email = '...'`).
+4. **Configure the owner's login**: set `ORDER_ADMIN_EMAILS` to a comma-separated
+   list of approved addresses and set the server-only `SUPABASE_SECRET_KEY`.
+   Admins use the same passwordless email-code login as customers. After a
+   verified allowlisted login, the server automatically maintains the matching
+   `grainbuds_staff` row required by the database security policies. Removing an
+   address from `ORDER_ADMIN_EMAILS` blocks future admin access.
 5. **Add the keys to the site**: copy `.env.example` to `.env.local` and fill in
    the values from **Project Settings → API Keys**: the Project URL, the
    **publishable** key (`sb_publishable_...`), and the server-only **secret** key
@@ -60,6 +50,21 @@ order. The admin panel needs Supabase (next section).
    projects with a legacy `anon` key can use `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 6. Restart `npm run dev`. The shop now reads from your database, orders are
    saved, and `/admin/login` works.
+
+### Enable customer email codes and loyalty
+
+For an existing database, run
+[`supabase/migrations/20260825_customer_loyalty.sql`](supabase/migrations/20260825_customer_loyalty.sql)
+once in the SQL Editor. Then in Supabase **Authentication → Email Templates →
+Magic Link**, include `{{ .Token }}` in the message so customers and admins receive the
+one-time code shown by the site. Configure custom SMTP before production;
+Supabase's built-in mail service is intended only for limited testing.
+
+Customer login is optional and guest checkout continues to work. A signed-in
+order earns one stamp only when staff marks it **Paid**; changing it to
+**Refunded** reverses that stamp. Repeated payment updates cannot duplicate a
+stamp. Ten stamps make one reward visible on the card; staff redemption is a
+deliberate follow-up rather than part of this first test version.
 
 ## For the owner — day-to-day use (no coding)
 
@@ -142,7 +147,7 @@ supabase/
 - **Languages**: the EN/DE toggle stores a cookie; UI text lives in
   `src/lib/i18n/dictionaries.ts`, product/category translations in the database.
 - **Privacy and browser storage**: the public site uses only necessary storage
-  for consent acknowledgement, language, cart, and staff sessions; there are no
+  for consent acknowledgement, language, cart, and requested customer or staff sessions; there are no
   analytics or advertising trackers. The bilingual `/privacy` page documents
   the current data flows. Before production use, confirm the controller's exact
   legal name/contact details and obtain professional review; this repository is
