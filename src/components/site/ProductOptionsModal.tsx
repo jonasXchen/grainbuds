@@ -16,6 +16,7 @@ export default function ProductOptionsModal({
   quantity = 1,
   openCart = true,
   initialSelectedOptions = [],
+  defaultFirstOption = true,
   editingLineId,
   onClose,
 }: {
@@ -23,18 +24,28 @@ export default function ProductOptionsModal({
   quantity?: number;
   openCart?: boolean;
   initialSelectedOptions?: SelectedProductOption[];
+  defaultFirstOption?: boolean;
   editingLineId?: string;
   onClose: () => void;
 }) {
   const locale = useLocale();
   const { addItem, replaceLineOptions } = useCart();
   const groups = useMemo(() => product.option_groups ?? [], [product.option_groups]);
-  const [selection, setSelection] = useState<Record<string, string[]>>(() =>
-    initialSelectedOptions.reduce<Record<string, string[]>>((result, option) => {
+  const [selection, setSelection] = useState<Record<string, string[]>>(() => {
+    const initial = initialSelectedOptions.reduce<Record<string, string[]>>((result, option) => {
       result[option.group_id] = [...(result[option.group_id] ?? []), option.option_id];
       return result;
-    }, {})
-  );
+    }, {});
+    if (defaultFirstOption) {
+      for (const group of groups) {
+        const firstOption = group.options[0];
+        if (!(initial[group.id]?.length) && firstOption) {
+          initial[group.id] = [firstOption.id];
+        }
+      }
+    }
+    return initial;
+  });
   const [showErrors, setShowErrors] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 

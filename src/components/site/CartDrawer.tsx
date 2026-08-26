@@ -223,6 +223,7 @@ export default function CartDrawer() {
         quantity={customizingLine.mode === "add" ? 1 : customizingLine.line.quantity}
         openCart={false}
         initialSelectedOptions={customizingLine.line.selected_options}
+        defaultFirstOption={false}
         editingLineId={
           customizingLine.mode === "edit" ? customizingLine.line.id : undefined
         }
