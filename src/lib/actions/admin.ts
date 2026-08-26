@@ -528,6 +528,7 @@ export async function updateOrderStatuses(
   if (saved.length > 0) {
     revalidatePath("/admin");
     revalidatePath("/admin/orders");
+    revalidatePath("/orders");
     for (const { order } of saved) revalidatePath(`/order/${order.id}`);
   }
   if (failed.length > 0) {
@@ -598,6 +599,7 @@ export async function deleteOrder(orderId: string): Promise<DeleteOrderResult> {
   revalidatePath("/admin/orders");
   revalidatePath("/admin/analytics");
   revalidatePath("/admin/customers");
+  revalidatePath("/orders");
   revalidatePath(`/order/${orderId}`);
   return { ok: true };
 }

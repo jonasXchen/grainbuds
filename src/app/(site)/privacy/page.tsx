@@ -12,7 +12,7 @@ const sections = {
   en: {
     eyebrow: "Privacy",
     title: "Privacy policy",
-    updated: "Last updated: 25 August 2026",
+    updated: "Last updated: 26 August 2026",
     intro:
       "This notice explains how personal data and browser storage are used when you visit grainbuds.de, place an order, or use the staff area.",
     controllerTitle: "1. Controller",
@@ -23,10 +23,10 @@ const sections = {
       "The website is hosted by Vercel. When it is accessed, technically required connection and log data may be processed, including IP address, time, requested page, browser information, and error data. This processing is necessary to deliver and secure the website and is based on our legitimate interest in reliable operation (Article 6(1)(f) GDPR). Log retention is determined by operational and security requirements and the hosting provider's applicable terms.",
     ordersTitle: "3. Orders and customer service",
     orders:
-      "When you place or edit an order, we process your name, email address, optional telephone number, selected fulfilment method, table number or pickup details where applicable, notes, ordered products, prices, status, and payment record. QR orders also retain their campaign label so we can measure scans and completed orders. This is necessary to prepare and fulfil your order (Article 6(1)(b) GDPR). If you voluntarily use the stamp card, Supabase stores your authenticated user identifier and an auditable record of earned or reversed stamps; only orders placed while signed in are linked, and loyalty membership is independent from marketing consent. Order and loyalty data is available only to you where applicable and authorised staff. Your private order URL contains an unguessable identifier and must not be shared. Data is retained only as long as needed for fulfilment, the loyalty service, and applicable commercial, tax, or legal retention duties.",
-    emailTitle: "4. Transactional and marketing email",
+      "When you place or edit an order, we process your name, email address, optional telephone number, selected fulfilment method, table number or pickup details where applicable, notes, ordered products, prices, status, and payment record. QR orders also retain their campaign label so we can measure scans and completed orders. This is necessary to prepare and fulfil your order (Article 6(1)(b) GDPR). If you voluntarily use the stamp card, Supabase stores your authenticated user identifier and an auditable record of earned or reversed stamps. Orders placed while signed in are linked immediately; after email verification, earlier guest orders using the same email are also linked. Loyalty membership is independent from marketing consent. Order and loyalty data is available only to you where applicable and authorised staff. Your private order URL contains an unguessable identifier and must not be shared. Data is retained only as long as needed for fulfilment, the loyalty service, and applicable commercial, tax, or legal retention duties.",
+    emailTitle: "4. Login, staff, and marketing email",
     email:
-      "One-time login codes, order confirmations, cancellation notices, and staff notifications for new or customer-edited orders are delivered through Resend. The email address and details required for each message are transmitted for this purpose (Article 6(1)(b) GDPR or, for a voluntarily requested loyalty login, Article 6(1)(a) GDPR). Marketing email is sent only after separate explicit opt-in; consent can be withdrawn at any time. Withdrawing marketing consent does not affect login or operational messages.",
+      "One-time login codes and staff notifications for new or customer-edited orders are delivered through Resend. Customers do not receive order-confirmation or cancellation emails. The email address and details required for login or staff notification are transmitted for those purposes. Marketing email is sent only after separate explicit opt-in; consent can be withdrawn at any time. Withdrawing marketing consent does not affect login.",
     storageTitle: "5. Cookies and local storage",
     storageIntro:
       "We use no advertising, profiling, social-media tracking, or third-party analytics cookies. A QR redirect records its campaign label, destination, order type, optional table number, and timestamp so aggregate scans and orders can be compared; the application does not add an IP address, user-agent string, or customer identifier to that scan record. The following first-party browser storage is technically necessary for requested website functions:",
@@ -34,11 +34,13 @@ const sections = {
       "grainbuds-cookie-consent — remembers this notice choice for up to one year.",
       "grainbuds-lang — remembers the selected language for up to one year.",
       "grainbuds-cart-v1 (local storage) — keeps the shopping cart until it is cleared or browser data is deleted.",
+      "grainbuds-ordering-context-v1 (session storage) — temporarily remembers whether an order originated from an online or table QR code, including the table and campaign where applicable; it ends with the browser session or after checkout.",
+      "grainbuds-checkout-name-v1 (local storage) — stores the checkout name on this device only when “Remember my name” is selected; unticking it or deleting browser data removes it.",
       "Supabase authentication cookies — keep a requested customer stamp card or authorised staff session signed in; duration depends on the session and can be ended by signing out.",
       "grainbuds-view — remembers a staff preview mode for up to one day.",
     ],
     storageEnd:
-      "Necessary device storage is used to provide the service requested by the user under section 25(2) TDDDG. If optional analytics or advertising tools are introduced later, they must remain disabled until valid consent is obtained.",
+      "Necessary device storage is used to provide the service requested by the user under section 25(2) TDDDG. The optional remembered name is stored only after the corresponding voluntary selection at checkout and is not used for tracking. If optional analytics or advertising tools are introduced later, they must remain disabled until valid consent is obtained.",
     processorsTitle: "6. Service providers and international transfers",
     processors:
       "We use Vercel for hosting, Supabase for database/authentication services, and Resend for email delivery. These providers process data on our behalf. Depending on provider infrastructure, data may be processed outside the European Economic Area. Where required, transfers must be covered by an applicable GDPR transfer mechanism and the provider's data-processing terms.",
@@ -52,7 +54,7 @@ const sections = {
   de: {
     eyebrow: "Datenschutz",
     title: "Datenschutzerklärung",
-    updated: "Stand: 25. August 2026",
+    updated: "Stand: 26. August 2026",
     intro:
       "Diese Erklärung informiert darüber, wie personenbezogene Daten und Browser-Speicher beim Besuch von grainbuds.de, bei Bestellungen und im Mitarbeiterbereich verwendet werden.",
     controllerTitle: "1. Verantwortlicher",
@@ -63,10 +65,10 @@ const sections = {
       "Die Website wird bei Vercel gehostet. Beim Aufruf können technisch erforderliche Verbindungs- und Protokolldaten verarbeitet werden, darunter IP-Adresse, Zeitpunkt, aufgerufene Seite, Browserinformationen und Fehlerdaten. Die Verarbeitung dient der Auslieferung und Sicherheit der Website und beruht auf unserem berechtigten Interesse an einem zuverlässigen Betrieb (Art. 6 Abs. 1 lit. f DSGVO). Die Speicherdauer der Protokolle richtet sich nach betrieblichen und sicherheitsbezogenen Erfordernissen sowie den geltenden Bedingungen des Hosting-Anbieters.",
     ordersTitle: "3. Bestellungen und Kundenservice",
     orders:
-      "Bei einer Bestellung oder Änderung verarbeiten wir Name, E-Mail-Adresse, optionale Telefonnummer, gewählte Bestellart, gegebenenfalls Tischnummer oder Abholdaten, Hinweise, bestellte Produkte, Preise, Status und Zahlungsnachweis. Bei QR-Bestellungen wird außerdem die Kampagnenbezeichnung gespeichert, um Scans und abgeschlossene Bestellungen auszuwerten. Dies ist zur Vorbereitung und Erfüllung der Bestellung erforderlich (Art. 6 Abs. 1 lit. b DSGVO). Wenn Sie freiwillig die Stempelkarte nutzen, speichert Supabase Ihre authentifizierte Benutzerkennung und einen nachvollziehbaren Verlauf gutgeschriebener oder stornierter Stempel; nur angemeldet aufgegebene Bestellungen werden verknüpft, und die Teilnahme ist unabhängig von der Marketing-Einwilligung. Bestell- und Treuedaten sind je nach Funktion nur für Sie und berechtigte Mitarbeiter zugänglich. Die private Bestell-URL enthält eine nicht erratbare Kennung und darf nicht weitergegeben werden. Daten werden nur so lange gespeichert, wie es für Abwicklung, Treueprogramm und gesetzliche Aufbewahrungspflichten erforderlich ist.",
-    emailTitle: "4. Bestell- und Marketing-E-Mails",
+      "Bei einer Bestellung oder Änderung verarbeiten wir Name, E-Mail-Adresse, optionale Telefonnummer, gewählte Bestellart, gegebenenfalls Tischnummer oder Abholdaten, Hinweise, bestellte Produkte, Preise, Status und Zahlungsnachweis. Bei QR-Bestellungen wird außerdem die Kampagnenbezeichnung gespeichert, um Scans und abgeschlossene Bestellungen auszuwerten. Dies ist zur Vorbereitung und Erfüllung der Bestellung erforderlich (Art. 6 Abs. 1 lit. b DSGVO). Wenn Sie freiwillig die Stempelkarte nutzen, speichert Supabase Ihre authentifizierte Benutzerkennung und einen nachvollziehbaren Verlauf gutgeschriebener oder stornierter Stempel. Angemeldet aufgegebene Bestellungen werden sofort verknüpft; nach der E-Mail-Verifizierung werden auch frühere Gastbestellungen mit derselben Adresse zugeordnet. Die Teilnahme ist unabhängig von der Marketing-Einwilligung. Bestell- und Treuedaten sind je nach Funktion nur für Sie und berechtigte Mitarbeiter zugänglich. Die private Bestell-URL enthält eine nicht erratbare Kennung und darf nicht weitergegeben werden. Daten werden nur so lange gespeichert, wie es für Abwicklung, Treueprogramm und gesetzliche Aufbewahrungspflichten erforderlich ist.",
+    emailTitle: "4. Anmeldung, Mitarbeiter- und Marketing-E-Mails",
     email:
-      "Einmalige Anmeldecodes, Bestellbestätigungen, Stornierungsmitteilungen und Mitarbeiterhinweise zu neuen oder vom Kunden geänderten Bestellungen werden über Resend zugestellt. Dafür werden die jeweils benötigte E-Mail-Adresse und Nachrichtendaten übermittelt (Art. 6 Abs. 1 lit. b DSGVO beziehungsweise bei einer freiwillig angeforderten Treue-Anmeldung Art. 6 Abs. 1 lit. a DSGVO). Marketing-E-Mails versenden wir nur nach gesonderter ausdrücklicher Einwilligung; deren Widerruf betrifft weder Anmelde- noch notwendige Bestellnachrichten.",
+      "Einmalige Anmeldecodes sowie Mitarbeiterhinweise zu neuen oder vom Kunden geänderten Bestellungen werden über Resend zugestellt. Kunden erhalten keine Bestellbestätigungs- oder Stornierungs-E-Mails. Die für Anmeldung oder Mitarbeiterhinweis benötigte E-Mail-Adresse und die erforderlichen Nachrichtendaten werden dafür übermittelt. Marketing-E-Mails versenden wir nur nach gesonderter ausdrücklicher Einwilligung; deren Widerruf betrifft die Anmeldung nicht.",
     storageTitle: "5. Cookies und lokaler Speicher",
     storageIntro:
       "Wir setzen keine Werbe-, Profiling- oder Social-Media-Tracker und keine Analyse-Cookies von Drittanbietern ein. Bei einer QR-Weiterleitung werden Kampagnenbezeichnung, Ziel, Bestellart, gegebenenfalls Tischnummer und Zeitpunkt erfasst, um Scans und Bestellungen zusammengefasst zu vergleichen; die Anwendung ergänzt diesen Scan-Datensatz nicht um IP-Adresse, User-Agent oder Kundenkennung. Folgende eigene Browser-Speicherungen sind für gewünschte Website-Funktionen technisch erforderlich:",
@@ -74,11 +76,13 @@ const sections = {
       "grainbuds-cookie-consent — speichert die Auswahl zu diesem Hinweis für bis zu ein Jahr.",
       "grainbuds-lang — speichert die gewählte Sprache für bis zu ein Jahr.",
       "grainbuds-cart-v1 (Local Storage) — erhält den Warenkorb, bis er geleert oder die Browserdaten gelöscht werden.",
+      "grainbuds-ordering-context-v1 (Session Storage) — speichert vorübergehend, ob eine Bestellung von einem Online- oder Tisch-QR-Code stammt, gegebenenfalls einschließlich Tisch und Kampagne; die Speicherung endet mit der Browser-Sitzung oder nach dem Checkout.",
+      "grainbuds-checkout-name-v1 (Local Storage) — speichert den Checkout-Namen auf diesem Gerät nur nach Auswahl von „Meinen Namen merken“; durch Abwählen oder Löschen der Browserdaten wird er entfernt.",
       "Supabase-Authentifizierungs-Cookies — halten eine gewünschte Kunden-Stempelkarte oder eine berechtigte Mitarbeiter-Sitzung angemeldet; Dauer entsprechend der Sitzung, die durch Abmelden beendet werden kann.",
       "grainbuds-view — speichert den Vorschaumodus für Mitarbeiter für bis zu einen Tag.",
     ],
     storageEnd:
-      "Technisch notwendige Speicherung auf dem Endgerät erfolgt zur Bereitstellung des ausdrücklich gewünschten Dienstes nach § 25 Abs. 2 TDDDG. Werden später optionale Analyse- oder Werbedienste ergänzt, müssen diese bis zu einer wirksamen Einwilligung deaktiviert bleiben.",
+      "Technisch notwendige Speicherung auf dem Endgerät erfolgt zur Bereitstellung des ausdrücklich gewünschten Dienstes nach § 25 Abs. 2 TDDDG. Der optionale gemerkte Name wird nur nach der entsprechenden freiwilligen Auswahl im Checkout gespeichert und nicht zum Tracking verwendet. Werden später optionale Analyse- oder Werbedienste ergänzt, müssen diese bis zu einer wirksamen Einwilligung deaktiviert bleiben.",
     processorsTitle: "6. Dienstleister und Drittlandübermittlungen",
     processors:
       "Wir nutzen Vercel für Hosting, Supabase für Datenbank- und Authentifizierungsdienste und Resend für den E-Mail-Versand. Diese Anbieter verarbeiten Daten in unserem Auftrag. Abhängig von der Infrastruktur können Daten außerhalb des Europäischen Wirtschaftsraums verarbeitet werden. Soweit erforderlich, müssen Übermittlungen durch einen anwendbaren DSGVO-Übermittlungsmechanismus und die Auftragsverarbeitungsbedingungen des Anbieters abgesichert sein.",

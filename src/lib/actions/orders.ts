@@ -395,6 +395,7 @@ export async function createOrder(
     })),
   });
 
+  revalidatePath("/orders");
   return { ok: true, orderId, demo: false };
 }
 

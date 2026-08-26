@@ -74,7 +74,7 @@ export async function getCustomerOrderHistory(): Promise<CustomerOrderHistory> {
   const { data, error } = await admin
     .from("grainbuds_orders")
     .select(
-      "id, customer_name, fulfillment_type, table_number, status, total_cents, loyalty_reward_cents, payment_status, created_at, order_items(id, order_id, product_id, product_name, unit_price_cents, quantity, notes, loyalty_eligible, selected_options)"
+      "id, customer_name, fulfillment_type, table_number, status, total_cents, loyalty_reward_cents, payment_status, created_at, order_items:grainbuds_order_items(id, order_id, product_id, product_name, unit_price_cents, quantity, notes, loyalty_eligible, selected_options)"
     )
     .eq("customer_user_id", user.id)
     .order("created_at", { ascending: false })

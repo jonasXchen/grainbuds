@@ -23,6 +23,7 @@ import { isLoyaltyEligible, LOYALTY_REWARD_STAMPS } from "@/lib/loyalty";
 
 const inputClass =
   "w-full rounded-2xl border border-ink/15 bg-cream-light px-5 py-3.5 text-sm text-ink placeholder:text-ink/35 outline-none transition-all duration-300 focus:border-matcha-deep focus:ring-4 focus:ring-matcha/20";
+const CHECKOUT_NAME_KEY = "grainbuds-checkout-name-v1";
 
 export default function CheckoutPage() {
   const {
@@ -35,6 +36,8 @@ export default function CheckoutPage() {
   } = useCart();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState("");
+  const [rememberName, setRememberName] = useState(false);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [queueEstimate, setQueueEstimate] = useState<QueueEstimate | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -46,6 +49,20 @@ export default function CheckoutPage() {
   const locale = useLocale();
   const t = useT();
   const { user, stamps } = useLoyalty();
+
+  useEffect(() => {
+    try {
+      const savedName = localStorage.getItem(CHECKOUT_NAME_KEY)?.trim();
+      if (savedName) {
+        // Browser storage is read after mount to keep server/client HTML stable.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCustomerName(savedName.slice(0, 120));
+        setRememberName(true);
+      }
+    } catch {
+      // Storage can be unavailable in private or restricted browser contexts.
+    }
+  }, []);
 
   const loyaltyDrinkLines = lines.filter((line) => isLoyaltyEligible(line.product));
   const loyaltyDrinkCount = loyaltyDrinkLines.reduce(
@@ -118,6 +135,15 @@ export default function CheckoutPage() {
       if (!result.ok) {
         setError(result.error);
         return;
+      }
+      try {
+        if (rememberName) {
+          localStorage.setItem(CHECKOUT_NAME_KEY, customerName.trim().slice(0, 120));
+        } else {
+          localStorage.removeItem(CHECKOUT_NAME_KEY);
+        }
+      } catch {
+        // The order still succeeds if optional device storage is unavailable.
       }
       setOrderSubmitted(true);
       clearCart();
@@ -299,7 +325,16 @@ export default function CheckoutPage() {
                 <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink">
                   {t.checkout.name}
                 </label>
-                <input id="name" name="name" required maxLength={120} className={inputClass} placeholder={t.checkout.namePlaceholder} />
+                <input
+                  id="name"
+                  name="name"
+                  required
+                  maxLength={120}
+                  value={customerName}
+                  onChange={(event) => setCustomerName(event.target.value)}
+                  className={inputClass}
+                  placeholder={t.checkout.namePlaceholder}
+                />
               </div>
               <div>
                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-ink">
@@ -317,6 +352,33 @@ export default function CheckoutPage() {
                   placeholder="you@example.com"
                 />
               </div>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-cream-light px-5 py-4">
+              <label className="flex cursor-pointer items-start gap-3 text-sm text-ink/70">
+                <input
+                  type="checkbox"
+                  checked={rememberName}
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setRememberName(checked);
+                    if (!checked) {
+                      try {
+                        localStorage.removeItem(CHECKOUT_NAME_KEY);
+                      } catch {
+                        // Storage may be unavailable; local state still updates.
+                      }
+                    }
+                  }}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-matcha-deep"
+                />
+                <span>{t.checkout.rememberName}</span>
+              </label>
+              <Link
+                href="/privacy"
+                className="ml-7 mt-2 inline-block text-xs text-ink/45 underline decoration-ink/20 underline-offset-4 hover:text-ink"
+              >
+                {t.checkout.privacyDetails}
+              </Link>
             </div>
             <div>
               <label htmlFor="notes" className="mb-2 block text-sm font-medium text-ink">

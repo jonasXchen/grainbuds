@@ -39,13 +39,13 @@ export default function CookieNotice() {
     locale === "de"
       ? {
           title: "Datenschutz, ganz einfach",
-          text: "Keine Analyse-, Werbe- oder Tracking-Cookies. Wir speichern nur, was Sprache, Warenkorb und wichtige Website-Funktionen benötigen.",
+          text: "Keine Analyse-, Werbe- oder Tracking-Cookies. Eigener Browser-Speicher wird nur für Ihre Auswahl und gewünschte Website-Funktionen verwendet.",
           action: "Verstanden",
           privacy: "Mehr erfahren",
         }
       : {
           title: "Privacy, kept simple",
-          text: "No analytics, advertising, or tracking cookies. We only store what language, cart, and essential site features need.",
+          text: "No analytics, advertising, or tracking cookies. First-party browser storage is used only for your choices and requested website features.",
           action: "Got it",
           privacy: "Learn more",
         };
