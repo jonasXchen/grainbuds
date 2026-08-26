@@ -180,7 +180,6 @@ export const dictionaries = {
     },
     order: {
       titleA: "Order received.",
-      titleB: "The whisk is moving.",
       subDemo:
         "This is a demo order — connect Supabase to start saving real orders.",
       sub: "We're preparing everything fresh. Pay at the counter — see you soon.",
@@ -195,6 +194,12 @@ export const dictionaries = {
       },
       pickup: "Pickup",
       status: "Status",
+      liveQueue: "Live preparation queue",
+      queuePosition: "Your current position",
+      estimatedWait: "Estimated drink wait",
+      minute: "minute",
+      minutes: "minutes",
+      queueRefresh: "Updates automatically while your order is being prepared.",
       statuses: {
         new: "New",
         in_progress: "In progress",
@@ -423,7 +428,6 @@ export const dictionaries = {
     },
     order: {
       titleA: "Bestellung erhalten.",
-      titleB: "Der Besen ist im Einsatz.",
       subDemo:
         "Dies ist eine Demo-Bestellung — verbinden Sie Supabase, um echte Bestellungen zu speichern.",
       sub: "Wir bereiten alles frisch zu. Bezahlt wird an der Theke — bis gleich!",
@@ -438,6 +442,12 @@ export const dictionaries = {
       },
       pickup: "Abholung",
       status: "Status",
+      liveQueue: "Aktuelle Warteschlange",
+      queuePosition: "Ihre aktuelle Position",
+      estimatedWait: "Geschätzte Wartezeit für Getränke",
+      minute: "Minute",
+      minutes: "Minuten",
+      queueRefresh: "Wird während der Zubereitung automatisch aktualisiert.",
       statuses: {
         new: "Neu",
         in_progress: "In Bearbeitung",

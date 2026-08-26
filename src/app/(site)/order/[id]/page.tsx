@@ -17,6 +17,12 @@ import OrderEditLoginGate from "@/components/site/OrderEditLoginGate";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+type OrderQueueStatus = {
+  active: boolean;
+  position: number;
+  waiting_minutes: number;
+};
+
 function OrderProgress({
   status,
   labels,
@@ -76,6 +82,16 @@ async function getOrder(id: string): Promise<Order | null> {
   return (data as Order | null) ?? null;
 }
 
+async function getOrderQueueStatus(id: string): Promise<OrderQueueStatus | null> {
+  if (!UUID_PATTERN.test(id) || !hasSupabaseEnv()) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("grainbuds_order_queue_status", {
+    p_order_id: id,
+  });
+  if (error || !data || typeof data !== "object") return null;
+  return data as OrderQueueStatus;
+}
+
 async function getEditAccess(order: Order | null): Promise<{
   signedIn: boolean;
   canEdit: boolean;
@@ -113,7 +129,11 @@ export default async function OrderConfirmationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [order, { locale, t }] = await Promise.all([getOrder(id), getT()]);
+  const [order, queueStatus, { locale, t }] = await Promise.all([
+    getOrder(id),
+    getOrderQueueStatus(id),
+    getT(),
+  ]);
   const editAccess = await getEditAccess(order);
   const isDemo = id === "demo";
   const isDineIn = order?.fulfillment_type === "dine_in";
@@ -143,8 +163,6 @@ export default async function OrderConfirmationPage({
         <Reveal delay={0.1}>
           <h1 className="mt-7 font-display text-4xl leading-tight text-ink sm:text-5xl">
             {t.order.titleA}
-            <br />
-            <span className="text-matcha-deep">{t.order.titleB}</span>
           </h1>
         </Reveal>
         <Reveal delay={0.2}>
@@ -152,6 +170,34 @@ export default async function OrderConfirmationPage({
             {isDemo ? t.order.subDemo : t.order.sub}
           </p>
         </Reveal>
+
+        {queueStatus?.active && (
+          <Reveal delay={0.25} className="mt-8 rounded-3xl border border-matcha/35 bg-matcha/10 p-5 text-left sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-matcha-deep">
+              {t.order.liveQueue}
+            </p>
+            <div className="mt-4 grid grid-cols-2 divide-x divide-ink/10">
+              <div className="pr-4">
+                <p className="text-xs text-ink/50">{t.order.queuePosition}</p>
+                <p className="mt-1 font-display text-3xl text-ink">
+                  #{queueStatus.position}
+                </p>
+              </div>
+              <div className="pl-4">
+                <p className="text-xs text-ink/50">{t.order.estimatedWait}</p>
+                <p className="mt-1 whitespace-nowrap font-display text-3xl text-ink">
+                  ~{queueStatus.waiting_minutes}{" "}
+                  <span className="font-sans text-sm">
+                    {queueStatus.waiting_minutes === 1
+                      ? t.order.minute
+                      : t.order.minutes}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-ink/45">{t.order.queueRefresh}</p>
+          </Reveal>
+        )}
 
         {order && (
           <Reveal delay={0.3} className="mt-8 rounded-3xl bg-cream-light p-7 text-left">
