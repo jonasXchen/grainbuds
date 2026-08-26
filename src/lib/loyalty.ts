@@ -12,14 +12,20 @@ export const LOYALTY_DRINK_CATEGORY_SLUGS = new Set([
   "tapioca-boba",
 ]);
 
+export function isDrinkProduct(
+  product: Pick<Product, "category">
+): boolean {
+  return Boolean(
+    product.category?.slug &&
+      LOYALTY_DRINK_CATEGORY_SLUGS.has(product.category.slug)
+  );
+}
+
 export function isLoyaltyEligible(
   product: Pick<Product, "category" | "loyalty_eligible">
 ): boolean {
   if (typeof product.loyalty_eligible === "boolean") {
     return product.loyalty_eligible;
   }
-  return Boolean(
-    product.category?.slug &&
-      LOYALTY_DRINK_CATEGORY_SLUGS.has(product.category.slug)
-  );
+  return isDrinkProduct(product);
 }

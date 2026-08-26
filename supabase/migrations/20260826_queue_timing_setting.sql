@@ -18,8 +18,13 @@ as $$
       select coalesce(sum(i.quantity), 0)
       from public.grainbuds_order_items i
       join public.grainbuds_orders o on o.id = i.order_id
+      join public.grainbuds_products p on p.id = i.product_id
+      join public.grainbuds_categories c on c.id = p.category_id
       where o.status in ('new', 'in_progress')
-        and i.loyalty_eligible
+        and c.slug in (
+          'specialty-matcha', 'matcha-refresher', 'hojicha', 'smoothies',
+          'fruit-tea', 'fruit-cloud', 'tapioca-boba'
+        )
     ),
     'seconds_per_drink', coalesce((
       select case
@@ -68,9 +73,14 @@ begin
   select coalesce(sum(i.quantity), 0)::int into v_queued_drinks
   from public.grainbuds_order_items i
   join public.grainbuds_orders o on o.id = i.order_id
+  join public.grainbuds_products p on p.id = i.product_id
+  join public.grainbuds_categories c on c.id = p.category_id
   where o.status in ('new', 'in_progress')
     and (o.created_at, o.id) <= (v_created_at, p_order_id)
-    and i.loyalty_eligible;
+    and c.slug in (
+      'specialty-matcha', 'matcha-refresher', 'hojicha', 'smoothies',
+      'fruit-tea', 'fruit-cloud', 'tapioca-boba'
+    );
 
   select coalesce((
     select case

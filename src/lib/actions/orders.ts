@@ -10,7 +10,7 @@ import {
   type Order,
   type SelectedProductOption,
 } from "@/lib/types";
-import { isLoyaltyEligible } from "@/lib/loyalty";
+import { isDrinkProduct, isLoyaltyEligible } from "@/lib/loyalty";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { claimGuestOrdersForVerifiedUser } from "@/lib/customer-orders";
 
@@ -68,7 +68,7 @@ export async function getCheckoutEstimate(
     lines.map((line) => getProductBySlug(line.slug))
   );
   const currentDrinkCount = products.reduce((total, product, index) => {
-    if (!product || !isLoyaltyEligible(product)) {
+    if (!product || !isDrinkProduct(product)) {
       return total;
     }
     const quantity = Math.max(
