@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getT } from "@/lib/i18n/server";
 import {
   formatPrice,
@@ -10,6 +11,8 @@ import {
 import Reveal from "@/components/site/Reveal";
 import OrderEditForm from "@/components/site/OrderEditForm";
 import OrderStatusRefresh from "@/components/site/OrderStatusRefresh";
+import OrderAccountPrompt from "@/components/site/OrderAccountPrompt";
+import OrderEditLoginGate from "@/components/site/OrderEditLoginGate";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -73,6 +76,37 @@ async function getOrder(id: string): Promise<Order | null> {
   return (data as Order | null) ?? null;
 }
 
+async function getEditAccess(order: Order | null): Promise<{
+  signedIn: boolean;
+  canEdit: boolean;
+}> {
+  if (!order || !hasSupabaseEnv()) return { signedIn: false, canEdit: false };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { signedIn: false, canEdit: false };
+
+  const verifiedEmail = user.email?.trim().toLowerCase();
+  if (verifiedEmail && verifiedEmail === order.customer_email.trim().toLowerCase()) {
+    return { signedIn: true, canEdit: true };
+  }
+
+  const admin = createAdminClient();
+  if (!admin) return { signedIn: true, canEdit: false };
+  const { data } = await admin
+    .from("grainbuds_orders")
+    .select("customer_user_id")
+    .eq("id", order.id)
+    .maybeSingle();
+
+  return {
+    signedIn: true,
+    canEdit: data?.customer_user_id === user.id,
+  };
+}
+
 export default async function OrderConfirmationPage({
   params,
 }: {
@@ -80,8 +114,12 @@ export default async function OrderConfirmationPage({
 }) {
   const { id } = await params;
   const [order, { locale, t }] = await Promise.all([getOrder(id), getT()]);
+  const editAccess = await getEditAccess(order);
   const isDemo = id === "demo";
   const isDineIn = order?.fulfillment_type === "dine_in";
+  const isEditable = Boolean(
+    order && ["new", "in_progress"].includes(order.status)
+  );
 
   return (
     <div className="flex min-h-dvh items-center justify-center px-5 py-32 sm:px-8">
@@ -176,8 +214,7 @@ export default async function OrderConfirmationPage({
                 {t.order.pickup}: {order.pickup_time}
               </p>
             )}
-            {order.customer_email &&
-            ["new", "in_progress"].includes(order.status) ? (
+            {order.customer_email && isEditable && editAccess.canEdit ? (
               <OrderEditForm
                 order={order}
                 labels={{
@@ -192,11 +229,19 @@ export default async function OrderConfirmationPage({
                   saving: t.order.saving,
                 }}
               />
+            ) : isEditable ? (
+              <OrderEditLoginGate signedIn={editAccess.signedIn} />
             ) : (
               <p className="mt-5 rounded-2xl bg-cream px-4 py-3 text-sm text-ink/55">
                 {t.order.editLocked}
               </p>
             )}
+          </Reveal>
+        )}
+
+        {order && (!isEditable || editAccess.canEdit) && (
+          <Reveal delay={0.35}>
+            <OrderAccountPrompt />
           </Reveal>
         )}
 

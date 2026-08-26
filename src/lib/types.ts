@@ -88,6 +88,7 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  customer_user_id?: string | null;
   customer_name: string;
   customer_email: string;
   customer_phone: string | null;

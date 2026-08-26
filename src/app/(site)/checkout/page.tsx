@@ -187,7 +187,7 @@ export default function CheckoutPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-3xl border border-matcha/35 bg-matcha/10 p-5 sm:p-6 lg:col-start-1 lg:row-start-1"
+            className="order-1 rounded-3xl border border-matcha/35 bg-matcha/10 p-5 sm:p-6 lg:order-none lg:col-start-1 lg:row-start-1"
           >
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-matcha-deep">
               {t.checkout.queueTitle}
@@ -220,11 +220,12 @@ export default function CheckoutPage() {
           </motion.section>
 
           <motion.form
+            id="checkout-form"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
             onSubmit={handleSubmit}
-            className="space-y-5 lg:col-start-1 lg:row-start-2"
+            className="order-3 space-y-5 lg:order-none lg:col-start-1 lg:row-start-2"
           >
             <fieldset>
               <legend className="mb-3 text-sm font-medium text-ink">
@@ -355,7 +356,7 @@ export default function CheckoutPage() {
               type="submit"
               disabled={isPending}
               whileTap={{ scale: 0.97 }}
-              className="w-full rounded-full bg-ink py-4 text-sm font-medium text-cream transition-colors duration-300 hover:bg-matcha-deep disabled:opacity-60"
+              className="hidden w-full rounded-full bg-ink py-4 text-sm font-medium text-cream transition-colors duration-300 hover:bg-matcha-deep disabled:opacity-60 sm:block"
             >
               {isPending
                 ? t.checkout.placing
@@ -367,7 +368,7 @@ export default function CheckoutPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="h-fit rounded-3xl bg-cream-light p-6 sm:p-7 lg:col-start-2 lg:row-span-2 lg:row-start-1"
+            className="order-2 h-fit rounded-3xl bg-cream-light p-6 sm:p-7 lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-xl text-ink">
@@ -434,6 +435,19 @@ export default function CheckoutPage() {
             </div>
           </motion.aside>
         </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink/10 bg-cream/90 px-5 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_30px_rgba(18,26,37,0.08)] backdrop-blur-xl sm:hidden">
+        <motion.button
+          type="submit"
+          form="checkout-form"
+          disabled={isPending}
+          whileTap={{ scale: 0.98 }}
+          className="mx-auto flex w-full max-w-md items-center justify-between rounded-full bg-ink px-6 py-4 text-sm font-medium text-cream transition-colors disabled:opacity-60"
+        >
+          <span>{isPending ? t.checkout.placing : t.checkout.placeOrder}</span>
+          <span>{formatPrice(checkoutTotalCents, locale)}</span>
+        </motion.button>
       </div>
     </div>
   );

@@ -78,6 +78,10 @@ create index grainbuds_orders_created_idx on grainbuds_orders (created_at desc);
 create index grainbuds_orders_status_idx on grainbuds_orders (status);
 create index grainbuds_orders_email_idx on grainbuds_orders (lower(customer_email));
 create index grainbuds_orders_customer_user_idx on grainbuds_orders (customer_user_id, created_at desc);
+create unique index grainbuds_one_active_guest_order_per_email
+  on grainbuds_orders (lower(customer_email))
+  where customer_user_id is null
+    and status in ('new', 'in_progress', 'ready');
 
 create table grainbuds_order_items (
   id uuid primary key default gen_random_uuid(),
@@ -637,9 +641,9 @@ $$;
 revoke all on function public.grainbuds_queue_snapshot() from public;
 grant execute on function public.grainbuds_queue_snapshot() to anon, authenticated;
 
--- The order URL contains an unguessable UUID and acts as the customer's edit
--- capability. Customers can update pickup/contact details while work has not
--- progressed beyond "in progress". Product lines and totals remain immutable.
+-- Customers can update pickup/contact details while work has not progressed
+-- beyond "in progress", but only from the verified account that owns the order.
+-- Product lines and totals remain immutable.
 create or replace function public.grainbuds_update_order_details(
   p_order_id uuid,
   p_customer_name text,
@@ -668,6 +672,8 @@ begin
       pickup_time = nullif(left(btrim(coalesce(p_pickup_time, '')), 80), ''),
       notes = nullif(left(btrim(coalesce(p_notes, '')), 500), '')
   where o.id = p_order_id
+    and auth.uid() is not null
+    and o.customer_user_id = auth.uid()
     and o.status in ('new', 'in_progress');
 
   if not found then
@@ -708,7 +714,7 @@ end;
 $$;
 
 revoke all on function public.grainbuds_update_order_details(uuid, text, text, text, text, text) from public;
-grant execute on function public.grainbuds_update_order_details(uuid, text, text, text, text, text) to anon, authenticated;
+grant execute on function public.grainbuds_update_order_details(uuid, text, text, text, text, text) to authenticated;
 
 -- Aggregate-only bestseller feed for the homepage. It intentionally exposes
 -- product names without order ids, customer fields, quantities, or revenue.

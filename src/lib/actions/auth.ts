@@ -5,6 +5,7 @@ import { createClient, hasSupabaseEnv } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/admin-emails";
 import { sendAuthCode } from "@/lib/auth-email";
+import { claimGuestOrdersForVerifiedUser } from "@/lib/customer-orders";
 
 export type AuthResult = { ok: true } | { ok: false; error: string };
 export type AdminActivationResult =
@@ -69,6 +70,8 @@ export async function verifyCustomerCode(
       error: "Could not open the stamp card. Please request a new code.",
     };
   }
+
+  await claimGuestOrdersForVerifiedUser(data.user);
 
   if (!isAdminEmail(data.user.email)) {
     return { ok: true, isAdmin: false };
@@ -150,6 +153,8 @@ export async function verifyAdminCode(
     await supabase.auth.signOut();
     return { ok: false, error: "That code is invalid or has expired." };
   }
+
+  await claimGuestOrdersForVerifiedUser(data.user);
 
   // Cache the environment allowlist decision in the database so the existing
   // RLS policies continue to protect every admin query and mutation.

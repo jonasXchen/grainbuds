@@ -11,6 +11,8 @@ import {
   type SelectedProductOption,
 } from "@/lib/types";
 import { isLoyaltyEligible } from "@/lib/loyalty";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { claimGuestOrdersForVerifiedUser } from "@/lib/customer-orders";
 
 export type CheckoutLine = {
   productId: string;
@@ -51,6 +53,11 @@ export type QueueEstimate = {
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ACTIVE_ORDER_STATUSES: Order["status"][] = ["new", "in_progress", "ready"];
+
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
 
 export async function getCheckoutEstimate(
   lines: CheckoutLine[]
@@ -121,6 +128,7 @@ export async function createOrder(
   if (input.lines.length > 50) {
     return { ok: false, error: "Too many items in one order." };
   }
+  const normalizedCustomerEmail = input.customerEmail.trim().toLowerCase();
 
   // Re-price every line on the server — never trust client prices.
   const priced = [];
@@ -229,6 +237,40 @@ export async function createOrder(
   // Any authenticated storefront order therefore belongs to that user; admin
   // permissions affect management tools, not whether a purchase earns stamps.
   const customerUserId = user?.id ?? null;
+  if (!customerUserId) {
+    const admin = createAdminClient();
+    if (!admin) {
+      return {
+        ok: false,
+        error: "Could not verify your active orders. Please try again.",
+      };
+    }
+    const { data: activeOrders, error: activeOrderError } = await admin
+      .from("grainbuds_orders")
+      .select("id")
+      .is("customer_user_id", null)
+      .ilike("customer_email", escapeLikePattern(normalizedCustomerEmail))
+      .in("status", ACTIVE_ORDER_STATUSES)
+      .limit(1);
+    if (activeOrderError) {
+      console.error("Could not check active guest orders", {
+        code: activeOrderError.code,
+        message: activeOrderError.message,
+      });
+      return {
+        ok: false,
+        error: "Could not verify your active orders. Please try again.",
+      };
+    }
+    if (activeOrders?.length) {
+      return {
+        ok: false,
+        error:
+          "An active guest order already uses this email. Sign in to view it or wait until it is completed.",
+      };
+    }
+  }
+
   const orderId = crypto.randomUUID();
   const { error } = await supabase
     .from("grainbuds_orders")
@@ -236,7 +278,7 @@ export async function createOrder(
       id: orderId,
       customer_user_id: customerUserId,
       customer_name: input.customerName.trim().slice(0, 120),
-      customer_email: input.customerEmail.trim().slice(0, 200),
+      customer_email: normalizedCustomerEmail.slice(0, 200),
       customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
       pickup_time: input.pickupTime?.trim().slice(0, 80) || null,
       fulfillment_type: fulfillmentType,
@@ -258,7 +300,13 @@ export async function createOrder(
       message: error.message,
       details: error.details,
     });
-    return { ok: false, error: "Could not place the order. Please try again." };
+    return {
+      ok: false,
+      error:
+        error.code === "23505" && !customerUserId
+          ? "An active guest order already uses this email. Sign in to view it or wait until it is completed."
+          : "Could not place the order. Please try again.",
+    };
   }
 
   const { error: itemsError } = await supabase.from("grainbuds_order_items").insert(
@@ -324,6 +372,7 @@ export async function createOrder(
 
   await sendOrderNotification("created", {
     id: orderId,
+    customer_user_id: customerUserId,
     customer_name: input.customerName.trim().slice(0, 120),
     customer_email: input.customerEmail.trim().toLowerCase().slice(0, 200),
     customer_phone: input.customerPhone?.trim().slice(0, 40) || null,
@@ -385,6 +434,30 @@ export async function updateCustomerOrder(
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { ok: false, error: "Please sign in before editing this order." };
+  }
+
+  await claimGuestOrdersForVerifiedUser(user);
+  const admin = createAdminClient();
+  if (!admin) {
+    return { ok: false, error: "Order editing is temporarily unavailable." };
+  }
+  const { data: ownedOrder, error: ownershipError } = await admin
+    .from("grainbuds_orders")
+    .select("customer_user_id")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (ownershipError || ownedOrder?.customer_user_id !== user.id) {
+    return {
+      ok: false,
+      error: "Sign in with the email address used for this order.",
+    };
+  }
+
   const { data, error } = await supabase.rpc("grainbuds_update_order_details", {
     p_order_id: orderId,
     p_customer_name: customerName,

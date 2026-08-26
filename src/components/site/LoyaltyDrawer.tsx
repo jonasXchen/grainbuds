@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -95,6 +96,11 @@ export default function LoyaltyDrawer() {
                 <h2 id="loyalty-title" className="mt-2 font-display text-4xl text-ink">
                   {t.loyalty.title}
                 </h2>
+                {!loading && user && (
+                  <p className="mt-2 break-all text-xs text-ink/40">
+                    {user.email}
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -137,7 +143,14 @@ export default function LoyaltyDrawer() {
                 </div>
 
                 <p className="mt-6 text-sm leading-6 text-ink/60">{t.loyalty.howItWorks}</p>
-                <p className="mt-2 break-all text-xs text-ink/40">{user.email}</p>
+                <Link
+                  href="/orders"
+                  onClick={close}
+                  className="mt-6 flex items-center justify-between rounded-2xl border border-ink/10 bg-cream-light px-5 py-4 text-sm font-semibold text-ink transition-colors hover:border-matcha-deep/35 hover:bg-matcha/10"
+                >
+                  <span>{t.loyalty.orderHistory}</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
                 <button
                   type="button"
                   onClick={() => void signOut()}

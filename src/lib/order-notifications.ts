@@ -25,6 +25,7 @@ type NotificationOrder = Pick<
   | "payment_status"
   | "payment_method"
 > & {
+  customer_user_id?: string | null;
   order_items?: Array<
     Pick<
       OrderItem,
@@ -178,16 +179,12 @@ export async function sendOrderNotification(
     return;
   }
 
-  const sendToCustomer =
-    event === "created" ||
-    (event === "status_updated" &&
-      (order.status === "new" || order.status === "cancelled"));
   const sendToStaff =
     event === "created" ||
     event === "customer_updated" ||
     (event === "status_updated" && order.status === "new");
 
-  if (!sendToCustomer && !sendToStaff) return;
+  if (!sendToStaff) return;
 
   const adminRecipients = sendToStaff ? await getAdminRecipients() : [];
   const from =
@@ -206,15 +203,6 @@ export async function sendOrderNotification(
     text: string;
   }> = [];
 
-  if (sendToCustomer) {
-    messages.push({
-      from,
-      to: [order.customer_email],
-      subject: copy.customer,
-      text: `${copy.intro}\n\n${details}\n\nView or edit your order: ${viewUrl}\nDirections to Grainbuds: ${cafeInfo.mapsUrl}\n\nGrainbuds · Universitätsstraße 7, 91054 Erlangen`,
-    });
-  }
-
   if (sendToStaff && adminRecipients.length) {
     messages.push({
       from,
@@ -225,6 +213,8 @@ export async function sendOrderNotification(
   } else if (sendToStaff) {
     console.warn("Admin order email skipped: no notification recipients configured.");
   }
+
+  if (!messages.length) return;
 
   try {
     const response = await fetch("https://api.resend.com/emails/batch", {
