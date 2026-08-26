@@ -655,6 +655,59 @@ export async function saveOrderNotificationEmails(
   };
 }
 
+export async function saveQueueTimingSetting(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const supabase = await requireAdmin();
+  const isGerman = formData.get("locale") === "de";
+  const minutes = Number(
+    String(formData.get("minutes_per_drink") ?? "").replace(",", ".")
+  );
+
+  if (!Number.isFinite(minutes) || minutes < 0.1 || minutes > 10) {
+    return {
+      ok: false,
+      error: isGerman
+        ? "Geben Sie eine Zeit zwischen 0,1 und 10 Minuten pro Getränk ein."
+        : "Enter a time between 0.1 and 10 minutes per drink.",
+    };
+  }
+
+  const secondsPerDrink = Math.round(minutes * 60);
+  const { error } = await supabase.from("grainbuds_settings").upsert(
+    {
+      key: "queue_seconds_per_drink",
+      value: secondsPerDrink,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" }
+  );
+  if (error) {
+    console.error("Could not save queue timing setting", {
+      code: error.code,
+      message: error.message,
+    });
+    return {
+      ok: false,
+      error: isGerman
+        ? "Die Wartezeit konnte nicht gespeichert werden."
+        : "Could not save the waiting time.",
+    };
+  }
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/checkout");
+  return {
+    ok: true,
+    message: isGerman
+      ? `${(secondsPerDrink / 60).toLocaleString("de-DE")} Minuten pro Getränk gespeichert.`
+      : `Saved ${secondsPerDrink / 60} minute${
+          secondsPerDrink === 60 ? "" : "s"
+        } per drink.`,
+  };
+}
+
 export async function saveInstagramGallerySettings(
   _previousState: SettingsActionState,
   formData: FormData

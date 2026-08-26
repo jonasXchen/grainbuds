@@ -102,14 +102,21 @@ export async function getCheckoutEstimate(
   const snapshot = data as {
     active_orders?: number | string;
     queued_drinks?: number | string;
+    seconds_per_drink?: number | string;
   };
   const activeOrders = Math.max(0, Number(snapshot.active_orders) || 0);
   const queuedDrinkCount = Math.max(0, Number(snapshot.queued_drinks) || 0);
+  const configuredSeconds = Number(snapshot.seconds_per_drink);
+  const secondsPerDrink = Number.isFinite(configuredSeconds)
+    && configuredSeconds >= 6
+    && configuredSeconds <= 600
+    ? configuredSeconds
+    : 30;
 
   return {
     position: activeOrders + 1,
     waitingMinutes: Math.ceil(
-      ((queuedDrinkCount + currentDrinkCount) * 30) / 60
+      ((queuedDrinkCount + currentDrinkCount) * secondsPerDrink) / 60
     ),
     currentDrinkCount,
     queuedDrinkCount,

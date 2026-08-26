@@ -604,7 +604,7 @@ $$;
 grant execute on function public.grainbuds_order_confirmation(uuid) to anon, authenticated;
 
 -- Public queue totals reveal no customer or order details. Checkout uses the
--- snapshot to estimate a position and drink preparation time (30s per drink).
+-- snapshot to estimate a position and the staff-configured preparation time.
 create or replace function public.grainbuds_queue_snapshot()
 returns jsonb
 language sql
@@ -622,19 +622,19 @@ as $$
       select coalesce(sum(i.quantity), 0)
       from grainbuds_order_items i
       join grainbuds_orders o on o.id = i.order_id
-      join grainbuds_products p on p.id = i.product_id
-      join grainbuds_categories c on c.id = p.category_id
       where o.status in ('new', 'in_progress')
-        and c.slug in (
-          'specialty-matcha',
-          'matcha-refresher',
-          'hojicha',
-          'smoothies',
-          'fruit-tea',
-          'fruit-cloud',
-          'tapioca-boba'
-        )
-    )
+        and i.loyalty_eligible
+    ),
+    'seconds_per_drink', coalesce((
+      select case
+        when jsonb_typeof(s.value) = 'number'
+          and (s.value #>> '{}')::numeric between 6 and 600
+        then (s.value #>> '{}')::numeric
+        else 30
+      end
+      from grainbuds_settings s
+      where s.key = 'queue_seconds_per_drink'
+    ), 30)
   );
 $$;
 
@@ -655,6 +655,7 @@ declare
   v_status text;
   v_position int;
   v_queued_drinks int;
+  v_seconds_per_drink numeric;
 begin
   select o.created_at, o.status into v_created_at, v_status
   from public.grainbuds_orders o
@@ -677,10 +678,24 @@ begin
     and (o.created_at, o.id) <= (v_created_at, p_order_id)
     and i.loyalty_eligible;
 
+  select coalesce((
+    select case
+      when jsonb_typeof(s.value) = 'number'
+        and (s.value #>> '{}')::numeric between 6 and 600
+      then (s.value #>> '{}')::numeric
+      else 30
+    end
+    from public.grainbuds_settings s
+    where s.key = 'queue_seconds_per_drink'
+  ), 30) into v_seconds_per_drink;
+
   return jsonb_build_object(
     'active', true,
     'position', greatest(1, v_position),
-    'waiting_minutes', greatest(1, ceil(v_queued_drinks * 30.0 / 60.0)::int)
+    'waiting_minutes', greatest(
+      1,
+      ceil(v_queued_drinks * v_seconds_per_drink / 60.0)::int
+    )
   );
 end;
 $$;
