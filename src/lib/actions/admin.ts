@@ -20,10 +20,10 @@ export type SettingsActionState =
   | { ok: true; message: string }
   | { ok: false; error: string }
   | null;
-export type StampBalanceActionState =
-  | { ok: true; stamps: number }
-  | { ok: false; error: string }
-  | null;
+export type StampBalanceChange = { userId: string; stamps: number };
+export type BatchStampBalanceResult =
+  | { ok: true; updated: number }
+  | { ok: false; error: string };
 export type BatchOrderStatusResult =
   | { ok: true; updated: number }
   | { ok: false; error: string };
@@ -361,52 +361,89 @@ export async function deleteCategory(formData: FormData) {
   }
 }
 
-export async function setLoyaltyStampBalance(
-  _previousState: StampBalanceActionState,
-  formData: FormData
-): Promise<StampBalanceActionState> {
+export async function updateLoyaltyStampBalances(
+  changes: StampBalanceChange[]
+): Promise<BatchStampBalanceResult> {
   const supabase = await requireAdmin();
-  const userId = String(formData.get("user_id") ?? "");
-  const target = Number(formData.get("stamps"));
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
-    return { ok: false, error: "Invalid customer account." };
+  if (!Array.isArray(changes) || changes.length === 0 || changes.length > 200) {
+    return { ok: false, error: "Choose between 1 and 200 stamp cards." };
   }
-  if (!Number.isInteger(target) || target < 0 || target > 1000) {
-    return { ok: false, error: "Enter a whole number between 0 and 1000." };
+
+  const uniqueChanges = new Map<string, number>();
+  for (const change of changes) {
+    if (
+      !change ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(change.userId) ||
+      !Number.isInteger(change.stamps) ||
+      change.stamps < 0 ||
+      change.stamps > 1000 ||
+      uniqueChanges.has(change.userId)
+    ) {
+      return { ok: false, error: "One or more stamp balances are invalid." };
+    }
+    uniqueChanges.set(change.userId, change.stamps);
+  }
+
+  const userIds = [...uniqueChanges.keys()];
+  const { data: accounts, error: accountsError } = await supabase
+    .from("grainbuds_loyalty_accounts")
+    .select("user_id")
+    .in("user_id", userIds);
+  if (accountsError || accounts?.length !== userIds.length) {
+    return { ok: false, error: "One or more customer accounts could not be verified." };
   }
 
   const { data, error: balanceError } = await supabase
     .from("grainbuds_loyalty_ledger")
-    .select("delta")
-    .eq("user_id", userId);
+    .select("user_id, delta")
+    .in("user_id", userIds);
   if (balanceError) {
-    return { ok: false, error: "Could not read the current balance." };
-  }
-  const balance = (data ?? []).reduce(
-    (sum, entry) => sum + Number(entry.delta),
-    0
-  );
-  const delta = target - balance;
-  if (delta === 0) return { ok: true, stamps: target };
-  if (delta < -1000 || delta > 1000) {
-    return { ok: false, error: "That adjustment is too large." };
+    return { ok: false, error: "Could not read the current balances." };
   }
 
-  const { error } = await supabase.from("grainbuds_loyalty_ledger").insert({
-    user_id: userId,
-    delta,
-    kind: "staff_adjustment",
-    note: `Manual balance change from ${balance} to ${target}`,
-  });
+  const currentBalances = new Map(userIds.map((userId) => [userId, 0]));
+  for (const entry of data ?? []) {
+    currentBalances.set(
+      entry.user_id,
+      (currentBalances.get(entry.user_id) ?? 0) + Number(entry.delta)
+    );
+  }
+
+  const adjustments: Array<{
+    user_id: string;
+    delta: number;
+    kind: "staff_adjustment";
+    note: string;
+  }> = [];
+  for (const userId of userIds) {
+    const balance = currentBalances.get(userId) ?? 0;
+    const target = uniqueChanges.get(userId) ?? balance;
+    const delta = target - balance;
+    if (delta === 0) continue;
+    if (delta < -1000 || delta > 1000) {
+      return { ok: false, error: "One of the adjustments is too large." };
+    }
+    adjustments.push({
+      user_id: userId,
+      delta,
+      kind: "staff_adjustment",
+      note: `Manual batch balance change from ${balance} to ${target}`,
+    });
+  }
+  if (adjustments.length === 0) return { ok: true, updated: 0 };
+
+  const { error } = await supabase
+    .from("grainbuds_loyalty_ledger")
+    .insert(adjustments);
   if (error) {
-    console.error("Could not adjust loyalty stamps", {
+    console.error("Could not adjust loyalty stamps in bulk", {
       code: error.code,
       message: error.message,
     });
-    return { ok: false, error: "Could not save the stamp balance." };
+    return { ok: false, error: "Could not save the stamp balances." };
   }
   revalidatePath("/admin/customers");
-  return { ok: true, stamps: target };
+  return { ok: true, updated: adjustments.length };
 }
 
 export async function updateOrderPayment(formData: FormData) {

@@ -5,7 +5,7 @@ import CopyEmailsButton from "@/components/admin/CopyEmailsButton";
 import SubscriberRow from "@/components/admin/SubscriberRow";
 import { getLocale } from "@/lib/i18n/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import StampBalanceEditor from "@/components/admin/StampBalanceEditor";
+import StampCardsManager from "@/components/admin/StampCardsManager";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +23,8 @@ export default async function CustomersPage() {
   const supabase = await createClient();
   const locale = await getLocale();
   const copy = locale === "de"
-    ? { title: "Kunden", description: "Online-Kunden, Getränkestempel und Mailingliste. Marketing-E-Mails gehen nur an Personen mit ausdrücklicher Einwilligung.", update: "Neuigkeiten senden", updateHint: "Neue Produkte, saisonale Menüs oder geänderte Öffnungszeiten – eine E-Mail an die gesamte Liste.", mailing: "Mailingliste", noSubscribers: "Noch keine Anmeldungen. Kunden können beim Checkout zustimmen.", loyaltyMembers: "Stempelkarten", noMembers: "Noch keine registrierten Stempelkarten.", everyone: "Alle Besteller", noOrders: "Noch keine Bestellungen.", subscribed: "Abonniert", order: "Bestellung", orders: "Bestellungen", stamps: "Stempel", saveStamps: "Änderungen speichern", savingStamps: "Speichert…", savedStamps: "Gespeichert", stampError: "Speichern fehlgeschlagen", privacy: "Datenschutzhinweis: Diese Daten dienen der Bestellabwicklung. Nur ausdrücklich angemeldete Adressen dürfen Marketing erhalten." }
-    : { title: "Customers", description: "Online customers, drink stamps, and your mailing list. Marketing emails only go to people who opted in.", update: "Send an update", updateHint: "New products, seasonal menus, or changed hours—one email to the whole list.", mailing: "Mailing list", noSubscribers: "Nobody has opted in yet. Customers can join at checkout.", loyaltyMembers: "Stamp cards", noMembers: "No registered stamp cards yet.", everyone: "Everyone who ordered", noOrders: "No orders yet.", subscribed: "Subscribed", order: "order", orders: "orders", stamps: "stamps", saveStamps: "Save changes", savingStamps: "Saving…", savedStamps: "Saved", stampError: "Could not save", privacy: "Privacy note: this data exists to fulfil orders. Only explicitly opted-in addresses may receive marketing." };
+    ? { title: "Kunden", description: "Online-Kunden, Getränkestempel und Mailingliste. Marketing-E-Mails gehen nur an Personen mit ausdrücklicher Einwilligung.", update: "Neuigkeiten senden", updateHint: "Neue Produkte, saisonale Menüs oder geänderte Öffnungszeiten – eine E-Mail an die gesamte Liste.", mailing: "Mailingliste", noSubscribers: "Noch keine Anmeldungen. Kunden können beim Checkout zustimmen.", loyaltyMembers: "Stempelkarten", noMembers: "Noch keine registrierten Stempelkarten.", searchStamps: "Stempelkarten durchsuchen", searchStampsPlaceholder: "Nach E-Mail suchen…", noStampResults: "Keine passenden Stempelkarten gefunden.", stampChangedOne: "Stempelkarte geändert", stampChangedMany: "Stempelkarten geändert", everyone: "Alle Besteller", noOrders: "Noch keine Bestellungen.", subscribed: "Abonniert", order: "Bestellung", orders: "Bestellungen", stamps: "Stempel", saveStamps: "Änderungen speichern", savingStamps: "Speichert…", savedStamps: "Änderungen gespeichert", stampError: "Änderungen konnten nicht gespeichert werden.", privacy: "Datenschutzhinweis: Diese Daten dienen der Bestellabwicklung. Nur ausdrücklich angemeldete Adressen dürfen Marketing erhalten." }
+    : { title: "Customers", description: "Online customers, drink stamps, and your mailing list. Marketing emails only go to people who opted in.", update: "Send an update", updateHint: "New products, seasonal menus, or changed hours—one email to the whole list.", mailing: "Mailing list", noSubscribers: "Nobody has opted in yet. Customers can join at checkout.", loyaltyMembers: "Stamp cards", noMembers: "No registered stamp cards yet.", searchStamps: "Search stamp cards", searchStampsPlaceholder: "Search by email…", noStampResults: "No matching stamp cards found.", stampChangedOne: "stamp card changed", stampChangedMany: "stamp cards changed", everyone: "Everyone who ordered", noOrders: "No orders yet.", subscribed: "Subscribed", order: "order", orders: "orders", stamps: "stamps", saveStamps: "Save changes", savingStamps: "Saving…", savedStamps: "Changes saved", stampError: "Changes could not be saved.", privacy: "Privacy note: this data exists to fulfil orders. Only explicitly opted-in addresses may receive marketing." };
 
   const [ordersRes, subsRes, loyaltyRes, accountsRes] = await Promise.all([
     supabase
@@ -131,24 +131,21 @@ export default async function CustomersPage() {
             {copy.noMembers}
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-ink/8 overflow-hidden rounded-3xl bg-cream-light">
-            {loyaltyMembers.map((member) => (
-              <li key={member.userId} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-                <p className="min-w-0 truncate text-sm font-medium text-ink">{member.email}</p>
-                <StampBalanceEditor
-                  userId={member.userId}
-                  stamps={member.stamps}
-                  labels={{
-                    stamps: copy.stamps,
-                    save: copy.saveStamps,
-                    saving: copy.savingStamps,
-                    saved: copy.savedStamps,
-                    error: copy.stampError,
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
+          <StampCardsManager
+            members={loyaltyMembers}
+            labels={{
+              search: copy.searchStamps,
+              searchPlaceholder: copy.searchStampsPlaceholder,
+              noResults: copy.noStampResults,
+              stamps: copy.stamps,
+              changedOne: copy.stampChangedOne,
+              changedMany: copy.stampChangedMany,
+              save: copy.saveStamps,
+              saving: copy.savingStamps,
+              saved: copy.savedStamps,
+              error: copy.stampError,
+            }}
+          />
         )}
       </section>
 
