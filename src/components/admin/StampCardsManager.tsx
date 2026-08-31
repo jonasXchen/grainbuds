@@ -23,6 +23,7 @@ type StampCardsManagerProps = {
     saving: string;
     saved: string;
     error: string;
+    invalid: string;
   };
 };
 
@@ -35,7 +36,7 @@ export default function StampCardsManager({
   const [savedBalances, setSavedBalances] = useState<Record<string, number>>(
     () => Object.fromEntries(members.map((member) => [member.userId, member.stamps]))
   );
-  const [drafts, setDrafts] = useState<Record<string, number>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<"saved" | "error" | null>(null);
   const [isPending, startTransition] = useTransition();
   const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -46,24 +47,29 @@ export default function StampCardsManager({
     [members, normalizedQuery]
   );
   const changes = useMemo(
-    () => Object.entries(drafts).map(([userId, stamps]) => ({ userId, stamps })),
+    () => Object.entries(drafts).flatMap(([userId, value]) => {
+      const stamps = Number(value);
+      return Number.isInteger(stamps) && stamps >= 0 && stamps <= 1000
+        ? [{ userId, stamps }]
+        : [];
+    }),
     [drafts]
   );
+  const changedCount = Object.keys(drafts).length;
+  const hasInvalidDraft = changes.length !== changedCount;
 
   function changeBalance(userId: string, value: string) {
-    const next = Number(value);
-    if (!Number.isInteger(next) || next < 0 || next > 1000) return;
     setDrafts((current) => {
       const updated = { ...current };
-      if (next === savedBalances[userId]) delete updated[userId];
-      else updated[userId] = next;
+      if (value === String(savedBalances[userId])) delete updated[userId];
+      else updated[userId] = value;
       return updated;
     });
     setFeedback(null);
   }
 
   function saveChanges() {
-    if (changes.length === 0) return;
+    if (changes.length === 0 || hasInvalidDraft) return;
     setFeedback(null);
     startTransition(async () => {
       const result = await updateLoyaltyStampBalances(changes);
@@ -118,8 +124,15 @@ export default function StampCardsManager({
       ) : (
         <ul className="mt-4 divide-y divide-ink/8 overflow-hidden rounded-3xl bg-cream-light">
           {visibleMembers.map((member) => {
-            const current = drafts[member.userId] ?? savedBalances[member.userId];
+            const current = drafts[member.userId] ?? String(savedBalances[member.userId]);
             const changed = member.userId in drafts;
+            const numericValue = Number(current);
+            const invalid = changed && (
+              current === "" ||
+              !Number.isInteger(numericValue) ||
+              numericValue < 0 ||
+              numericValue > 1000
+            );
             return (
               <li
                 key={member.userId}
@@ -130,7 +143,9 @@ export default function StampCardsManager({
                 </p>
                 <label className={`flex shrink-0 items-center gap-2 rounded-2xl border p-1.5 pl-3 text-xs font-semibold transition-colors ${
                   changed
-                    ? "border-sand-deep/40 bg-sand/15 text-sand-deep"
+                    ? invalid
+                      ? "border-red-300 bg-red-50 text-red-600"
+                      : "border-sand-deep/40 bg-sand/15 text-sand-deep"
                     : "border-matcha/30 bg-matcha/10 text-matcha-deep"
                 }`}>
                   <input
@@ -152,22 +167,22 @@ export default function StampCardsManager({
         </ul>
       )}
 
-      {changes.length > 0 && (
+      {changedCount > 0 && (
         <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto flex max-w-3xl items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-cream-light/95 p-3 pl-5 shadow-[0_18px_55px_-22px_rgba(18,26,37,0.65)] backdrop-blur-md md:left-[16rem]">
           <div className="min-w-0 text-left">
             <p className="text-sm font-medium leading-none text-ink">
-              {changes.length} {changes.length === 1 ? labels.changedOne : labels.changedMany}
+              {changedCount} {changedCount === 1 ? labels.changedOne : labels.changedMany}
             </p>
-            {feedback === "error" && (
+            {(feedback === "error" || hasInvalidDraft) && (
               <p aria-live="polite" className="mt-1.5 text-xs font-medium text-red-600">
-                {labels.error}
+                {hasInvalidDraft ? labels.invalid : labels.error}
               </p>
             )}
           </div>
           <button
             type="button"
             onClick={saveChanges}
-            disabled={isPending}
+            disabled={isPending || hasInvalidDraft}
             className="shrink-0 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-matcha-deep disabled:cursor-not-allowed disabled:opacity-35"
           >
             {isPending ? labels.saving : labels.save}
