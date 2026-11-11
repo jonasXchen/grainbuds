@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
         destination: "https://grainbuds.de/:path*",
         permanent: true,
       },
+      {
+        // One canonical host, so session cookies are never split across two.
+        source: "/:path*",
+        has: [{ type: "host", value: "www.grainbuds.de" }],
+        destination: "https://grainbuds.de/:path*",
+        permanent: true,
+      },
     ];
   },
 };

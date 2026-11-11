@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "grainbuds",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // The domain's DNS zone lives in the same Cloudflare account. These are
+  // routes, not custom domains: they need a proxied (orange-cloud) DNS record
+  // for each hostname to exist in the zone, and the Worker answers every
+  // request before that record's target is ever contacted.
+  "routes": [
+    { "pattern": "grainbuds.de/*", "zone_name": "grainbuds.de" },
+    { "pattern": "www.grainbuds.de/*", "zone_name": "grainbuds.de" }
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      // Self-reference service binding; the service name must match the worker name.
+      // See https://opennext.js.org/cloudflare/caching
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "grainbuds"
+    }
+  ],
+  "images": {
+    // Image optimization for next/image.
+    // See https://opennext.js.org/cloudflare/howtos/image
+    "binding": "IMAGES"
+  },
+  "observability": {
+    "enabled": true
+  }
+  // Secrets (Supabase keys, SUPABASE_GATE_KEY, Resend) are not listed here:
+  // they are uploaded with `wrangler secret bulk` and live only in Cloudflare.
+  // The NEXT_PUBLIC_* values are read from .env at build time and inlined.
+}
