@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { getMyLoyaltyStamps } from "@/lib/actions/auth";
 
 type LoyaltyContextValue = {
   enabled: boolean;
@@ -40,11 +41,9 @@ export function LoyaltyProvider({
         return;
       }
 
-      const { data, error } = await supabase.rpc("grainbuds_my_loyalty_summary");
-      if (!error && data && typeof data === "object") {
-        const summary = data as { stamps?: number | string };
-        setStamps(Math.max(0, Number(summary.stamps) || 0));
-      }
+      // Read through the server: the database refuses direct browser queries.
+      const nextStamps = await getMyLoyaltyStamps().catch(() => null);
+      if (nextStamps !== null) setStamps(nextStamps);
       setLoading(false);
     },
     [supabase]

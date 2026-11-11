@@ -226,6 +226,20 @@ export async function activateCurrentAdmin(): Promise<AdminActivationResult> {
   return { ok: true, isAdmin: true };
 }
 
+/**
+ * The signed-in customer's stamp balance, or null when it could not be read.
+ * Runs on the server because the database only answers requests that carry the
+ * server's gate header (lib/supabase/gate) — the browser cannot query it.
+ */
+export async function getMyLoyaltyStamps(): Promise<number | null> {
+  if (!hasSupabaseEnv()) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("grainbuds_my_loyalty_summary");
+  if (error || !data || typeof data !== "object") return null;
+  const summary = data as { stamps?: number | string };
+  return Math.max(0, Number(summary.stamps) || 0);
+}
+
 export async function logout() {
   if (hasSupabaseEnv()) {
     const supabase = await createClient();
