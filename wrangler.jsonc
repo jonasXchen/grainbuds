@@ -31,8 +31,11 @@
   },
   "observability": {
     "enabled": true
-  }
+  },
+  // Variables set in the Cloudflare dashboard survive a deploy.
+  "keep_vars": true
   // Secrets (Supabase keys, SUPABASE_GATE_KEY, Resend) are not listed here:
   // they are uploaded with `wrangler secret bulk` and live only in Cloudflare.
-  // The NEXT_PUBLIC_* values are read from .env at build time and inlined.
+  // The NEXT_PUBLIC_* values are inlined at build time: from .env on a local
+  // deploy, from the Worker's build variables on a Git-triggered one.
 }

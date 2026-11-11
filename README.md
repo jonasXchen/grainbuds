@@ -121,13 +121,27 @@ Changes go live on the website within about a minute.
 
 ## Deploying
 
-The easiest path is [Vercel](https://vercel.com): import the repo, set the
-environment variables from `.env.local`, deploy. Any Node host works
-(`npm run build && npm start`).
+The site runs on [Cloudflare Workers](https://developers.cloudflare.com/workers/)
+as the Worker `grainbuds`, built with the
+[OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). The Worker
+is configured in [`wrangler.jsonc`](wrangler.jsonc).
 
-The canonical production URL is `https://grainbuds.de`. Requests to the old
-`grainbuds.vercel.app` hostname are permanently redirected to the same path on
-the custom domain, and customer order emails always use `grainbuds.de` links.
+- **Automatic:** a push to `main` is built and deployed by Cloudflare once the
+  repository is connected under Worker → Settings → Build. Build command
+  `npx opennextjs-cloudflare build`, deploy command
+  `npx opennextjs-cloudflare deploy`. `NEXT_PUBLIC_SUPABASE_URL` and
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` must be set there as build variables;
+  the build stops without them.
+- **By hand:** `yarn cf:deploy` builds from your local `.env` and deploys with
+  your `wrangler login`. `yarn cf:preview` runs the same build locally.
+- **Runtime secrets** (`SUPABASE_SECRET_KEY`, `SUPABASE_GATE_KEY`, the Resend
+  values) are stored on the Worker with `wrangler secret put` and are kept
+  across deploys.
+
+The canonical production URL is `https://grainbuds.de`. Requests to
+`www.grainbuds.de` and the old `grainbuds.vercel.app` hostname are permanently
+redirected to the same path on it, and customer order emails always use
+`grainbuds.de` links.
 
 For an existing Grainbuds database, run
 [`supabase/migrations/20260821_order_edits_and_notifications.sql`](supabase/migrations/20260821_order_edits_and_notifications.sql)
